@@ -649,11 +649,21 @@ QList< QRectF > PdfPage::search(const QString& text, bool matchCase, bool wholeW
     }
 
 #else
+	double left{}, top{}, right{}, bottom{};
+	Poppler::Page::SearchFlags searchFlag = 0;
 
-    QRectF rect;
+	if (matchCase)
+		searchFlag = Poppler::Page::SearchFlag::IgnoreCase;
 
-    while(m_page->search(text, rect, Poppler::Page::NextResult, mode))
-    {
+	while(m_page->search(text, left, top, right, bottom,
+	                     Poppler::Page::NextResult, searchFlag))
+	{
+		QRectF rect {};
+
+		rect.setLeft(left);
+		rect.setTop(top);
+		rect.setRight(right);
+		rect.setBottom(bottom);
         results.append(rect);
     }
 
