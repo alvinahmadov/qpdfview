@@ -25,6 +25,11 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMutex>
 
+class QSpinBox;
+class QFontComboBox;
+class QFormLayout;
+class QSettings;
+
 extern "C"
 {
 
@@ -104,6 +109,32 @@ namespace Model
     };
 }
 
+class FitzSettingsWidget : public SettingsWidget
+{
+Q_OBJECT
+
+public:
+	FitzSettingsWidget(QSettings* settings, QWidget* parent = 0);
+
+	void accept();
+
+	void reset();
+
+private:
+	Q_DISABLE_COPY(FitzSettingsWidget)
+
+	QSettings* m_settings;
+
+	QFormLayout* m_layout;
+
+	QFontComboBox* m_defaultFontComboBox;
+	QFontComboBox* m_monospaceFontComboBox;
+
+	QSpinBox* m_defaultFontSize;
+	QSpinBox* m_monospaceFontSize;
+	QSpinBox* m_textWidthMax;
+};
+
 class FitzPlugin : public QObject, Plugin
 {
     Q_OBJECT
@@ -121,7 +152,10 @@ public:
 
     Model::Document* loadDocument(const QString& filePath) const;
 
+    SettingsWidget* createSettingsWidget(QWidget* parent) const;
+
 private:
+	QSettings* m_settings;
     QMutex m_mutex[FZ_LOCK_MAX];
     fz_locks_context m_locks_context;
     fz_context* m_context;
