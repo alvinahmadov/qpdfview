@@ -110,6 +110,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent)
     addSettingsWidget(m_graphicsTabWidget, m_pdfSettingsWidget, PluginHandler::PDF);
     addSettingsWidget(m_graphicsTabWidget, m_psSettingsWidget, PluginHandler::PS);
     addSettingsWidget(m_graphicsTabWidget, m_djvuSettingsWidget, PluginHandler::DjVu);
+	addSettingsWidget(m_graphicsTabWidget, m_fitzSettingsWidget, PluginHandler::EPUB);
 
     m_graphicsLayout = new QFormLayout(m_graphicsTabWidget->widget(0));
 

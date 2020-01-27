@@ -67,6 +67,7 @@ private:
     SettingsWidget* m_pdfSettingsWidget;
     SettingsWidget* m_psSettingsWidget;
     SettingsWidget* m_djvuSettingsWidget;
+    SettingsWidget* m_fitzSettingsWidget;
 
     QTableView* m_shortcutsTableView;
 
