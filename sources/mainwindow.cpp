@@ -664,6 +664,7 @@ void MainWindow::on_tabWidget_currentChanged()
     m_closeCurrentViewAction->setEnabled(hasCurrent);
 
     m_searchDock->toggleViewAction()->setEnabled(hasCurrent);
+    m_toolbarDock->toggleViewAction()->setEnabled(hasCurrent);
 
     if(hasCurrent)
     {
@@ -1820,6 +1821,7 @@ void MainWindow::on_fullscreen_triggered(bool checked)
         m_toggleToolBarsAction->trigger();
         m_toggleMenuBarAction->trigger();
     }
+	m_toolbarDock->setVisible(checked && !m_toggleToolBarsAction->isChecked());
 }
 
 void MainWindow::on_presentation_triggered()
@@ -3278,9 +3280,13 @@ void MainWindow::createActions()
     s_settings->pageItem().setErrorIcon(loadIconWithFallback(QLatin1String("image-missing")));
 }
 
-QToolBar* MainWindow::createToolBar(const QString& text, const QString& objectName, const QStringList& actionNames, const QList< QAction* >& actions)
+QToolBar* MainWindow::createToolBar(const QString& text, const QString& objectName, const QStringList& actionNames, const QList< QAction* >& actions, bool child)
 {
-    QToolBar* toolBar = addToolBar(text);
+	QToolBar* toolBar = nullptr;
+	if(child)
+		toolBar = addToolBar(text);
+	else
+		toolBar = new QToolBar(this);
     toolBar->setObjectName(objectName);
 
     addWidgetActions(toolBar, actionNames, actions);
@@ -3330,6 +3336,76 @@ QDockWidget* MainWindow::createDock(const QString& text, const QString& objectNa
     dock->hide();
 
     return dock;
+}
+
+void MainWindow::createToolbarDock()
+{
+	m_toolbarDock = new QDockWidget(this);
+	m_toolbarDock->setObjectName(QLatin1String("toolbarDock"));
+	m_toolbarDock->setAllowedAreas(Qt::NoDockWidgetArea);
+	m_toolbarDock->setFeatures(QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+
+	m_toolbarWidget = new QWidget(this);
+	m_toolbarDock->setWidget(m_toolbarWidget);
+
+	auto fileToolBar = createToolBar(tr("&File"), QLatin1String("fileToolBarDock"),
+	                                 s_settings->mainWindow().fileToolBar(),
+	                                 QList<QAction*>()
+			                                 << m_openAction
+			                                 << m_openInNewTabAction
+			                                 << m_openContainingFolderAction
+			                                 << m_refreshAction,
+	                                 false);
+
+	auto editToolBar = createToolBar(tr("&Edit"), QLatin1String("editToolBarDock"),
+	                                 s_settings->mainWindow().editToolBar(),
+	                                 QList<QAction*>()
+			                                 << m_previousPageAction
+			                                 << m_nextPageAction
+			                                 << m_firstPageAction
+			                                 << m_lastPageAction
+			                                 << m_jumpToPageAction
+			                                 << m_searchAction
+			                                 << m_jumpBackwardAction
+			                                 << m_jumpForwardAction
+			                                 << m_copyToClipboardModeAction
+			                                 << m_addAnnotationModeAction,
+	                                 false);
+
+	auto viewToolBar = createToolBar(tr("&View"),
+	                                 QLatin1String("viewToolBarDock"),
+	                                 s_settings->mainWindow().viewToolBar(),
+	                                 QList<QAction*>()
+			                                 << m_continuousModeAction
+			                                 << m_twoPagesModeAction
+			                                 << m_twoPagesWithCoverPageModeAction
+			                                 << m_multiplePagesModeAction
+			                                 << m_rightToLeftModeAction
+			                                 << m_zoomInAction
+			                                 << m_zoomOutAction
+			                                 << m_originalSizeAction
+			                                 << m_fitToPageWidthModeAction
+			                                 << m_fitToPageSizeModeAction
+			                                 << m_rotateLeftAction
+			                                 << m_rotateRightAction
+			                                 << m_fullscreenAction,
+	                                 false);
+
+	auto toolbarLayout = new QHBoxLayout(m_toolbarWidget);
+
+	toolbarLayout->addWidget(fileToolBar);
+	toolbarLayout->addWidget(editToolBar);
+	toolbarLayout->addWidget(viewToolBar);
+
+	toolbarLayout->setSizeConstraint(QLayout::SetFixedSize);
+
+	connect(m_toolbarDock, SIGNAL(visibilityChanged(bool)), fileToolBar, SLOT(setEnabled(bool)));
+	connect(m_toolbarDock, SIGNAL(visibilityChanged(bool)), editToolBar, SLOT(setEnabled(bool)));
+	connect(m_toolbarDock, SIGNAL(visibilityChanged(bool)), viewToolBar, SLOT(setEnabled(bool)));
+
+	connect(m_toolbarDock, SIGNAL(visibilityChanged(bool)), viewToolBar, SLOT(setEnabled(bool)));
+
+	m_toolbarDock->setHidden(true);
 }
 
 void MainWindow::createSearchDock()
@@ -3480,6 +3556,7 @@ void MainWindow::createDocks()
 
     // search
 
+    createToolbarDock();
     createSearchDock();
 }
 

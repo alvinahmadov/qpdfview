@@ -458,7 +458,7 @@ private:
     QShortcut* m_focusCurrentPageShortcut;
     QShortcut* m_focusScaleFactorShortcut;
 
-    QToolBar* createToolBar(const QString& text, const QString& objectName, const QStringList& actionNames, const QList< QAction* >& actions);
+    QToolBar* createToolBar(const QString& text, const QString& objectName, const QStringList& actionNames, const QList< QAction* >& actions, bool child = true);
 
     void createToolBars();
 
@@ -474,12 +474,15 @@ private:
     QDockWidget* m_bookmarksDock;
     QTableView* m_bookmarksView;
 
+	QDockWidget* m_toolbarDock;
+	QWidget* m_toolbarWidget;
+
     QDockWidget* m_searchDock;
     QTreeView* m_searchView;
     QWidget* m_searchWidget;
 
     QDockWidget* createDock(const QString& text, const QString& objectName, const QKeySequence& toggleViewShortcut);
-
+	void createToolbarDock();
     void createSearchDock();
 
     void createDocks();
