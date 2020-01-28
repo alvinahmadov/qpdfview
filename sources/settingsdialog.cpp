@@ -110,7 +110,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent)
     addSettingsWidget(m_graphicsTabWidget, m_pdfSettingsWidget, PluginHandler::PDF);
     addSettingsWidget(m_graphicsTabWidget, m_psSettingsWidget, PluginHandler::PS);
     addSettingsWidget(m_graphicsTabWidget, m_djvuSettingsWidget, PluginHandler::DjVu);
-	addSettingsWidget(m_graphicsTabWidget, m_fitzSettingsWidget, PluginHandler::EPUB);
+	// addSettingsWidget(m_graphicsTabWidget, m_epubSettingsWidget, PluginHandler::EPUB);
 
     m_graphicsLayout = new QFormLayout(m_graphicsTabWidget->widget(0));
 
@@ -535,6 +535,10 @@ void SettingsDialog::createInterfaceTab()
     m_formFieldOverlayCheckBox = addCheckBox(m_interfaceLayout, tr("Form field overlay:"), QString(),
                                              s_settings->pageItem().formFieldOverlay());
 
+	m_backgroundModeComboBox = addComboBox(m_interfaceLayout, tr("Background Mode:"), QString(),
+	                                       QStringList() << tr("Default") << tr("Dark"),
+	                                       QList< int >() << BackgroundMode::Default << BackgroundMode::Dark,
+	                                       s_settings->mainWindow().backgroundMode());
 
     m_tabPositionComboBox = addComboBox(m_interfaceLayout, tr("Tab position:"), QString(),
                                         QStringList() << tr("Top") << tr("Bottom") << tr("Left") << tr("Right"),
@@ -618,6 +622,8 @@ void SettingsDialog::acceptInterfaceTab()
     s_settings->pageItem().setAnnotationOverlay(m_annotationOverlayCheckBox->isChecked());
     s_settings->pageItem().setFormFieldOverlay(m_formFieldOverlayCheckBox);
 
+	s_settings->mainWindow().setBackgroundMode(static_cast<BackgroundMode>(dataFromCurrentIndex(m_backgroundModeComboBox)));
+
     s_settings->mainWindow().setTabPosition(dataFromCurrentIndex(m_tabPositionComboBox));
     s_settings->mainWindow().setTabVisibility(dataFromCurrentIndex(m_tabVisibilityComboBox));
     s_settings->mainWindow().setSpreadTabs(m_spreadTabsCheckBox->isChecked());
@@ -656,6 +662,8 @@ void SettingsDialog::resetInterfaceTab()
 
     m_annotationOverlayCheckBox->setChecked(Defaults::PageItem::annotationOverlay());
     m_formFieldOverlayCheckBox->setChecked(Defaults::PageItem::formFieldOverlay());
+
+    setCurrentIndexFromData(m_backgroundModeComboBox, Defaults::MainWindow::backgroundMode());
 
     setCurrentIndexFromData(m_tabPositionComboBox, Defaults::MainWindow::tabPosition());
     setCurrentIndexFromData(m_tabVisibilityComboBox, Defaults::MainWindow::tabVisibility());

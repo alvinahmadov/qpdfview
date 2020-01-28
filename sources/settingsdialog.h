@@ -67,7 +67,7 @@ private:
     SettingsWidget* m_pdfSettingsWidget;
     SettingsWidget* m_psSettingsWidget;
     SettingsWidget* m_djvuSettingsWidget;
-    SettingsWidget* m_fitzSettingsWidget;
+    SettingsWidget* m_epubSettingsWidget;
 
     QTableView* m_shortcutsTableView;
 
@@ -154,6 +154,8 @@ private:
 
     QCheckBox* m_annotationOverlayCheckBox;
     QCheckBox* m_formFieldOverlayCheckBox;
+
+	QComboBox* m_backgroundModeComboBox;
 
     QComboBox* m_tabPositionComboBox;
     QComboBox* m_tabVisibilityComboBox;

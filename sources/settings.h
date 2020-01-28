@@ -331,6 +331,9 @@ public:
         int currentTabIndex() const;
         void setCurrentTabIndex(int currentTabIndex);
 
+	    int backgroundMode() const;
+	    void setBackgroundMode(BackgroundMode backgroundMode);
+
         int tabPosition() const;
         void setTabPosition(int tabPosition);
 
@@ -627,6 +630,8 @@ public:
         static int perFileSettingsLimit() { return 1000; }
 
         static int saveDatabaseInterval() { return 5 * 60 * 1000; }
+
+	    static int backgroundMode() { return 0; };
 
         static int tabPosition() { return 0; }
         static int tabVisibility() { return 0; }

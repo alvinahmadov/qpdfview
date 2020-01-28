@@ -780,6 +780,26 @@ void Settings::MainWindow::setCurrentTabIndex(int currentTabIndex)
     m_settings->setValue("mainWindow/currentTabIndex", currentTabIndex);
 }
 
+int Settings::MainWindow::backgroundMode() const
+{
+	return m_settings->value("mainWindow/backgroundMode", BackgroundMode::Default).toInt();
+}
+
+void Settings::MainWindow::setBackgroundMode(BackgroundMode backgroundMode)
+{
+	switch (backgroundMode)
+	{
+		case BackgroundMode::Default :
+			if (m_settings->contains("mainWindow/styleSheet"))
+				m_settings->remove("mainWindow/styleSheet");
+			break;
+		case BackgroundMode::Dark :
+			m_settings->setValue("mainWindow/styleSheet", "QWidget {background-color:#1e1e1e; color: #dcdcdc;}");
+			break;
+	}
+	return m_settings->setValue("mainWindow/backgroundMode", backgroundMode);
+}
+
 int Settings::MainWindow::tabPosition() const
 {
     return m_settings->value("mainWindow/tabPosition", Defaults::MainWindow::tabPosition()).toInt();

@@ -72,6 +72,11 @@ enum CompositionMode
     NumberOfCompositionModes = 3
 };
 
+enum BackgroundMode
+{
+	Default = 0,
+	Dark = 1
+};
 } // qpdfview
 
 #endif // GLOBAL_H
