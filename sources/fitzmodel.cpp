@@ -440,8 +440,11 @@ void FitzSettingsWidget::accept()
 
 void FitzSettingsWidget::reset()
 {
-	m_defaultFontComboBox->setCurrentIndex(0);
-	m_monospaceFontComboBox->setCurrentIndex(0);
+	m_defaultFontComboBox->setCurrentIndex(m_defaultFontComboBox->findData(Defaults::defaultFont));
+	m_monospaceFontComboBox->setCurrentIndex(m_monospaceFontComboBox->findData(Defaults::defaultMonospaceFont));
+	m_defaultFontSize->setValue(Defaults::defaultFontSize);
+	m_monospaceFontSize->setValue(Defaults::defaultMonospaceFontSize);
+	m_textWidthMax->setValue(Defaults::textWidthMax);
 }
 
 FitzPlugin::FitzPlugin(QObject* parent) : QObject(parent)
