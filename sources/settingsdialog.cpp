@@ -110,7 +110,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent)
     addSettingsWidget(m_graphicsTabWidget, m_pdfSettingsWidget, PluginHandler::PDF);
     addSettingsWidget(m_graphicsTabWidget, m_psSettingsWidget, PluginHandler::PS);
     addSettingsWidget(m_graphicsTabWidget, m_djvuSettingsWidget, PluginHandler::DjVu);
-	// addSettingsWidget(m_graphicsTabWidget, m_epubSettingsWidget, PluginHandler::EPUB);
+	addSettingsWidget(m_graphicsTabWidget, m_epubSettingsWidget, PluginHandler::EPUB);
 
     m_graphicsLayout = new QFormLayout(m_graphicsTabWidget->widget(0));
 
@@ -481,6 +481,11 @@ void SettingsDialog::acceptGraphicsTab()
     {
         m_djvuSettingsWidget->accept();
     }
+
+    if(m_epubSettingsWidget != 0)
+    {
+	    m_epubSettingsWidget->accept();
+    }
 }
 
 void SettingsDialog::resetGraphicsTab()
@@ -521,6 +526,11 @@ void SettingsDialog::resetGraphicsTab()
     if(m_djvuSettingsWidget != 0)
     {
         m_djvuSettingsWidget->reset();
+    }
+
+    if(m_epubSettingsWidget != 0)
+    {
+	    m_epubSettingsWidget->reset();
     }
 }
 
