@@ -56,9 +56,11 @@ using namespace qpdfview::Model;
 
 namespace Defaults
 {
-	const QString defaultFont = "Arial", defaultMonospaceFont = "Consolas";
+	const QString fontName = QString("Liberation Sans");
+	const QString monospaceFontName = QString("Consolas");
 
-	const int defaultFontSize = 14, defaultMonospaceFontSize = 14;
+	const int fontSize = 14;
+	const int monospaceFontSize = 14;
 
 	const int textWidthMax = 0;
 
@@ -103,6 +105,26 @@ Outline loadOutline(fz_outline* item)
     }
 
     return outline;
+}
+
+QSpinBox* addSpinBox(QWidget* parent, int rangeMin, int rangeMax, int value, QString suffix = "px", int step = 1)
+{
+	QSpinBox* spinBox = new QSpinBox(parent);
+	spinBox->setRange(rangeMin, rangeMax);
+	spinBox->setSingleStep(step);
+	spinBox->setSuffix(suffix);
+	spinBox->setValue(value);
+
+	return spinBox;
+}
+
+QFontComboBox* addFontComboBox(QWidget* parent, QFlags<QFontComboBox::FontFilter> filters, QString fontFamily)
+{
+	auto fontComboBox = new QFontComboBox(parent);
+	fontComboBox->setFontFilters(filters);
+	fontComboBox->setCurrentFont(fontFamily);
+
+	return fontComboBox;
 }
 
 } // anonymous
@@ -394,62 +416,71 @@ Outline FitzDocument::outline() const
 } // Model
 
 FitzSettingsWidget::FitzSettingsWidget(QSettings* settings, QWidget* parent) : SettingsWidget(parent),
-	                                                                             m_settings(settings)
+    m_settings(settings)
 {
 	m_layout = new QFormLayout(this);
 
-	// font
+	// Default font family
 
-	m_defaultFontComboBox = new QFontComboBox(this);
-	m_defaultFontComboBox->setFontFilters(QFontComboBox::FontFilter::ScalableFonts);
-	m_defaultFontComboBox->setCurrentFont(m_settings->value("defaultFont", Defaults::defaultFont).toString());
+	m_defaultFontComboBox = addFontComboBox(this, QFontComboBox::ScalableFonts,
+	                                        m_settings->value("defaultFont", Defaults::fontName)
+	                                        .toString());
+
 	m_layout->addRow(tr("Default font family:"), m_defaultFontComboBox);
 
-	m_monospaceFontComboBox = new QFontComboBox(this);
-	m_monospaceFontComboBox->setFontFilters(QFontComboBox::FontFilter::MonospacedFonts);
-	m_monospaceFontComboBox->setCurrentFont(m_settings->value("monospaceFont", Defaults::defaultMonospaceFont).toString());
+	// Monospace font family
+
+	m_monospaceFontComboBox = addFontComboBox(this, QFontComboBox::MonospacedFonts,
+	                                          m_settings->value("monospaceFont", Defaults::monospaceFontName)
+	                                                    .toString());
+
 	m_layout->addRow(tr("Monospace font family:"), m_monospaceFontComboBox);
 
-	m_defaultFontSize = new QSpinBox(this);
-	m_defaultFontSize->setRange(8, 100);
-	m_defaultFontSize->setSuffix(" px");
-	m_defaultFontSize->setValue(m_settings->value("defaultFontSize", Defaults::defaultFontSize).toInt());
-	m_layout->addRow(tr("Default font size:"), m_defaultFontSize);
+	// Default font size
 
-	m_monospaceFontSize = new QSpinBox(this);
-	m_monospaceFontSize->setRange(8, 100);
-	m_monospaceFontSize->setSuffix(" px");
-	m_defaultFontSize->setValue(m_settings->value("monospaceFontSize", Defaults::defaultMonospaceFontSize).toInt());
-	m_layout->addRow(tr("Monospace font size:"), m_monospaceFontSize);
+	m_defaultFontSizeSpinBox = addSpinBox(this, 8, 100,
+	                                      m_settings->value("defaultFontSize", Defaults::fontSize).toInt());
 
-	m_textWidthMax = new QSpinBox(this);
-	m_textWidthMax->setRange(0, 2000);
-	m_textWidthMax->setSuffix(" px");
-	m_textWidthMax->setValue(m_settings->value("textWidthMax", Defaults::textWidthMax).toInt());
+	m_layout->addRow(tr("Default font size:"), m_defaultFontSizeSpinBox);
+
+	// Monospace font size
+
+	m_monospaceFontSizeSpinBox = addSpinBox(this, 8, 100,
+	                                        m_settings->value("monospaceFontSize", Defaults::monospaceFontSize).toInt());
+
+	m_layout->addRow(tr("Monospace font size:"), m_monospaceFontSizeSpinBox);
+
+	// Width of visible text area
+
+	m_textWidthMax = addSpinBox(this, 8, 2000,
+	                            m_settings->value("textWidthMax", Defaults::textWidthMax).toInt());
+
 	m_layout->addRow(tr("Maximum text width:"), m_textWidthMax);
 }
 
 void FitzSettingsWidget::accept()
 {
-	m_settings->setValue("defaultFont", m_defaultFontComboBox->currentFont().toString());
-	m_settings->setValue("monospaceFont", m_monospaceFontComboBox->currentFont().toString());
-	m_settings->setValue("defaultFontSize", m_defaultFontSize->value());
-	m_settings->setValue("monospaceFontSize", m_monospaceFontSize->value());
+	m_settings->setValue("defaultFont", m_defaultFontComboBox->currentFont().family());
+	m_settings->setValue("monospaceFont", m_monospaceFontComboBox->currentFont().family());
+	m_settings->setValue("defaultFontSize", m_defaultFontSizeSpinBox->value());
+	m_settings->setValue("monospaceFontSize", m_monospaceFontSizeSpinBox->value());
 	m_settings->setValue("textWidthMax", m_textWidthMax->value());
 }
 
 void FitzSettingsWidget::reset()
 {
-	m_defaultFontComboBox->setCurrentIndex(m_defaultFontComboBox->findData(Defaults::defaultFont));
-	m_monospaceFontComboBox->setCurrentIndex(m_monospaceFontComboBox->findData(Defaults::defaultMonospaceFont));
-	m_defaultFontSize->setValue(Defaults::defaultFontSize);
-	m_monospaceFontSize->setValue(Defaults::defaultMonospaceFontSize);
+	m_defaultFontComboBox->setCurrentFont(Defaults::fontName);
+	m_monospaceFontComboBox->setCurrentFont(Defaults::monospaceFontName);
+	m_defaultFontSizeSpinBox->setValue(Defaults::fontSize);
+	m_monospaceFontSizeSpinBox->setValue(Defaults::monospaceFontSize);
 	m_textWidthMax->setValue(Defaults::textWidthMax);
 }
 
 FitzPlugin::FitzPlugin(QObject* parent) : QObject(parent)
 {
     setObjectName("FitzPlugin");
+
+	m_settings = new QSettings("qpdfview", "epub-plugin", this);
 
     m_locks_context.user = this;
     m_locks_context.lock = FitzPlugin::lock;

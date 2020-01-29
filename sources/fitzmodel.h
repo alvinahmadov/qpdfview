@@ -130,8 +130,8 @@ private:
 	QFontComboBox* m_defaultFontComboBox;
 	QFontComboBox* m_monospaceFontComboBox;
 
-	QSpinBox* m_defaultFontSize;
-	QSpinBox* m_monospaceFontSize;
+	QSpinBox* m_defaultFontSizeSpinBox;
+	QSpinBox* m_monospaceFontSizeSpinBox;
 	QSpinBox* m_textWidthMax;
 };
 
@@ -155,6 +155,8 @@ public:
     SettingsWidget* createSettingsWidget(QWidget* parent) const;
 
 private:
+	Q_DISABLE_COPY(FitzPlugin)
+
 	QSettings* m_settings;
     QMutex m_mutex[FZ_LOCK_MAX];
     fz_locks_context m_locks_context;
