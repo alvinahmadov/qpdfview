@@ -1690,6 +1690,8 @@ void MainWindow::on_settings_triggered()
 
     s_settings->sync();
 
+    qApp->setStyleSheet(s_settings->mainWindow().hasStyleSheet() ? s_settings->mainWindow().styleSheet() : "");
+
     m_tabWidget->setTabPosition(static_cast< QTabWidget::TabPosition >(s_settings->mainWindow().tabPosition()));
     m_tabWidget->setTabBarPolicy(static_cast< TabWidget::TabBarPolicy >(s_settings->mainWindow().tabVisibility()));
     m_tabWidget->setSpreadTabs(s_settings->mainWindow().spreadTabs());
