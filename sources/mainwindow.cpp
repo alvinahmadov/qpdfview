@@ -3405,8 +3405,6 @@ void MainWindow::createToolbarDock()
 	connect(m_toolbarDock, SIGNAL(visibilityChanged(bool)), editToolBar, SLOT(setEnabled(bool)));
 	connect(m_toolbarDock, SIGNAL(visibilityChanged(bool)), viewToolBar, SLOT(setEnabled(bool)));
 
-	connect(m_toolbarDock, SIGNAL(visibilityChanged(bool)), viewToolBar, SLOT(setEnabled(bool)));
-
 	m_toolbarDock->setHidden(true);
 }
 
