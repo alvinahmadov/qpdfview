@@ -26,10 +26,11 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFile>
 #include <qmath.h>
 #include <QFormLayout>
+#include <QComboBox>
 #include <QSpinBox>
-#include <QFontComboBox>
 #include <QMessageBox>
 #include <QSettings>
+#include <memory>
 
 extern "C"
 {
@@ -48,6 +49,23 @@ pdf_document* pdf_specifics(fz_context*, fz_document*);
 
 }
 
+std::string getData(const QVariant& value)
+{
+	return value.toString().toStdString();
+}
+
+template<typename ... Args>
+std::string join(std::string& format, Args&& ... args)
+{
+	const size_t __len = 255;
+	std::shared_ptr<char[]> __data = std::shared_ptr<char[]>(new char[__len]);
+	snprintf(__data.get(), __len, format.data(), std::forward<Args>(args)...);
+
+	return __data.get();
+}
+
+std::string fontStyleSheet = "body { margin: %spx %spx; font-family: %s!important; font-size: %spt;} pre, code {font-size: %spt;}";
+
 namespace
 {
 
@@ -56,13 +74,14 @@ using namespace qpdfview::Model;
 
 namespace Defaults
 {
-	const QString fontName = QString("Liberation Sans");
-	const QString monospaceFontName = QString("Consolas");
 
-	const int fontSize = 14;
-	const int monospaceFontSize = 14;
+	const QString defaultFontStandard = "serif";
 
-	const int textWidthMax = 0;
+	const int fontSize = 8;
+	const int monospaceFontSize = 8;
+
+	const int horizontalMargin = 20;
+	const int verticalMargin = 20;
 
 
 } // Defaults
@@ -118,15 +137,19 @@ QSpinBox* addSpinBox(QWidget* parent, int rangeMin, int rangeMax, int value, QSt
 	return spinBox;
 }
 
-QFontComboBox* addFontComboBox(QWidget* parent, QFlags<QFontComboBox::FontFilter> filters, QString fontFamily)
+QComboBox* addComboBox(QWidget* parent,
+                       const QStringList& text, const QStringList& data,
+                       const QString& current)
 {
-	auto fontComboBox = new QFontComboBox(parent);
-	fontComboBox->setFontFilters(filters);
-	fontComboBox->setCurrentFont(fontFamily);
+	QComboBox* comboBox = new QComboBox(parent);
 
-	return fontComboBox;
+	for (int index = 0, count = text.count(); index < count; ++index)
+	{
+		comboBox->addItem(text.at(index), data.at(index));
+	}
+	comboBox->setCurrentIndex(comboBox->findData(current));
+	return comboBox;
 }
-
 } // anonymous
 
 namespace qpdfview
@@ -420,60 +443,55 @@ FitzSettingsWidget::FitzSettingsWidget(QSettings* settings, QWidget* parent) : S
 {
 	m_layout = new QFormLayout(this);
 
-	// Default font family
+	m_defaultFontComboBox = addComboBox(this, QStringList() << "Sans Serif" << "Serif",
+			QStringList() << "sans-serif" << "serif",
+			m_settings->value("defaultFontStandard", Defaults::defaultFontStandard).toString());
 
-	m_defaultFontComboBox = addFontComboBox(this, QFontComboBox::ScalableFonts,
-	                                        m_settings->value("defaultFont", Defaults::fontName)
-	                                        .toString());
-
-	m_layout->addRow(tr("Default font family:"), m_defaultFontComboBox);
-
-	// Monospace font family
-
-	m_monospaceFontComboBox = addFontComboBox(this, QFontComboBox::MonospacedFonts,
-	                                          m_settings->value("monospaceFont", Defaults::monospaceFontName)
-	                                                    .toString());
-
-	m_layout->addRow(tr("Monospace font family:"), m_monospaceFontComboBox);
-
+	m_layout->addRow(tr("Standard font:"), m_defaultFontComboBox);
 	// Default font size
 
-	m_defaultFontSizeSpinBox = addSpinBox(this, 8, 100,
-	                                      m_settings->value("defaultFontSize", Defaults::fontSize).toInt());
+	m_defaultFontSizeSpinBox = addSpinBox(this, 2, 100,
+	                                      m_settings->value("defaultFontSize", Defaults::fontSize).toInt(), "pt");
 
 	m_layout->addRow(tr("Default font size:"), m_defaultFontSizeSpinBox);
 
 	// Monospace font size
 
-	m_monospaceFontSizeSpinBox = addSpinBox(this, 8, 100,
-	                                        m_settings->value("monospaceFontSize", Defaults::monospaceFontSize).toInt());
+	m_monospaceFontSizeSpinBox = addSpinBox(this, 2, 100,
+	                                        m_settings->value("monospaceFontSize", Defaults::monospaceFontSize).toInt(), "pt");
 
 	m_layout->addRow(tr("Monospace font size:"), m_monospaceFontSizeSpinBox);
 
-	// Width of visible text area
+	// Horizontal margin
 
-	m_textWidthMax = addSpinBox(this, 8, 2000,
-	                            m_settings->value("textWidthMax", Defaults::textWidthMax).toInt());
+	m_horizontalMarginSpinBox = addSpinBox(this, 8, 40,
+	                                       m_settings->value("horizontalMargin", Defaults::horizontalMargin).toInt());
 
-	m_layout->addRow(tr("Maximum text width:"), m_textWidthMax);
+	m_layout->addRow(tr("Horizontal margin:"), m_horizontalMarginSpinBox);
+	// Vertical margin
+
+	m_verticalMarginSpinBox = addSpinBox(this, 8, 40,
+	                                     m_settings->value("verticalMargin", Defaults::verticalMargin).toInt());
+
+	m_layout->addRow(tr("Vertical margin:"), m_verticalMarginSpinBox);
 }
 
 void FitzSettingsWidget::accept()
 {
-	m_settings->setValue("defaultFont", m_defaultFontComboBox->currentFont().family());
-	m_settings->setValue("monospaceFont", m_monospaceFontComboBox->currentFont().family());
+	m_settings->setValue("defaultFontStandard", m_defaultFontComboBox->currentData().toString());
 	m_settings->setValue("defaultFontSize", m_defaultFontSizeSpinBox->value());
 	m_settings->setValue("monospaceFontSize", m_monospaceFontSizeSpinBox->value());
-	m_settings->setValue("textWidthMax", m_textWidthMax->value());
+	m_settings->setValue("horizontalMargin", m_horizontalMarginSpinBox->value());
+	m_settings->setValue("verticalMargin", m_verticalMarginSpinBox->value());
 }
 
 void FitzSettingsWidget::reset()
 {
-	m_defaultFontComboBox->setCurrentFont(Defaults::fontName);
-	m_monospaceFontComboBox->setCurrentFont(Defaults::monospaceFontName);
+	m_defaultFontComboBox->setCurrentIndex(m_defaultFontComboBox->findData(Defaults::defaultFontStandard));
 	m_defaultFontSizeSpinBox->setValue(Defaults::fontSize);
 	m_monospaceFontSizeSpinBox->setValue(Defaults::monospaceFontSize);
-	m_textWidthMax->setValue(Defaults::textWidthMax);
+	m_horizontalMarginSpinBox->setValue(Defaults::horizontalMargin);
+	m_verticalMarginSpinBox->setValue(Defaults::verticalMargin);
 }
 
 FitzPlugin::FitzPlugin(QObject* parent) : QObject(parent)
@@ -521,6 +539,21 @@ Model::Document* FitzPlugin::loadDocument(const QString& filePath) const
 
         return 0;
     }
+
+    auto defaultFontStandard = getData(m_settings->value("defaultFontStandard", Defaults::defaultFontStandard));
+
+	auto horizontalMargin = getData(m_settings->value("horizontalMargin", Defaults::horizontalMargin));
+	auto verticalMargin = getData(m_settings->value("verticalMargin", Defaults::verticalMargin));
+
+	auto defaultFontSize = getData(m_settings->value("defaultFontSize", Defaults::fontSize));
+	auto monoFontSize = getData(m_settings->value("monospaceFontSize", Defaults::monospaceFontSize));
+
+	auto data = join(fontStyleSheet,
+	                 verticalMargin.data(), horizontalMargin.data(),
+	                 defaultFontStandard.data(),
+	                 defaultFontSize.data(), monoFontSize.data());
+
+	fz_set_user_css(context, data.c_str());
 
     return new Model::FitzDocument(context, document);
 }

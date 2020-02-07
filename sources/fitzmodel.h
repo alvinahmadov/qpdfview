@@ -26,7 +26,7 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include <QMutex>
 
 class QSpinBox;
-class QFontComboBox;
+class QComboBox;
 class QFormLayout;
 class QSettings;
 
@@ -127,12 +127,12 @@ private:
 
 	QFormLayout* m_layout;
 
-	QFontComboBox* m_defaultFontComboBox;
-	QFontComboBox* m_monospaceFontComboBox;
+	QComboBox* m_defaultFontComboBox;
 
 	QSpinBox* m_defaultFontSizeSpinBox;
 	QSpinBox* m_monospaceFontSizeSpinBox;
-	QSpinBox* m_textWidthMax;
+	QSpinBox* m_horizontalMarginSpinBox;
+	QSpinBox* m_verticalMarginSpinBox;
 };
 
 class FitzPlugin : public QObject, Plugin
