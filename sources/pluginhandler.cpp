@@ -185,7 +185,7 @@ PluginHandler::FileType matchFileType(const QString& filePath)
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 
-    const QMimeType mimeType = QMimeDatabase().mimeTypeForFile(filePath, QMimeDatabase::MatchContent);
+    const QMimeType mimeType = QMimeDatabase().mimeTypeForFile(filePath, QMimeDatabase::MatchExtension);
 
     for(const MimeTypeMapping* mapping = mimeTypeMappings; mapping != endOfMimeTypeMappings; ++mapping)
     {
