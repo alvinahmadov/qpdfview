@@ -201,32 +201,3 @@ function(qp_status message)
         message(STATUS ${message})
     endif()
 endfunction()
-
-function(qp_write_file)
-    set(options "")
-    set(oneValueArgs INPUT OUTPUT)
-    set(multiValueArgs MATCH REPLACE)
-
-    cmake_parse_arguments(qp_write_file "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-    set(__output "")
-
-    file(READ "${qp_write_file_INPUT}" __contents)
-
-    foreach(match ${qp_write_file_MATCH})
-        foreach(replace ${qp_write_file_REPLACE})
-            foreach(repl ${${replace}})
-                string(APPEND __output "${repl};")
-            endforeach()
-#            string(APPEND __output "${replace};")
-
-#            string(REPLACE "${match}" "${__output}" __file_contents "${__contents}")
-        endforeach()
-    endforeach()
-message(STATUS ${__output})
-#    foreach(var ${qp_write_file_REPLACE})
-#        string(APPEND __output "${var};")
-#    endforeach()
-#    string(REPLACE "${qp_write_file_MATCH}" "${__output}" __file_contents "${__contents}")
-#    file(WRITE ${qp_write_file_OUTPUT} "${__file_contents}")
-
-endfunction()
