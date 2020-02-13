@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 project(qpdfview)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -53,15 +53,6 @@ set(RESOURCES "")
 set(QPDFVIEW_MIME_TYPES)
 set(QPDFVIEW_PLUGINS)
 
-add_definitions(-DAPPLICATION_VERSION="${APPLICATION_VERSION}")
-add_definitions(-DTARGET_INSTALL_PATH="${TARGET_INSTALL_PATH}")
-add_definitions(-DPLUGIN_INSTALL_PATH="${PLUGIN_INSTALL_PATH}")
-add_definitions(-DDATA_INSTALL_PATH="${DATA_INSTALL_PATH}")
-add_definitions(-DMANUAL_INSTALL_PATH="${MANUAL_INSTALL_PATH}")
-add_definitions(-DICON_INSTALL_PATH="${ICON_INSTALL_PATH}")
-add_definitions(-DLAUNCHER_INSTALL_PATH="${LAUNCHER_INSTALL_PATH}")
-add_definitions(-DAPPDATA_INSTALL_PATH="${APPDATA_INSTALL_PATH}")
-
 # Global variables
 set(SHARED_LIB_PREFIX       ${CMAKE_SHARED_LIBRARY_PREFIX})
 set(SHARED_LIB_SUFFIX       ${CMAKE_SHARED_LIBRARY_SUFFIX})
@@ -70,7 +61,6 @@ set(STATIC_LIB_SUFFIX       ${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(QPDFVIEW_CMAKE_DIR      ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(QPDFVIEW_SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sources)
 set(QPDFVIEW_INCLUDE_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/sources)
-set(QPDFVIEW_DEFINITIONS)
 set(QPDFVIEW_DEPENDENCIES)
 set(QPDFVIEW_LIBRARIES)
 set(QPDFVIEW_SOURCES
@@ -102,7 +92,15 @@ set(QPDFVIEW_SOURCES
     ${QPDFVIEW_SOURCE_DIR}/database.cpp
     ${QPDFVIEW_SOURCE_DIR}/mainwindow.cpp
     ${QPDFVIEW_SOURCE_DIR}/main.cpp)
-
+set(QPDFVIEW_DEFINITIONS
+     -DAPPLICATION_VERSION="${APPLICATION_VERSION}"
+     -DTARGET_INSTALL_PATH="${TARGET_INSTALL_PATH}"
+     -DPLUGIN_INSTALL_PATH="${PLUGIN_INSTALL_PATH}"
+     -DDATA_INSTALL_PATH="${DATA_INSTALL_PATH}"
+     -DMANUAL_INSTALL_PATH="${MANUAL_INSTALL_PATH}"
+     -DICON_INSTALL_PATH="${ICON_INSTALL_PATH}"
+     -DLAUNCHER_INSTALL_PATH="${LAUNCHER_INSTALL_PATH}"
+     -DAPPDATA_INSTALL_PATH="${APPDATA_INSTALL_PATH}")
 set(DISABLE_STATUS OFF)
 
 include(${QPDFVIEW_CMAKE_DIR}/qpdfview_utils.cmake)
@@ -266,7 +264,7 @@ endif()
 if(NOT ${WITHOUT_SYNCTEX})
     list(APPEND QPDFVIEW_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/synctex")
     list(APPEND QPDFVIEW_LIBRARIES "z")
-    list(APPEND QPDFVIEW_SOURCES
+    list(PREPEND QPDFVIEW_SOURCES
          synctex/synctex_parser.c
          synctex/synctex_parser_utils.c)
     list(APPEND QPDFVIEW_DEFINITIONS -DWITH_SYNCTEX)
@@ -277,8 +275,7 @@ endif()
 
 # WITHOUT_SIGNALS
 if(NOT ${WITHOUT_SIGNALS})
-    list(APPEND QPDFVIEW_SOURCES
-         ${QPDFVIEW_SOURCE_DIR}/signalhandler.h
+    list(PREPEND QPDFVIEW_SOURCES
          ${QPDFVIEW_SOURCE_DIR}/signalhandler.cpp)
     list(APPEND QPDFVIEW_DEFINITIONS -DWITH_SIGNALS)
     qp_status("Building with signals")
@@ -334,7 +331,7 @@ if(${WITH_FITZ})
     qp_check_plugin(fitz_plugin
                     MIMES QPDFVIEW_MIME_TYPES
                     DEPENDS QPDFVIEW_DEPENDENCIES)
-    list(APPEND QPDFVIEW_PLUGINS "epub" "cbz" "fb2")
+    list(APPEND QPDFVIEW_PLUGINS "epub" "fb2" "cbz")
 
 else()
     qp_status("Building without fitz")
@@ -350,12 +347,13 @@ else()
     qp_status("Building without image")
 endif()
 
-add_executable(qpdfview ${NATIVE} ${QPDFVIEW_SOURCES} ${RESOURCES})
-target_compile_definitions(qpdfview PRIVATE ${QPDFVIEW_DEFINITIONS})
+add_executable(qpdfview ${QPDFVIEW_SOURCES} ${RESOURCES})
+target_compile_definitions(qpdfview PUBLIC ${QPDFVIEW_DEFINITIONS})
 target_include_directories(qpdfview PUBLIC ${QPDFVIEW_INCLUDE_DIR})
 target_link_libraries(qpdfview PUBLIC ${QPDFVIEW_LIBRARIES})
 set_target_properties(qpdfview
                       PROPERTIES
+                      POSITION_INDEPENDENT_CODE OFF
                       INSTALL_RPATH ${PLUGIN_INSTALL_PATH}
                       AUTOGEN_BUILD_DIR ${CMAKE_BINARY_DIR}/moc)
 
@@ -363,19 +361,53 @@ foreach(dependency ${QPDFVIEW_DEPENDENCIES})
     add_dependencies(qpdfview ${dependency})
 endforeach()
 
-install(TARGETS qpdfview
-        RUNTIME
+file(READ "${DESKTOP_FILE}.in" CONTENTS)
+
+foreach(var "${QPDFVIEW_PLUGINS}")
+    string(APPEND __output "${var};")
+endforeach()
+string(REPLACE "PLUGINS" "${__output}" CONTENTS "${CONTENTS}")
+unset(__output)
+
+foreach(var "${QPDFVIEW_MIME_TYPES}")
+    string(APPEND __output "${var};")
+endforeach()
+string(REPLACE "MIME_TYPES" "${__output}" CONTENTS "${CONTENTS}")
+
+file(WRITE "${DESKTOP_FILE}" "${CONTENTS}")
+
+install(TARGETS qpdfview RUNTIME
         DESTINATION ${TARGET_INSTALL_PATH}
-        PERMISSIONS ${PERMISSIONS}
-        INCLUDES ${PLUGIN_INSTALL_PATH}
-        CONFIGURATIONS Release)
+        PERMISSIONS
+        OWNER_READ OWNER_WRITE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+        INCLUDES ${PLUGIN_INSTALL_PATH})
 
 install(DIRECTORY
         ${CMAKE_CURRENT_LIST_DIR}/help
         ${CMAKE_CURRENT_LIST_DIR}/translations
-        DESTINATION ${DATA_INSTALL_PATH}
-        CONFIGURATIONS Release)
+        DESTINATION ${DATA_INSTALL_PATH})
 
-install(FILES ${DESKTOP_FILE}
+install(FILES
+        ${CMAKE_CURRENT_LIST_DIR}/icons/qpdfview.svg
+        DESTINATION ${ICON_INSTALL_PATH})
+
+install(FILES
+        ${DESKTOP_FILE}
         DESTINATION ${LAUNCHER_INSTALL_PATH}
-        PERMISSIONS OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE)
+        PERMISSIONS
+        OWNER_READ OWNER_WRITE
+        GROUP_READ
+        WORLD_READ
+        )
+
+install(FILES
+        ${MANUAL_FILE}
+        DESTINATION ${MANUAL_INSTALL_PATH}
+        PERMISSIONS WORLD_READ)
+
+install(FILES
+        ${APPDATA_FILE}
+        DESTINATION ${DATA_INSTALL_PATH}
+        PERMISSIONS WORLD_READ)
