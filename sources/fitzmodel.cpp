@@ -58,7 +58,7 @@ template<typename ... Args>
 std::string join(std::string& format, Args&& ... args)
 {
 	const size_t __len = 255;
-	std::shared_ptr<char[]> __data = std::shared_ptr<char[]>(new char[__len]);
+	std::unique_ptr<char[]> __data = std::unique_ptr<char[]>(new char[__len]);
 	snprintf(__data.get(), __len, format.data(), std::forward<Args>(args)...);
 
 	return __data.get();
