@@ -113,3 +113,4 @@ dkms.conf
 
 # JetBrains IDE
 .idea
+build/**/*
