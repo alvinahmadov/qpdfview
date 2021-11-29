@@ -44,7 +44,7 @@ class Settings : public QObject
 
 public:
     static Settings* instance();
-    ~Settings();
+    ~Settings() override;
 
     // page item
 
@@ -113,7 +113,7 @@ public:
         void setFormFieldOverlay(bool overlay);
 
     private:
-        PageItem(QSettings* settings);
+        explicit PageItem(QSettings* settings);
         friend class Settings;
 
         QSettings* m_settings;
@@ -155,7 +155,7 @@ public:
         void setBackgroundColor(const QColor& backgroundColor);
 
     private:
-        PresentationView(QSettings* settings);
+        explicit PresentationView(QSettings* settings);
         friend class Settings;
 
         QSettings* m_settings;
@@ -272,7 +272,7 @@ public:
         void setHighlightAll(bool highlightAll);
 
     private:
-        DocumentView(QSettings* settings);
+        explicit DocumentView(QSettings* settings);
         friend class Settings;
 
         QSettings* m_settings;
@@ -422,7 +422,7 @@ public:
         void setContentsDialogSize(QSize contentsDialogSize);
 
     private:
-        MainWindow(QSettings* settings);
+        explicit MainWindow(QSettings* settings);
         friend class Settings;
 
         QSettings* m_settings;
@@ -466,7 +466,7 @@ public:
 #endif // QT_VERSION
 
     private:
-        PrintDialog(QSettings* settings);
+        explicit PrintDialog(QSettings* settings);
         friend class Settings;
 
         QSettings* m_settings;
@@ -485,7 +485,7 @@ private:
     Q_DISABLE_COPY(Settings)
 
     static Settings* s_instance;
-    Settings(QObject* parent = 0);
+    explicit Settings(QObject* parent = nullptr);
 
     QSettings* m_settings;
 
@@ -532,7 +532,7 @@ public:
         static bool formFieldOverlay() { return true; }
 
     private:
-        PageItem() {}
+        PageItem() = default;
 
     };
 
@@ -542,10 +542,10 @@ public:
         static bool synchronize() { return false; }
         static int screen() { return -1; }
 
-        static QColor backgroundColor() { return QColor(); }
+        static QColor backgroundColor() { return {}; }
 
     private:
-        PresentationView() {}
+        PresentationView() = default;
 
     };
 
@@ -610,8 +610,7 @@ public:
         static bool highlightAll() { return false; }
 
     private:
-        DocumentView() {}
-
+        DocumentView() = default;
     };
 
     class MainWindow
@@ -653,12 +652,80 @@ public:
         static bool synchronizeOutlineView() { return false; }
         static bool synchronizeSplitViews() { return true; }
 
-        static QStringList fileToolBar() { return QStringList() << "openInNewTab" << "refresh"; }
-        static QStringList editToolBar() { return QStringList() << "currentPage" << "previousPage" << "nextPage"; }
-        static QStringList viewToolBar() { return QStringList() << "scaleFactor" << "zoomIn" << "zoomOut"; }
+        static QStringList fileToolBar()
+        {
+        	return QStringList()
+        	<< "open"
+        	<< "openInNewTab"
+        	<< "openContainingFolder"
+        	<< "refresh";
+        }
+       
+        static QStringList editToolBar()
+        {
+        	return QStringList()
+        	<< "firstPage"
+        	<< "jumpBackward"
+        	<< "previousPage"
+        	<< "currentPage"
+        	<< "nextPage"
+        	<< "jumpForward"
+        	<< "jumpToPage"
+        	<< "lastPage";
+        }
+        
+        static QStringList viewToolBar()
+        {
+        	return QStringList()
+        	<< "scaleFactor"
+        	<< "originalSize"
+        	<< "zoomIn"
+        	<< "zoomOut"
+        	<< "fitToPageWidthMode"
+        	<< "fitToPageSizeMode"
+        	<< "continuousMode"
+        	<< "twoPagesMode"
+        	<< "twoPagesWithCoverPageMode"
+        	<< "multiplePagesMode"
+        	<< "rotateLeft"
+        	<< "rotateRight"
+        	<< "fullscreen";
+        }
 
-        static QStringList documentContextMenu() { return QStringList() << "previousPage" << "nextPage" << "firstPage" << "lastPage" << "separator" << "jumpToPage" << "jumpBackward" << "jumpForward" << "separator" << "setFirstPage" << "separator" << "findPrevious" << "findNext" << "cancelSearch"; }
-        static QStringList tabContexntMenu() { return QStringList() << "openCopyInNewTab" << "openCopyInNewWindow" << "openContainingFolder" << "separator" << "splitViewHorizontally" << "splitViewVertically" << "closeCurrentView" << "separator" << "closeAllTabs" << "closeAllTabsButThisOne" << "closeAllTabsToTheLeft" << "closeAllTabsToTheRight"; }
+        static QStringList documentContextMenu()
+        {
+        	return QStringList()
+        	<< "previousPage"
+        	<< "nextPage"
+        	<< "firstPage"
+        	<< "lastPage"
+        	<< "separator"
+        	<< "jumpToPage"
+        	<< "jumpBackward"
+        	<< "jumpForward"
+        	<< "separator"
+        	<< "setFirstPage"
+        	<< "separator"
+        	<< "findPrevious"
+        	<< "findNext"
+        	<< "cancelSearch";
+        }
+        static QStringList tabContexntMenu()
+        {
+        	return QStringList()
+        	<< "openCopyInNewTab"
+        	<< "openCopyInNewWindow"
+        	<< "openContainingFolder"
+        	<< "separator"
+        	<< "splitViewHorizontally"
+        	<< "splitViewVertically"
+        	<< "closeCurrentView"
+        	<< "separator"
+        	<< "closeAllTabs"
+        	<< "closeAllTabsButThisOne"
+        	<< "closeAllTabsToTheLeft"
+        	<< "closeAllTabsToTheRight";
+        }
 
         static bool scrollableMenus() { return false; }
         static bool searchableMenus() { return false; }
@@ -668,7 +735,7 @@ public:
         static QString path();
 
     private:
-        MainWindow() {}
+        MainWindow() = default;
 
     };
 
@@ -697,13 +764,11 @@ public:
 #endif // QT_VERSION
 
     private:
-        PrintDialog() {}
-
+        PrintDialog() = default;
     };
 
 private:
-    Defaults() {}
-
+    Defaults() = default;
 };
 
 } // qpdfview
