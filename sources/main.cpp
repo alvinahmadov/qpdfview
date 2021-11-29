@@ -24,6 +24,7 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <iostream>
+#include "memory"
 
 #include <QApplication>
 #include <QDebug>
@@ -76,6 +77,11 @@ const char* __attribute__((used)) stack_cookie = "\0$STACK:500000\0";
 
 #endif // __amigaos4__
 
+#if defined(qApp)
+#undef qApp
+#define qApp (dynamic_cast<QApplication *>(QCoreApplication::instance()))
+#endif
+
 namespace
 {
 
@@ -112,7 +118,7 @@ QString searchText;
 
 QList< File > files;
 
-MainWindow* mainWindow = 0;
+std::unique_ptr<MainWindow> mainWindow = nullptr;
 
 bool loadTranslator(QTranslator* const translator, const QString& fileName, const QString& path)
 {
@@ -136,13 +142,21 @@ bool loadTranslator(QTranslator* const translator, const QString& fileName, cons
 
 void loadTranslators()
 {
-    QTranslator* toolkitTranslator = new QTranslator(qApp);
+    auto toolkitTranslator = new QTranslator(qApp);
     loadTranslator(toolkitTranslator, "qt", QLibraryInfo::location(QLibraryInfo::TranslationsPath));
-
-    QTranslator* applicationTranslator = new QTranslator(qApp);
-    if(loadTranslator(applicationTranslator, "qpdfview", QDir(QApplication::applicationDirPath()).filePath("data"))) {}
-    else if(loadTranslator(applicationTranslator, "qpdfview", DATA_INSTALL_PATH)) {}
-    else if(loadTranslator(applicationTranslator, "qpdfview", ":/")) {}
+    auto applicationTranslator = new QTranslator(qApp);
+	bool appTranslatorLoaded;
+    
+    appTranslatorLoaded = loadTranslator(applicationTranslator, "qpdfview", QDir(QApplication::applicationDirPath()).filePath("data"));
+    
+    if(!appTranslatorLoaded)
+    {
+    	appTranslatorLoaded = loadTranslator(applicationTranslator, "qpdfview", DATA_INSTALL_PATH);
+    }
+    if(!appTranslatorLoaded)
+    {
+    	loadTranslator(applicationTranslator, "qpdfview", ":/");
+    }
 }
 
 void parseCommandLineArguments()
@@ -207,7 +221,7 @@ void parseCommandLineArguments()
             else if(argument == QLatin1String("--choose-instance"))
             {
                 bool ok = false;
-                const QString chosenInstanceName = QInputDialog::getItem(0, MainWindow::tr("Choose instance"), MainWindow::tr("Instance:"), Database::instance()->knownInstanceNames(), 0, true, &ok);
+                const QString chosenInstanceName = QInputDialog::getItem(nullptr, MainWindow::tr("Choose instance"), MainWindow::tr("Instance:"), Database::instance()->knownInstanceNames(), 0, true, &ok);
 
                 if(ok)
                 {
@@ -320,8 +334,8 @@ void parseWorkbenchExtendedSelection(int argc, char** argv)
 
 #else
 
-    Q_UNUSED(argc);
-    Q_UNUSED(argv);
+    Q_UNUSED(argc)
+    Q_UNUSED(argv)
 
 #endif // __amigaos4__
 }
@@ -409,25 +423,23 @@ void activateUniqueInstance()
         }
         else
         {
-            mainWindow = new MainWindow();
+            mainWindow = std::make_unique<MainWindow>();
 
-            if(MainWindowAdaptor::createAdaptor(mainWindow) == 0)
+            if(!MainWindowAdaptor::createAdaptor(mainWindow.get()))
             {
                 qCritical() << QDBusConnection::sessionBus().lastError().message();
-
-                delete mainWindow;
                 exit(ExitDBusError);
             }
         }
     }
     else
     {
-        mainWindow = new MainWindow();
+        mainWindow = std::make_unique<MainWindow>();
     }
 
 #else
 
-    mainWindow = new MainWindow();
+    mainWindow = std::make_unique<MainWindow>();
 
 #endif // WITH_DBUS
 }
@@ -438,10 +450,10 @@ void prepareSignalHandler()
 
     if(SignalHandler::prepareSignals())
     {
-        SignalHandler* signalHandler = new SignalHandler(mainWindow);
+        auto signalHandler = std::make_unique<SignalHandler>(mainWindow.get());
 
-        QObject::connect(signalHandler, SIGNAL(sigIntReceived()), mainWindow, SLOT(close()));
-        QObject::connect(signalHandler, SIGNAL(sigTermReceived()), mainWindow, SLOT(close()));
+        QObject::connect(signalHandler.get(), SIGNAL(sigIntReceived()), mainWindow.get(), SLOT(close()));
+        QObject::connect(signalHandler.get(), SIGNAL(sigTermReceived()), mainWindow.get(), SLOT(close()));
     }
     else
     {
@@ -505,5 +517,5 @@ int main(int argc, char** argv)
         mainWindow->startSearch(searchText);
     }
 
-    return application.exec();
+    return QApplication::exec();
 }
