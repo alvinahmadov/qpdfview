@@ -21,7 +21,7 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "signalhandler.h"
 
-#include <signal.h>
+#include <csignal>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -39,13 +39,13 @@ bool SignalHandler::prepareSignals()
         return false;
     }
 
-    struct sigaction sigAction;
+    struct sigaction sigAction {};
 
     sigAction.sa_handler = SignalHandler::handleSignals;
     sigemptyset(&sigAction.sa_mask);
     sigAction.sa_flags = SA_RESTART;
 
-    if(sigaction(SIGINT, &sigAction, 0) != 0)
+    if(sigaction(SIGINT, &sigAction, nullptr) != 0)
     {
         close(s_sockets[0]);
         close(s_sockets[1]);
@@ -53,7 +53,7 @@ bool SignalHandler::prepareSignals()
         return false;
     }
 
-    if(sigaction(SIGTERM, &sigAction, 0) != 0)
+    if(sigaction(SIGTERM, &sigAction, nullptr) != 0)
     {
         close(s_sockets[0]);
         close(s_sockets[1]);
@@ -65,18 +65,19 @@ bool SignalHandler::prepareSignals()
 }
 
 SignalHandler::SignalHandler(QObject* parent) : QObject(parent),
-    m_socketNotifier(0)
+    m_socketNotifier(nullptr)
 {
     m_socketNotifier = new QSocketNotifier(s_sockets[1], QSocketNotifier::Read, this);
-    connect(m_socketNotifier, SIGNAL(activated(int)), SLOT(on_socketNotifier_activated()));
+    connect(m_socketNotifier, SIGNAL(activated(int)), SLOT(onSocketNotifierActivated()));
 }
 
-void SignalHandler::on_socketNotifier_activated()
+void SignalHandler::onSocketNotifierActivated()
 {
     m_socketNotifier->setEnabled(false);
 
     int sigNumber = 0;
-    Q_UNUSED(read(s_sockets[1], &sigNumber, sizeof(int)));
+    auto res = read(s_sockets[1], &sigNumber, sizeof(int));
+	Q_UNUSED(res)
 
     switch(sigNumber)
     {
@@ -86,6 +87,8 @@ void SignalHandler::on_socketNotifier_activated()
     case SIGTERM:
         emit sigTermReceived();
         break;
+	    default:
+	    	break;
     }
 
     m_socketNotifier->setEnabled(true);
@@ -93,7 +96,8 @@ void SignalHandler::on_socketNotifier_activated()
 
 void SignalHandler::handleSignals(int sigNumber)
 {
-    Q_UNUSED(write(s_sockets[0], &sigNumber, sizeof(int)));
+	auto res = write(s_sockets[0], &sigNumber, sizeof(int));
+    Q_UNUSED(res)
 }
 
 } // qpdfview
