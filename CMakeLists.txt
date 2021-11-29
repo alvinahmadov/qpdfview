@@ -11,12 +11,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
-string(TOLOWER "${CMAKE_SYSTEM_NAME}" SYSTEM_NAME)
-
 # build/(win32|linux)/(release|debug)
-string(TOLOWER "${CMAKE_SYSTEM_NAME}" SYSTEM_NAME)
-set(BUILD_PATH ${CMAKE_SOURCE_DIR}/build/${SYSTEM_NAME}/${BUILD_TYPE})
+set(BUILD_PATH ${CMAKE_SOURCE_DIR}/build/${CMAKE_SYSTEM_NAME}/${CMAKE_BUILD_TYPE})
 
 set(CMAKE_BINARY_DIR ${BUILD_PATH})
 
@@ -49,6 +45,7 @@ set(LAUNCHER_INSTALL_PATH   ${CMAKE_INSTALL_PREFIX}/share/applications)
 set(APPDATA_INSTALL_PATH    ${CMAKE_INSTALL_PREFIX}/share/appdata)
 set(DESKTOP_FILE            ${CMAKE_CURRENT_SOURCE_DIR}/miscellaneous/qpdfview.desktop)
 set(APPDATA_FILE            ${CMAKE_CURRENT_SOURCE_DIR}/miscellaneous/qpdfview.appdata.xml)
+#set(MANUAL_FILE)
 set(RESOURCES "")
 set(QPDFVIEW_MIME_TYPES)
 set(QPDFVIEW_PLUGINS)
@@ -402,10 +399,12 @@ install(FILES
         WORLD_READ
         )
 
+if(${MANUAL_FILE})
 install(FILES
         ${MANUAL_FILE}
         DESTINATION ${MANUAL_INSTALL_PATH}
         PERMISSIONS WORLD_READ)
+endif()
 
 install(FILES
         ${APPDATA_FILE}
