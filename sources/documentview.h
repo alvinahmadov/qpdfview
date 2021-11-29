@@ -33,7 +33,6 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 class QDomNode;
 class QFileSystemWatcher;
 class QPrinter;
-class QStandardItemModel;
 
 #include "renderparam.h"
 #include "printoptions.h"
@@ -62,8 +61,8 @@ class DocumentView : public QGraphicsView
     Q_OBJECT
 
 public:
-    explicit DocumentView(QWidget* parent = 0);
-    ~DocumentView();
+    explicit DocumentView(QWidget* parent = nullptr);
+    ~DocumentView() override;
 
     const QFileInfo& fileInfo() const { return m_fileInfo; }
     bool wasModified() const { return m_wasModified; }
@@ -71,7 +70,7 @@ public:
     int numberOfPages() const { return m_pages.count(); }
     int currentPage() const { return m_currentPage; }
 
-    bool hasFrontMatter() const { return m_firstPage > 1; }
+    bool hasFrontMatter() const { return m_firstPage> 1; }
 
     int firstPage() const { return m_firstPage; }
     void setFirstPage(int firstPage);
@@ -90,20 +89,20 @@ public:
     bool continuousMode() const { return m_continuousMode; }
     void setContinuousMode(bool continuousMode);
 
-    LayoutMode layoutMode() const;
-    void setLayoutMode(LayoutMode layoutMode);
+    qpdfview::LayoutMode layoutMode() const;
+    void setLayoutMode(qpdfview::LayoutMode layoutMode);
 
     bool rightToLeftMode() const { return m_rightToLeftMode; }
     void setRightToLeftMode(bool rightToLeftMode);
 
-    ScaleMode scaleMode() const { return m_scaleMode; }
-    void setScaleMode(ScaleMode scaleMode);
+    qpdfview::ScaleMode scaleMode() const { return m_scaleMode; }
+    void setScaleMode(qpdfview::ScaleMode scaleMode);
 
     qreal scaleFactor() const { return m_scaleFactor; }
     void setScaleFactor(qreal scaleFactor);
 
-    Rotation rotation() const { return m_rotation; }
-    void setRotation(Rotation rotation);
+    qpdfview::Rotation rotation() const { return m_rotation; }
+    void setRotation(qpdfview::Rotation rotation);
 
     qpdfview::RenderFlags renderFlags() const { return m_renderFlags; }
     void setRenderFlags(qpdfview::RenderFlags renderFlags);
@@ -118,14 +117,14 @@ public:
     bool trimMargins() const { return m_renderFlags.testFlag(TrimMargins); }
     void setTrimMargins(bool trimMargins) { setRenderFlag(TrimMargins, trimMargins); }
 
-    CompositionMode compositionMode() const;
-    void setCompositionMode(CompositionMode compositionMode);
+    qpdfview::CompositionMode compositionMode() const;
+    void setCompositionMode(qpdfview::CompositionMode compositionMode);
 
     bool highlightAll() const { return m_highlightAll; }
     void setHighlightAll(bool highlightAll);
 
-    RubberBandMode rubberBandMode() const { return m_rubberBandMode; }
-    void setRubberBandMode(RubberBandMode rubberBandMode);
+    qpdfview::RubberBandMode rubberBandMode() const { return m_rubberBandMode; }
+    void setRubberBandMode(qpdfview::RubberBandMode rubberBandMode);
 
     QSize thumbnailsViewportSize() const { return m_thumbnailsViewportSize; }
     void setThumbnailsViewportSize(QSize thumbnailsViewportSize);
@@ -133,14 +132,14 @@ public:
     Qt::Orientation thumbnailsOrientation() const { return m_thumbnailsOrientation; }
     void setThumbnailsOrientation(Qt::Orientation thumbnailsOrientation);
 
-    const QVector< ThumbnailItem* >& thumbnailItems() const { return m_thumbnailItems; }
+    const QVector<qpdfview::ThumbnailItem*>& thumbnailItems() const { return m_thumbnailItems; }
     QGraphicsScene* thumbnailsScene() const { return m_thumbnailsScene; }
 
     QAbstractItemModel* outlineModel() const { return m_outlineModel.data(); }
     QAbstractItemModel* propertiesModel() const { return m_propertiesModel.data(); }
 
-    QSet< QByteArray > saveExpandedPaths() const;
-    void restoreExpandedPaths(const QSet< QByteArray >& expandedPaths);
+    QSet<QByteArray> saveExpandedPaths() const;
+    void restoreExpandedPaths(const QSet<QByteArray>& expandedPaths);
 
     QAbstractItemModel* fontsModel() const;
 
@@ -151,7 +150,7 @@ public:
     bool searchMatchCase() const;
     bool searchWholeWords() const;
 
-    QPair< QString, QString > searchContext(int page, const QRectF& rect) const;
+    QPair<QString, QString> searchContext(int page, const QRectF& rect) const;
 
     bool hasSearchResults();
 
@@ -164,7 +163,7 @@ public:
         int line;
         int column;
 
-        operator bool() const { return !name.isNull(); }
+        explicit operator bool() const { return !name.isNull(); }
 
     };
 
@@ -181,11 +180,11 @@ signals:
     void canJumpChanged(bool backward, bool forward);
 
     void continuousModeChanged(bool continuousMode);
-    void layoutModeChanged(LayoutMode layoutMode);
+    void layoutModeChanged(qpdfview::LayoutMode layoutMode);
     void rightToLeftModeChanged(bool rightToLeftMode);
-    void scaleModeChanged(ScaleMode scaleMode);
+    void scaleModeChanged(qpdfview::ScaleMode scaleMode);
     void scaleFactorChanged(qreal scaleFactor);
-    void rotationChanged(Rotation rotation);
+    void rotationChanged(qpdfview::Rotation rotation);
 
     void linkClicked(int page);
     void linkClicked(bool newTab, const QString& filePath, int page);
@@ -196,10 +195,10 @@ signals:
     void convertToGrayscaleChanged(bool convertToGrayscale);
     void trimMarginsChanged(bool trimMargins);
 
-    void compositionModeChanged(CompositionMode compositionMode);
+    void compositionModeChanged(qpdfview::CompositionMode compositionMode);
 
     void highlightAllChanged(bool highlightAll);
-    void rubberBandModeChanged(RubberBandMode rubberBandMode);
+    void rubberBandModeChanged(qpdfview::RubberBandMode rubberBandMode);
 
     void searchFinished();
     void searchProgressChanged(int progress);
@@ -210,7 +209,7 @@ public slots:
     bool open(const QString& filePath);
     bool refresh();
     bool save(const QString& filePath, bool withChanges);
-    bool print(QPrinter* printer, const PrintOptions& printOptions = PrintOptions());
+    bool print(QPrinter* printer, const qpdfview::PrintOptions& printOptions = PrintOptions());
 
     void previousPage();
     void nextPage();
@@ -234,7 +233,7 @@ public slots:
 
     void findPrevious();
     void findNext();
-    void findResult(const QModelIndex& index);
+    void findResult(QModelIndex index);
 
     void zoomIn();
     void zoomOut();
@@ -246,38 +245,38 @@ public slots:
     void startPresentation();
 
 protected slots:
-    void on_verticalScrollBar_valueChanged();
+    void onVerticalScrollBarValueChanged();
 
-    void on_autoRefresh_timeout();
-    void on_prefetch_timeout();
+    void onAutoRefreshTimeout();
+    void onPrefetchTimeout();
 
-    void on_temporaryHighlight_timeout();
+    void onTemporaryHighlightTimeout();
 
-    void on_searchTask_progressChanged(int progress);
-    void on_searchTask_resultsReady(int index, const QList< QRectF >& results);
+    void onSearchTaskProgressChanged(int progress);
+    void onSearchTaskResultsReady(int index, const QList<QRectF>& results);
 
-    void on_pages_cropRectChanged();
-    void on_thumbnails_cropRectChanged();
+    void onPagesCropRectChanged();
+    void onThumbnailsCropRectChanged();
 
-    void on_pages_linkClicked(bool newTab, int page, qreal left, qreal top);
-    void on_pages_linkClicked(bool newTab, const QString& fileName, int page);
-    void on_pages_linkClicked(const QString& url);
+    void onPagesLinkClicked(bool newTab, int page, qreal left, qreal top);
+    void onPagesLinkClicked(bool newTab, const QString& fileName, int page);
+    void onPagesLinkClicked(const QString& url);
 
-    void on_pages_rubberBandFinished();
+    void onPagesRubberBandFinished();
 
-    void on_pages_zoomToSelection(int page, const QRectF& rect);
-    void on_pages_openInSourceEditor(int page, QPointF pos);
+    void onPagesZoomToSelection(int page, const QRectF& rect);
+    void onPagesOpenInSourceEditor(int page, QPointF pos);
 
-    void on_pages_wasModified();
+    void onPagesWasModified();
 
 protected:
-    void resizeEvent(QResizeEvent* event);
+    void resizeEvent(QResizeEvent* event) override;
 
-    void keyPressEvent(QKeyEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void wheelEvent(QWheelEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
 
-    void contextMenuEvent(QContextMenuEvent* event);
+    void contextMenuEvent(QContextMenuEvent* event) override;
 
 private:
     Q_DISABLE_COPY(DocumentView)
@@ -291,7 +290,7 @@ private:
     QTimer* m_prefetchTimer;
 
     Model::Document* m_document;
-    QVector< Model::Page* > m_pages;
+    QVector<Model::Page*> m_pages;
 
     QFileInfo m_fileInfo;
     bool m_wasModified;
@@ -317,12 +316,12 @@ private:
 
     };
 
-    QList< Position > m_past;
-    QList< Position > m_future;
+    QList<Position> m_past;
+    QList<Position> m_future;
 
     void saveLeftAndTop(qreal& left, qreal& top) const;
 
-    QScopedPointer< DocumentLayout > m_layout;
+    QScopedPointer<DocumentLayout> m_layout;
 
     bool m_continuousMode;
     bool m_rightToLeftMode;
@@ -335,8 +334,8 @@ private:
     bool m_highlightAll;
     RubberBandMode m_rubberBandMode;
 
-    QVector< PageItem* > m_pageItems;
-    QVector< ThumbnailItem* > m_thumbnailItems;
+    QVector<PageItem*> m_pageItems;
+    QVector<ThumbnailItem*> m_thumbnailItems;
 
     QGraphicsRectItem* m_highlight;
 
@@ -345,10 +344,10 @@ private:
 
     QGraphicsScene* m_thumbnailsScene;
 
-    QScopedPointer< QAbstractItemModel > m_outlineModel;
-    QScopedPointer< QAbstractItemModel > m_propertiesModel;
+    QScopedPointer<QAbstractItemModel> m_outlineModel;
+    QScopedPointer<QAbstractItemModel> m_propertiesModel;
 
-    bool checkDocument(const QString& filePath, Model::Document* document, QVector< Model::Page* >& pages);
+    bool checkDocument(const QString& filePath, Model::Document* document, QVector<Model::Page*>& pages);
 
     void loadDocumentDefaults();
 
@@ -358,7 +357,7 @@ private:
 
     class VerticalScrollBarChangedBlocker;
 
-    void prepareDocument(Model::Document* document, const QVector< Model::Page* >& pages);
+    void prepareDocument(Model::Document* document, const QVector<Model::Page*>& pages);
     void preparePages();
     void prepareThumbnails();
     void prepareBackground();
