@@ -35,7 +35,6 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFileSystemWatcher>
 #include <QKeyEvent>
 #include <qmath.h>
-#include <QMenu>
 #include <QMessageBox>
 #include <QPrintEngine>
 #include <QProcess>
@@ -82,6 +81,8 @@ namespace
 {
 
 using namespace qpdfview;
+
+const int romanNumMax = 4000;
 
 // taken from http://rosettacode.org/wiki/Roman_numerals/Decode#C.2B.2B
 int romanToInt(const QString& text)
@@ -141,10 +142,10 @@ QString intToRoman(int number)
         { 5, "v" },
         { 4, "iv" },
         { 1, "i" },
-        { 0, NULL }
+        { 0, nullptr }
     };
 
-    if(number >= 4000)
+    if(number >= romanNumMax)
     {
         return QLatin1String("?");
     }
@@ -168,7 +169,7 @@ bool copyFile(QFile& source, QFile& destination)
     const qint64 maxSize = 4096;
     qint64 size = -1;
 
-    QScopedArrayPointer< char > buffer(new char[maxSize]);
+    QScopedArrayPointer<char> buffer(new char[maxSize]);
 
     do
     {
@@ -196,24 +197,30 @@ inline void adjustFileTemplateSuffix(QTemporaryFile& temporaryFile, const QStrin
 
 struct RemovePpdFileDeleter
 {
-    static inline void cleanup(const char* ppdFileName) { if(ppdFileName != 0) { QFile::remove(ppdFileName); } }
+    static inline void cleanup(const char* ppdFileName)
+    {
+    	if(ppdFileName != nullptr)
+    	{
+    		QFile::remove(ppdFileName);
+    	}
+    }
 };
 
 struct ClosePpdFileDeleter
 {
-    static inline void cleanup(ppd_file_t* ppdFile) { if(ppdFile != 0) { ppdClose(ppdFile); } }
+    static inline void cleanup(ppd_file_t* ppdFile) { if(ppdFile != nullptr) { ppdClose(ppdFile); } }
 };
 
 int addCMYKorRGBColorModel(cups_dest_t* dest, int num_options, cups_option_t** options)
 {
-    QScopedPointer< const char, RemovePpdFileDeleter > ppdFileName(cupsGetPPD(dest->name));
+    QScopedPointer<const char, RemovePpdFileDeleter> ppdFileName(cupsGetPPD(dest->name));
 
     if(ppdFileName.isNull())
     {
         return num_options;
     }
 
-    QScopedPointer< ppd_file_t, ClosePpdFileDeleter > ppdFile(ppdOpenFile(ppdFileName.data()));
+    QScopedPointer<ppd_file_t, ClosePpdFileDeleter> ppdFile(ppdOpenFile(ppdFileName.data()));
 
     if(ppdFile.isNull())
     {
@@ -222,7 +229,7 @@ int addCMYKorRGBColorModel(cups_dest_t* dest, int num_options, cups_option_t** o
 
     ppd_option_t* colorModel = ppdFindOption(ppdFile.data(), "ColorModel");
 
-    if(colorModel == 0)
+    if(colorModel == nullptr)
     {
         return num_options;
     }
@@ -319,16 +326,17 @@ inline QRectF rectOfResult(const QModelIndex& index)
 class OutlineModel : public QAbstractItemModel
 {
 public:
-    OutlineModel(const Model::Outline& outline, DocumentView* parent) : QAbstractItemModel(parent),
-        m_outline(outline)
+    OutlineModel(Model::Outline outline, qpdfview::DocumentView *parent)
+            : QAbstractItemModel(parent),
+              m_outline(std::move(outline))
     {
     }
 
-    QModelIndex index(int row, int column, const QModelIndex& parent) const
+    QModelIndex index(int row, int column, const QModelIndex& parent) const override
     {
         if(!hasIndex(row, column, parent))
         {
-            return QModelIndex();
+            return {};
         }
 
         if(parent.isValid())
@@ -343,29 +351,30 @@ public:
         }
     }
 
-    QModelIndex parent(const QModelIndex& child) const
+    QModelIndex parent(const QModelIndex& child) const override
     {
         if(!child.isValid())
         {
-            return QModelIndex();
+            return {};
         }
 
-        const Model::Outline* children = static_cast< const Model::Outline* >(child.internalPointer());
+        const auto children = static_cast<const Model::Outline*>(child.internalPointer());
 
         if(&m_outline != children)
         {
             return findParent(&m_outline, children);
         }
 
-        return QModelIndex();
+        return {};
     }
 
-    int columnCount(const QModelIndex&) const
+    int columnCount(const QModelIndex& index) const override
     {
+	    Q_UNUSED(index)
         return 2;
     }
 
-    int rowCount(const QModelIndex& parent) const
+    int rowCount(const QModelIndex& parent) const override
     {
         if(parent.isValid())
         {
@@ -379,7 +388,7 @@ public:
         }
     }
 
-    QVariant data(const QModelIndex& index, int role) const
+    QVariant data(const QModelIndex& index, int role) const override
     {
         if(!index.isValid())
         {
@@ -415,14 +424,14 @@ public:
         }
     }
 
-    bool setData(const QModelIndex& index, const QVariant& value, int role)
+    bool setData(const QModelIndex& index, const QVariant& value, int role) override
     {
         if(!index.isValid() || role != Model::Document::ExpansionRole)
         {
             return false;
         }
 
-        const Model::Section* section = resolveIndex(index);
+        const auto section = resolveIndex(index);
 
         if(value.toBool())
         {
@@ -441,7 +450,7 @@ private:
 
     DocumentView* documentView() const
     {
-        return static_cast< DocumentView* >(QObject::parent());
+        return dynamic_cast<DocumentView*>(QObject::parent());
     }
 
     QString pageLabel(int pageNumber) const
@@ -449,16 +458,16 @@ private:
         return documentView()->pageLabelFromNumber(pageNumber);
     }
 
-    QSet< const Model::Section* > m_expanded;
+    QSet<const Model::Section* > m_expanded;
 
-    const Model::Section* resolveIndex(const QModelIndex& index) const
+    static const Model::Section* resolveIndex(const QModelIndex& index)
     {
-        return &static_cast< const Model::Outline* >(index.internalPointer())->at(index.row());
+        return &static_cast<const Model::Outline*>(index.internalPointer())->at(index.row());
     }
 
     QModelIndex createIndex(int row, int column, const Model::Outline* outline) const
     {
-        return QAbstractItemModel::createIndex(row, column, const_cast< void* >(static_cast< const void* >(outline)));
+        return QAbstractItemModel::createIndex(row, column, const_cast<void* >(static_cast<const void* >(outline)));
     }
 
     QModelIndex findParent(const Model::Outline* outline, const Model::Outline* children) const
@@ -467,13 +476,13 @@ private:
         {
             if(&section->children == children)
             {
-                return createIndex(section - outline->begin(), 0, outline);
+                return createIndex(static_cast<int>(section - outline->begin()), 0, outline);
             }
         }
 
-        for(Model::Outline::const_iterator section = outline->begin(); section != outline->end(); ++section)
+        for(const auto& section : *outline)
         {
-            const QModelIndex parent = findParent(&section->children, children);
+            const QModelIndex parent = findParent(&section.children, children);
 
             if(parent.isValid())
             {
@@ -481,7 +490,7 @@ private:
             }
         }
 
-        return QModelIndex();
+        return {};
     }
 
 };
@@ -489,16 +498,17 @@ private:
 class FallbackOutlineModel : public QAbstractTableModel
 {
 public:
-    FallbackOutlineModel(DocumentView* parent) : QAbstractTableModel(parent)
+    explicit FallbackOutlineModel(DocumentView *parent)
+            : QAbstractTableModel(parent)
     {
     }
 
-    int columnCount(const QModelIndex&) const
+    int columnCount(const QModelIndex&) const override
     {
         return 2;
     }
 
-    int rowCount(const QModelIndex& parent) const
+    int rowCount(const QModelIndex& parent) const override
     {
         if(parent.isValid())
         {
@@ -508,7 +518,7 @@ public:
         return numberOfPages();
     }
 
-    QVariant data(const QModelIndex& index, int role) const
+    QVariant data(const QModelIndex& index, int role) const override
     {
         if(!index.isValid())
         {
@@ -542,7 +552,7 @@ public:
 private:
     DocumentView* documentView() const
     {
-        return static_cast< DocumentView* >(QObject::parent());
+        return dynamic_cast<DocumentView*>(QObject::parent());
     }
 
     int numberOfPages() const
@@ -560,17 +570,17 @@ private:
 class PropertiesModel : public QAbstractTableModel
 {
 public:
-    PropertiesModel(const Model::Properties& properties, DocumentView* parent = 0) : QAbstractTableModel(parent),
-        m_properties(properties)
+    explicit PropertiesModel(Model::Properties properties, DocumentView* parent = nullptr) : QAbstractTableModel(parent),
+        m_properties(std::move(properties))
     {
     }
 
-    int columnCount(const QModelIndex&) const
+    int columnCount(const QModelIndex&) const override
     {
         return 2;
     }
 
-    int rowCount(const QModelIndex& parent) const
+    int rowCount(const QModelIndex& parent) const override
     {
         if(parent.isValid())
         {
@@ -580,7 +590,7 @@ public:
         return m_properties.size();
     }
 
-    QVariant data(const QModelIndex& index, int role) const
+    QVariant data(const QModelIndex& index, int role) const override
     {
         if(!index.isValid() || role != Qt::DisplayRole)
         {
@@ -638,7 +648,7 @@ void appendToPath(const QModelIndex& index, QByteArray& path)
     path.append(index.data(Qt::DisplayRole).toByteArray()).append('\0');
 }
 
-void saveExpandedPaths(const QAbstractItemModel* model, QSet< QByteArray >& paths, const QModelIndex& index = QModelIndex(), QByteArray path = QByteArray())
+void saveExpandedPaths(const QAbstractItemModel* model, QSet<QByteArray>& paths, const QModelIndex& index = QModelIndex(), QByteArray path = QByteArray())
 {
     appendToPath(index, path);
 
@@ -653,7 +663,7 @@ void saveExpandedPaths(const QAbstractItemModel* model, QSet< QByteArray >& path
     }
 }
 
-void restoreExpandedPaths(QAbstractItemModel* model, const QSet< QByteArray >& paths, const QModelIndex& index = QModelIndex(), QByteArray path = QByteArray())
+void restoreExpandedPaths(QAbstractItemModel* model, const QSet<QByteArray>& paths, const QModelIndex& index = QModelIndex(), QByteArray path = QByteArray())
 {
     appendToPath(index, path);
 
@@ -682,7 +692,7 @@ private:
 
 public:
 
-    VerticalScrollBarChangedBlocker(DocumentView* that) : that(that)
+    explicit VerticalScrollBarChangedBlocker(DocumentView* that) : that(that)
     {
         that->m_verticalScrollBarChangedBlocked = true;
     }
@@ -694,15 +704,15 @@ public:
 
 };
 
-Settings* DocumentView::s_settings = 0;
-ShortcutHandler* DocumentView::s_shortcutHandler = 0;
-SearchModel* DocumentView::s_searchModel = 0;
+qpdfview::Settings* DocumentView::s_settings = nullptr;
+qpdfview::ShortcutHandler* DocumentView::s_shortcutHandler = nullptr;
+qpdfview::SearchModel* DocumentView::s_searchModel = nullptr;
 
 DocumentView::DocumentView(QWidget* parent) : QGraphicsView(parent),
-    m_autoRefreshWatcher(0),
-    m_autoRefreshTimer(0),
-    m_prefetchTimer(0),
-    m_document(0),
+    m_autoRefreshWatcher(nullptr),
+    m_autoRefreshTimer(nullptr),
+    m_prefetchTimer(nullptr),
+    m_document(nullptr),
     m_pages(),
     m_fileInfo(),
     m_wasModified(false),
@@ -715,32 +725,32 @@ DocumentView::DocumentView(QWidget* parent) : QGraphicsView(parent),
     m_scaleMode(ScaleFactorMode),
     m_scaleFactor(1.0),
     m_rotation(RotateBy0),
-    m_renderFlags(0),
+    m_renderFlags(nullptr),
     m_highlightAll(false),
     m_rubberBandMode(ModifiersMode),
     m_pageItems(),
     m_thumbnailItems(),
-    m_highlight(0),
+    m_highlight(nullptr),
     m_thumbnailsViewportSize(),
     m_thumbnailsOrientation(Qt::Vertical),
-    m_thumbnailsScene(0),
-    m_outlineModel(0),
-    m_propertiesModel(0),
+    m_thumbnailsScene(nullptr),
+    m_outlineModel(nullptr),
+    m_propertiesModel(nullptr),
     m_verticalScrollBarChangedBlocked(false),
     m_currentResult(),
-    m_searchTask(0)
+    m_searchTask(nullptr)
 {
-    if(s_settings == 0)
+    if(s_settings == nullptr)
     {
         s_settings = Settings::instance();
     }
 
-    if(s_shortcutHandler == 0)
+    if(s_shortcutHandler == nullptr)
     {
         s_shortcutHandler = ShortcutHandler::instance();
     }
 
-    if(s_searchModel == 0)
+    if(s_searchModel == nullptr)
     {
         s_searchModel = SearchModel::instance();
     }
@@ -751,7 +761,7 @@ DocumentView::DocumentView(QWidget* parent) : QGraphicsView(parent),
     setAcceptDrops(false);
     setDragMode(QGraphicsView::ScrollHandDrag);
 
-    connect(verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(on_verticalScrollBar_valueChanged()));
+    connect(verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(onVerticalScrollBarValueChanged()));
 
     m_thumbnailsScene = new QGraphicsScene(this);
 
@@ -769,8 +779,8 @@ DocumentView::DocumentView(QWidget* parent) : QGraphicsView(parent),
 
     connect(m_searchTask, SIGNAL(finished()), SIGNAL(searchFinished()));
 
-    connect(m_searchTask, SIGNAL(progressChanged(int)), SLOT(on_searchTask_progressChanged(int)));
-    connect(m_searchTask, SIGNAL(resultsReady(int,QList<QRectF>)), SLOT(on_searchTask_resultsReady(int,QList<QRectF>)));
+    connect(m_searchTask, SIGNAL(progressChanged(int)), SLOT(onSearchTaskProgressChanged(int)));
+    connect(m_searchTask, SIGNAL(resultsReady(int,QList<QRectF>)), SLOT(onSearchTaskResultsReady(int,QList<QRectF>)));
 
     // auto-refresh
 
@@ -782,7 +792,7 @@ DocumentView::DocumentView(QWidget* parent) : QGraphicsView(parent),
 
     connect(m_autoRefreshWatcher, SIGNAL(fileChanged(QString)), m_autoRefreshTimer, SLOT(start()));
 
-    connect(m_autoRefreshTimer, SIGNAL(timeout()), this, SLOT(on_autoRefresh_timeout()));
+    connect(m_autoRefreshTimer, SIGNAL(timeout()), this, SLOT(onAutoRefreshTimeout()));
 
     // prefetch
 
@@ -791,13 +801,13 @@ DocumentView::DocumentView(QWidget* parent) : QGraphicsView(parent),
     m_prefetchTimer->setSingleShot(true);
 
     connect(this, SIGNAL(currentPageChanged(int)), m_prefetchTimer, SLOT(start()));
-    connect(this, SIGNAL(layoutModeChanged(LayoutMode)), m_prefetchTimer, SLOT(start()));
-    connect(this, SIGNAL(scaleModeChanged(ScaleMode)), m_prefetchTimer, SLOT(start()));
+    connect(this, SIGNAL(layoutModeChanged(qpdfview::LayoutMode)), m_prefetchTimer, SLOT(start()));
+    connect(this, SIGNAL(scaleModeChanged(qpdfview::ScaleMode)), m_prefetchTimer, SLOT(start()));
     connect(this, SIGNAL(scaleFactorChanged(qreal)), m_prefetchTimer, SLOT(start()));
-    connect(this, SIGNAL(rotationChanged(Rotation)), m_prefetchTimer, SLOT(start()));
+    connect(this, SIGNAL(rotationChanged(qpdfview::Rotation)), m_prefetchTimer, SLOT(start()));
     connect(this, SIGNAL(renderFlagsChanged(qpdfview::RenderFlags)), m_prefetchTimer, SLOT(start()));
 
-    connect(m_prefetchTimer, SIGNAL(timeout()), SLOT(on_prefetch_timeout()));
+    connect(m_prefetchTimer, SIGNAL(timeout()), SLOT(onPrefetchTimeout()));
 
     // settings
 
@@ -1012,12 +1022,13 @@ void DocumentView::setContinuousMode(bool continuousMode)
     }
 }
 
-LayoutMode DocumentView::layoutMode() const
+qpdfview::LayoutMode
+DocumentView::layoutMode() const
 {
     return m_layout->layoutMode();
 }
 
-void DocumentView::setLayoutMode(LayoutMode layoutMode)
+void DocumentView::setLayoutMode(qpdfview::LayoutMode layoutMode)
 {
     if(m_layout->layoutMode() != layoutMode && layoutMode >= 0 && layoutMode < NumberOfLayoutModes)
     {
@@ -1054,7 +1065,7 @@ void DocumentView::setRightToLeftMode(bool rightToLeftMode)
     }
 }
 
-void DocumentView::setScaleMode(ScaleMode scaleMode)
+void DocumentView::setScaleMode(qpdfview::ScaleMode scaleMode)
 {
     if(m_scaleMode != scaleMode && scaleMode >= 0 && scaleMode < NumberOfScaleModes)
     {
@@ -1097,7 +1108,7 @@ void DocumentView::setScaleFactor(qreal scaleFactor)
     }
 }
 
-void DocumentView::setRotation(Rotation rotation)
+void DocumentView::setRotation(qpdfview::Rotation rotation)
 {
     if(m_rotation != rotation && rotation >= 0 && rotation < NumberOfRotations)
     {
@@ -1174,7 +1185,8 @@ void DocumentView::setRenderFlag(qpdfview::RenderFlag renderFlag, bool enabled)
     }
 }
 
-CompositionMode DocumentView::compositionMode() const
+qpdfview::CompositionMode
+DocumentView::compositionMode() const
 {
     if(m_renderFlags.testFlag(DarkenWithPaperColor))
     {
@@ -1190,7 +1202,7 @@ CompositionMode DocumentView::compositionMode() const
     }
 }
 
-void DocumentView::setCompositionMode(CompositionMode compositionMode)
+void DocumentView::setCompositionMode(qpdfview::CompositionMode compositionMode)
 {
     switch(compositionMode)
     {
@@ -1217,7 +1229,7 @@ void DocumentView::setHighlightAll(bool highlightAll)
         {
             for(int index = 0; index < m_pages.count(); ++index)
             {
-                const QList< QRectF >& results = s_searchModel->resultsOnPage(this, index + 1);
+                const QList<QRectF>& results = s_searchModel->resultsOnPage(this, index + 1);
 
                 m_pageItems.at(index)->setHighlights(results);
                 m_thumbnailItems.at(index)->setHighlights(results);
@@ -1227,8 +1239,8 @@ void DocumentView::setHighlightAll(bool highlightAll)
         {
             for(int index = 0; index < m_pages.count(); ++index)
             {
-                m_pageItems.at(index)->setHighlights(QList< QRectF >());
-                m_thumbnailItems.at(index)->setHighlights(QList< QRectF >());
+                m_pageItems.at(index)->setHighlights(QList<QRectF>());
+                m_thumbnailItems.at(index)->setHighlights(QList<QRectF>());
             }
         }
 
@@ -1238,13 +1250,13 @@ void DocumentView::setHighlightAll(bool highlightAll)
     }
 }
 
-void DocumentView::setRubberBandMode(RubberBandMode rubberBandMode)
+void DocumentView::setRubberBandMode(qpdfview::RubberBandMode rubberBandMode)
 {
     if(m_rubberBandMode != rubberBandMode && rubberBandMode >= 0 && rubberBandMode < NumberOfRubberBandModes)
     {
         m_rubberBandMode = rubberBandMode;
 
-        foreach(PageItem* page, m_pageItems)
+        for(auto page : m_pageItems)
         {
             page->setRubberBandMode(m_rubberBandMode);
         }
@@ -1273,16 +1285,16 @@ void DocumentView::setThumbnailsOrientation(Qt::Orientation thumbnailsOrientatio
     }
 }
 
-QSet< QByteArray > DocumentView::saveExpandedPaths() const
+QSet<QByteArray> DocumentView::saveExpandedPaths() const
 {
-    QSet< QByteArray > expandedPaths;
+    QSet<QByteArray> expandedPaths;
 
     ::saveExpandedPaths(m_outlineModel.data(), expandedPaths);
 
     return expandedPaths;
 }
 
-void DocumentView::restoreExpandedPaths(const QSet< QByteArray >& expandedPaths)
+void DocumentView::restoreExpandedPaths(const QSet<QByteArray>& expandedPaths)
 {
     ::restoreExpandedPaths(m_outlineModel.data(), expandedPaths);
 }
@@ -1317,7 +1329,7 @@ bool DocumentView::searchWholeWords() const
     return m_searchTask->wholeWords();
 }
 
-QPair< QString, QString > DocumentView::searchContext(int page, const QRectF& rect) const
+QPair<QString, QString> DocumentView::searchContext(int page, const QRectF& rect) const
 {
     if(page < 1 || page > m_pages.size() || rect.isEmpty())
     {
@@ -1367,10 +1379,9 @@ QUrl DocumentView::resolveUrl(QUrl url) const
 DocumentView::SourceLink DocumentView::sourceLink(QPoint pos)
 {
     SourceLink sourceLink;
-
 #ifdef WITH_SYNCTEX
 
-    if(const PageItem* page = dynamic_cast< PageItem* >(itemAt(pos)))
+    if(const PageItem* page = dynamic_cast<PageItem* >(itemAt(pos)))
     {
         const int sourcePage = page->index() + 1;
         const QPointF sourcePos = page->sourcePos(page->mapFromScene(mapToScene(pos)));
@@ -1380,7 +1391,8 @@ DocumentView::SourceLink DocumentView::sourceLink(QPoint pos)
 
 #else
 
-    Q_UNUSED(pos);
+    m_fileInfo.filePath();
+    Q_UNUSED(pos)
 
 #endif // WITH_SYNCTEX
 
@@ -1413,9 +1425,9 @@ bool DocumentView::open(const QString& filePath)
 {
     Model::Document* document = PluginHandler::instance()->loadDocument(filePath);
 
-    if(document != 0)
+    if(document != nullptr)
     {
-        QVector< Model::Page* > pages;
+        QVector<Model::Page*> pages;
 
         if(!checkDocument(filePath, document, pages))
         {
@@ -1456,16 +1468,16 @@ bool DocumentView::open(const QString& filePath)
         emit rightToLeftModeChanged(m_rightToLeftMode);
     }
 
-    return document != 0;
+    return document != nullptr;
 }
 
 bool DocumentView::refresh()
 {
-    Model::Document* document = PluginHandler::instance()->loadDocument(m_fileInfo.filePath());
+    auto document = PluginHandler::instance()->loadDocument(m_fileInfo.filePath());
 
-    if(document != 0)
+    if(document != nullptr)
     {
-        QVector< Model::Page* > pages;
+        QVector<Model::Page*> pages;
 
         if(!checkDocument(m_fileInfo.filePath(), document, pages))
         {
@@ -1482,7 +1494,7 @@ bool DocumentView::refresh()
 
         m_currentPage = qMin(m_currentPage, document->numberOfPages());
 
-        QSet< QByteArray > expandedPaths;
+        QSet<QByteArray> expandedPaths;
         ::saveExpandedPaths(m_outlineModel.data(), expandedPaths);
 
         prepareDocument(document, pages);
@@ -1500,7 +1512,7 @@ bool DocumentView::refresh()
         emit currentPageChanged(m_currentPage);
     }
 
-    return document != 0;
+    return document != nullptr;
 }
 
 bool DocumentView::save(const QString& filePath, bool withChanges)
@@ -1669,7 +1681,7 @@ void DocumentView::temporaryHighlight(int page, const QRectF& highlight)
     {
         prepareHighlight(page - 1, highlight);
 
-        QTimer::singleShot(s_settings->documentView().highlightDuration(), this, SLOT(on_temporaryHighlight_timeout()));
+        QTimer::singleShot(s_settings->documentView().highlightDuration(), this, SLOT(onTemporaryHighlightTimeout()));
     }
 }
 
@@ -1695,14 +1707,14 @@ void DocumentView::clearResults()
 
     m_highlight->setVisible(false);
 
-    foreach(PageItem* page, m_pageItems)
+    for(auto page : m_pageItems)
     {
-        page->setHighlights(QList< QRectF >());
+        page->setHighlights(QList<QRectF>());
     }
 
-    foreach(ThumbnailItem* page, m_thumbnailItems)
+    for(auto page : m_thumbnailItems)
     {
-        page->setHighlights(QList< QRectF >());
+        page->setHighlights(QList<QRectF>());
     }
 
     if(s_settings->documentView().limitThumbnailsToResults())
@@ -1729,7 +1741,7 @@ void DocumentView::findNext()
     applyResult();
 }
 
-void DocumentView::findResult(const QModelIndex& index)
+void DocumentView::findResult(QModelIndex index)
 {
     const int page = pageOfResult(index);
     const QRectF rect = rectOfResult(index);
@@ -1828,7 +1840,7 @@ void DocumentView::startPresentation()
 {
     const int screen = s_settings->presentationView().screen();
 
-    PresentationView* presentationView = new PresentationView(m_pages);
+    auto presentationView = new PresentationView(m_pages);
 
     presentationView->setGeometry(QApplication::desktop()->screenGeometry(screen));
 
@@ -1850,7 +1862,7 @@ void DocumentView::startPresentation()
     }
 }
 
-void DocumentView::on_verticalScrollBar_valueChanged()
+void DocumentView::onVerticalScrollBarValueChanged()
 {
     if(m_verticalScrollBarChangedBlocked || !m_continuousMode)
     {
@@ -1895,7 +1907,7 @@ void DocumentView::on_verticalScrollBar_valueChanged()
     }
 }
 
-void DocumentView::on_autoRefresh_timeout()
+void DocumentView::onAutoRefreshTimeout()
 {
     if(m_fileInfo.exists())
     {
@@ -1909,9 +1921,9 @@ void DocumentView::on_autoRefresh_timeout()
     }
 }
 
-void DocumentView::on_prefetch_timeout()
+void DocumentView::onPrefetchTimeout()
 {
-    const QPair< int, int > prefetchRange = m_layout->prefetchRange(m_currentPage, m_pages.count());
+    const QPair<int, int> prefetchRange = m_layout->prefetchRange(m_currentPage, m_pages.count());
 
     const int maxCost = prefetchRange.second - prefetchRange.first + 1;
     int cost = 0;
@@ -1937,19 +1949,19 @@ void DocumentView::on_prefetch_timeout()
     }
 }
 
-void DocumentView::on_temporaryHighlight_timeout()
+void DocumentView::onTemporaryHighlightTimeout()
 {
     m_highlight->setVisible(false);
 }
 
-void DocumentView::on_searchTask_progressChanged(int progress)
+void DocumentView::onSearchTaskProgressChanged(int progress)
 {
     s_searchModel->updateProgress(this);
 
     emit searchProgressChanged(progress);
 }
 
-void DocumentView::on_searchTask_resultsReady(int index, const QList< QRectF >& results)
+void DocumentView::onSearchTaskResultsReady(int index, const QList<QRectF>& results)
 {
     if(m_searchTask->wasCanceled())
     {
@@ -1977,7 +1989,7 @@ void DocumentView::on_searchTask_resultsReady(int index, const QList< QRectF >& 
     }
 }
 
-void DocumentView::on_pages_cropRectChanged()
+void DocumentView::onPagesCropRectChanged()
 {
     qreal left = 0.0, top = 0.0;
     saveLeftAndTop(left, top);
@@ -1986,12 +1998,12 @@ void DocumentView::on_pages_cropRectChanged()
     prepareView(left, top);
 }
 
-void DocumentView::on_thumbnails_cropRectChanged()
+void DocumentView::onThumbnailsCropRectChanged()
 {
     prepareThumbnailsScene();
 }
-
-void DocumentView::on_pages_linkClicked(bool newTab, int page, qreal left, qreal top)
+    
+void DocumentView::onPagesLinkClicked(bool newTab, int page, qreal left, qreal top)
 {
     if(newTab)
     {
@@ -2003,12 +2015,12 @@ void DocumentView::on_pages_linkClicked(bool newTab, int page, qreal left, qreal
     }
 }
 
-void DocumentView::on_pages_linkClicked(bool newTab, const QString& fileName, int page)
+void DocumentView::onPagesLinkClicked(bool newTab, const QString& fileName, int page)
 {
     emit linkClicked(newTab, resolveFileName(fileName), page);
 }
 
-void DocumentView::on_pages_linkClicked(const QString& url)
+void DocumentView::onPagesLinkClicked(const QString& url)
 {
     if(s_settings->documentView().openUrl())
     {
@@ -2020,12 +2032,12 @@ void DocumentView::on_pages_linkClicked(const QString& url)
     }
 }
 
-void DocumentView::on_pages_rubberBandFinished()
+void DocumentView::onPagesRubberBandFinished()
 {
     setRubberBandMode(ModifiersMode);
 }
 
-void DocumentView::on_pages_zoomToSelection(int page, const QRectF& rect)
+void DocumentView::onPagesZoomToSelection(int page, const QRectF& rect)
 {
     if(rect.isEmpty())
     {
@@ -2046,7 +2058,7 @@ void DocumentView::on_pages_zoomToSelection(int page, const QRectF& rect)
     jumpToPage(page, false, rect.left(), rect.top());
 }
 
-void DocumentView::on_pages_openInSourceEditor(int page, QPointF pos)
+void DocumentView::onPagesOpenInSourceEditor(int page, QPointF pos)
 {
 #ifdef WITH_SYNCTEX
 
@@ -2060,14 +2072,14 @@ void DocumentView::on_pages_openInSourceEditor(int page, QPointF pos)
     }
 
 #else
-
-    Q_UNUSED(page);
-    Q_UNUSED(pos);
+	m_fileInfo.absoluteFilePath();
+    Q_UNUSED(page)
+    Q_UNUSED(pos)
 
 #endif // WITH_SYNCTEX
 }
 
-void DocumentView::on_pages_wasModified()
+void DocumentView::onPagesWasModified()
 {
     m_wasModified = true;
 
@@ -2090,7 +2102,7 @@ void DocumentView::resizeEvent(QResizeEvent* event)
 
 void DocumentView::keyPressEvent(QKeyEvent* event)
 {
-    foreach(const PageItem* page, m_pageItems)
+    for(auto page : m_pageItems)
     {
         if(page->showsAnnotationOverlay() || page->showsFormFieldOverlay())
         {
@@ -2099,7 +2111,7 @@ void DocumentView::keyPressEvent(QKeyEvent* event)
         }
     }
 
-    const QKeySequence keySequence(event->modifiers() + event->key());
+    const QKeySequence keySequence(static_cast<int>(event->modifiers()) + event->key());
 
     int maskedKey = -1;
     bool maskedKeyActive = false;
@@ -2307,18 +2319,18 @@ void DocumentView::contextMenuEvent(QContextMenuEvent* event)
 bool DocumentView::printUsingCUPS(QPrinter* printer, const PrintOptions& printOptions, int fromPage, int toPage)
 {
     int num_dests = 0;
-    cups_dest_t* dests = 0;
+    cups_dest_t* dests = nullptr;
 
     int num_options = 0;
-    cups_option_t* options = 0;
+    cups_option_t* options = nullptr;
 
-    cups_dest_t* dest = 0;
+    cups_dest_t* dest = nullptr;
     int jobId = 0;
 
     num_dests = cupsGetDests(&dests);
-    dest = cupsGetDest(printer->printerName().toUtf8(), 0, num_dests, dests);
+    dest = cupsGetDest(printer->printerName().toUtf8(), nullptr, num_dests, dests);
 
-    if(dest == 0)
+    if(!dest)
     {
         qWarning() << cupsLastErrorString();
 
@@ -2482,7 +2494,7 @@ bool DocumentView::printUsingCUPS(QPrinter* printer, const PrintOptions& printOp
     fromPage = (fromPage - 1) / numberUp + 1;
     toPage = (toPage - 1) / numberUp + 1;
 
-    if(cupsGetOption("page-ranges", num_options, options) == 0)
+    if(!cupsGetOption("page-ranges", num_options, options))
     {
         if(printOptions.pageRanges.isEmpty())
         {
@@ -2533,7 +2545,7 @@ bool DocumentView::printUsingCUPS(QPrinter* printer, const PrintOptions& printOp
 
 bool DocumentView::printUsingQt(QPrinter* printer, const PrintOptions& printOptions, int fromPage, int toPage)
 {
-    QScopedPointer< QProgressDialog > progressDialog(new QProgressDialog(this));
+    QScopedPointer<QProgressDialog> progressDialog(new QProgressDialog(this));
     progressDialog->setLabelText(tr("Printing '%1'...").arg(m_fileInfo.completeBaseName()));
     progressDialog->setRange(fromPage - 1, toPage);
 
@@ -2565,8 +2577,8 @@ bool DocumentView::printUsingQt(QPrinter* printer, const PrintOptions& printOpti
         }
         else
         {
-            const qreal scaleFactorX = static_cast< qreal >(printer->logicalDpiX()) / static_cast< qreal >(printer->physicalDpiX());
-            const qreal scaleFactorY = static_cast< qreal >(printer->logicalDpiY()) / static_cast< qreal >(printer->physicalDpiY());
+            const qreal scaleFactorX = static_cast<qreal>(printer->logicalDpiX()) / static_cast<qreal>(printer->physicalDpiX());
+            const qreal scaleFactorY = static_cast<qreal>(printer->logicalDpiY()) / static_cast<qreal>(printer->physicalDpiY());
 
             painter.setTransform(QTransform::fromScale(scaleFactorX, scaleFactorY));
         }
@@ -2604,7 +2616,7 @@ void DocumentView::saveLeftAndTop(qreal& left, qreal& top) const
     top = (topLeft.y() - boundingRect.y()) / boundingRect.height();
 }
 
-bool DocumentView::checkDocument(const QString& filePath, Model::Document* document, QVector< Model::Page* >& pages)
+bool DocumentView::checkDocument(const QString& filePath, Model::Document* document, QVector<Model::Page* >& pages)
 {
     if(document->isLocked())
     {
@@ -2631,7 +2643,7 @@ bool DocumentView::checkDocument(const QString& filePath, Model::Document* docum
     {
         Model::Page* page = document->page(index);
 
-        if(page == 0)
+        if(!page)
         {
             qWarning() << "No page" << index << "was found in document at" << filePath;
 
@@ -2690,7 +2702,7 @@ void DocumentView::adjustScrollBarPolicy()
     }
 }
 
-void DocumentView::prepareDocument(Model::Document* document, const QVector< Model::Page* >& pages)
+void DocumentView::prepareDocument(Model::Document* document, const QVector<Model::Page* >& pages)
 {
     m_prefetchTimer->blockSignals(true);
     m_prefetchTimer->stop();
@@ -2754,25 +2766,25 @@ void DocumentView::preparePages()
 
     for(int index = 0; index < m_pages.count(); ++index)
     {
-        PageItem* page = new PageItem(m_pages.at(index), index);
+        auto page = new PageItem(m_pages.at(index), index);
 
         page->setRubberBandMode(m_rubberBandMode);
 
         scene()->addItem(page);
         m_pageItems.append(page);
 
-        connect(page, SIGNAL(cropRectChanged()), SLOT(on_pages_cropRectChanged()));
+        connect(page, SIGNAL(cropRectChanged()), SLOT(onPagesCropRectChanged()));
 
-        connect(page, SIGNAL(linkClicked(bool,int,qreal,qreal)), SLOT(on_pages_linkClicked(bool,int,qreal,qreal)));
-        connect(page, SIGNAL(linkClicked(bool,QString,int)), SLOT(on_pages_linkClicked(bool,QString,int)));
-        connect(page, SIGNAL(linkClicked(QString)), SLOT(on_pages_linkClicked(QString)));
+        connect(page, SIGNAL(linkClicked(bool,int,qreal,qreal)), SLOT(onPagesLinkClicked(bool,int,qreal,qreal)));
+        connect(page, SIGNAL(linkClicked(bool,QString,int)), SLOT(onPagesLinkClicked(bool,QString,int)));
+        connect(page, SIGNAL(linkClicked(QString)), SLOT(onPagesLinkClicked(QString)));
 
-        connect(page, SIGNAL(rubberBandFinished()), SLOT(on_pages_rubberBandFinished()));
+        connect(page, SIGNAL(rubberBandFinished()), SLOT(onPagesRubberBandFinished()));
 
-        connect(page, SIGNAL(zoomToSelection(int,QRectF)), SLOT(on_pages_zoomToSelection(int,QRectF)));
-        connect(page, SIGNAL(openInSourceEditor(int,QPointF)), SLOT(on_pages_openInSourceEditor(int,QPointF)));
+        connect(page, SIGNAL(zoomToSelection(int,QRectF)), SLOT(onPagesZoomToSelection(int,QRectF)));
+        connect(page, SIGNAL(openInSourceEditor(int,QPointF)), SLOT(onPagesOpenInSourceEditor(int,QPointF)));
 
-        connect(page, SIGNAL(wasModified()), SLOT(on_pages_wasModified()));
+        connect(page, SIGNAL(wasModified()), SLOT(onPagesWasModified()));
     }
 }
 
@@ -2783,14 +2795,14 @@ void DocumentView::prepareThumbnails()
 
     for(int index = 0; index < m_pages.count(); ++index)
     {
-        ThumbnailItem* page = new ThumbnailItem(m_pages.at(index), pageLabelFromNumber(index + 1), index);
+        auto page = new ThumbnailItem(m_pages.at(index), pageLabelFromNumber(index + 1), index);
 
         m_thumbnailsScene->addItem(page);
         m_thumbnailItems.append(page);
 
-        connect(page, SIGNAL(cropRectChanged()), SLOT(on_thumbnails_cropRectChanged()));
+        connect(page, SIGNAL(cropRectChanged()), SLOT(onThumbnailsCropRectChanged()));
 
-        connect(page, SIGNAL(linkClicked(bool,int,qreal,qreal)), SLOT(on_pages_linkClicked(bool,int,qreal,qreal)));
+        connect(page, SIGNAL(linkClicked(bool,int,qreal,qreal)), SLOT(onPagesLinkClicked(bool,int,qreal,qreal)));
     }
 }
 
@@ -2843,7 +2855,7 @@ void DocumentView::prepareScene()
     const qreal visibleWidth = m_layout->visibleWidth(viewport()->width());
     const qreal visibleHeight = m_layout->visibleHeight(viewport()->height());
 
-    foreach(PageItem* page, m_pageItems)
+    for(auto page : m_pageItems)
     {
         const QSizeF displayedSize = page->displayedSize(renderParam);
 
@@ -2984,7 +2996,7 @@ void DocumentView::prepareThumbnailsScene()
         visibleHeight = m_thumbnailsViewportSize.height() - 3.0 * thumbnailSpacing;
     }
 
-    foreach(ThumbnailItem* page, m_thumbnailItems)
+    for(auto page : m_thumbnailItems)
     {
         const QSizeF displayedSize = page->displayedSize(renderParam);
 
