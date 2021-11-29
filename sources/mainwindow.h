@@ -77,10 +77,10 @@ class MainWindow : public QMainWindow
     friend class MainWindowAdaptor;
 
 public:
-    explicit MainWindow(QWidget* parent = 0);
+    explicit MainWindow(QWidget* parent = nullptr);
 
-    QSize sizeHint() const;
-    QMenu* createPopupMenu();
+    QSize sizeHint() const override;
+    QMenu* createPopupMenu() override;
 
 public slots:
     void show();
@@ -95,198 +95,198 @@ public slots:
     void saveDatabase();
 
 protected slots:
-    void on_tabWidget_currentChanged();
-    void on_tabWidget_tabCloseRequested(int index);
-    void on_tabWidget_tabDragRequested(int index);
-    void on_tabWidget_tabContextMenuRequested(QPoint globalPos, int index);
+    void onTabWidgetCurrentChanged();
+    void onTabWidgetTabCloseRequested(int index);
+    void onTabWidgetTabDragRequested(int index);
+    void onTabWidgetTabContextMenuRequested(QPoint globalPos, int index);
 
-    void on_currentTab_documentChanged();
-    void on_currentTab_documentModified();
+    void onCurrentTabDocumentChanged();
+    void onCurrentTabDocumentModified();
 
-    void on_currentTab_numberOfPagesChaned(int numberOfPages);
-    void on_currentTab_currentPageChanged(int currentPage);
+    void onCurrentTabNumberOfPagesChaned(int numberOfPages);
+    void onCurrentTabCurrentPageChanged(int currentPage);
 
-    void on_currentTab_canJumpChanged(bool backward, bool forward);
+    void onCurrentTabCanJumpChanged(bool backward, bool forward);
 
-    void on_currentTab_continuousModeChanged(bool continuousMode);
-    void on_currentTab_layoutModeChanged(LayoutMode layoutMode);
-    void on_currentTab_rightToLeftModeChanged(bool rightToLeftMode);
-    void on_currentTab_scaleModeChanged(ScaleMode scaleMode);
-    void on_currentTab_scaleFactorChanged(qreal scaleFactor);
-    void on_currentTab_rotationChanged(Rotation rotation);
+    void onCurrentTabContinuousModeChanged(bool continuousMode);
+    void onCurrentTabLayoutModeChanged(qpdfview::LayoutMode layoutMode);
+    void onCurrentTabRightToLeftModeChanged(bool rightToLeftMode);
+    void onCurrentTabScaleModeChanged(qpdfview::ScaleMode scaleMode);
+    void onCurrentTabScaleFactorChanged(qreal scaleFactor);
+    void onCurrentTabRotationChanged(qpdfview::Rotation rotation);
 
-    void on_currentTab_linkClicked(int page);
-    void on_currentTab_linkClicked(bool newTab, const QString& filePath, int page);
+    void onCurrentTabLinkClicked(int page);
+    void onCurrentTabLinkClicked(bool newTab, const QString& filePath, int page);
 
-    void on_currentTab_renderFlagsChanged(qpdfview::RenderFlags renderFlags);
+    void onCurrentTabRenderFlagsChanged(qpdfview::RenderFlags renderFlags);
 
-    void on_currentTab_invertColorsChanged(bool invertColors);
-    void on_currentTab_convertToGrayscaleChanged(bool convertToGrayscale);
-    void on_currentTab_trimMarginsChanged(bool trimMargins);
+    void onCurrentTabInvertColorsChanged(bool invertColors);
+    void onCurrentTabConvertToGrayscaleChanged(bool convertToGrayscale);
+    void onCurrentTabTrimMarginsChanged(bool trimMargins);
 
-    void on_currentTab_compositionModeChanged(CompositionMode compositionMode);
+    void onCurrentTabCompositionModeChanged(qpdfview::CompositionMode compositionMode);
 
-    void on_currentTab_highlightAllChanged(bool highlightAll);
-    void on_currentTab_rubberBandModeChanged(RubberBandMode rubberBandMode);
+    void onCurrentTabHighlightAllChanged(bool highlightAll);
+    void onCurrentTabRubberBandModeChanged(qpdfview::RubberBandMode rubberBandMode);
 
-    void on_currentTab_searchFinished();
-    void on_currentTab_searchProgressChanged(int progress);
+    void onCurrentTabSearchFinished();
+    void onCurrentTabSearchProgressChanged(int progress);
 
-    void on_currentTab_customContextMenuRequested(QPoint pos);
+    void onCurrentTabCustomContextMenuRequested(QPoint pos);
 
-    void on_splitView_splitHorizontally_triggered();
-    void on_splitView_splitVertically_triggered();
-    void on_splitView_split_triggered(Qt::Orientation orientation, int index);
-    void on_splitView_closeCurrent_triggered();
-    void on_splitView_closeCurrent_triggered(int index);
-    void on_splitView_currentWidgetChanged(QWidget* currentWidget);
+    void onSplitViewSplitHorizontallyTriggered();
+    void onSplitViewSplitVerticallyTriggered();
+    void onSplitViewSplitTriggered(Qt::Orientation orientation, int index);
+    void onSplitViewCloseCurrentTriggered();
+    void onSplitViewCloseCurrentTriggered(int index);
+    void onSplitViewCurrentWidgetChanged(QWidget* currentWidget);
 
-    void on_currentPage_editingFinished();
-    void on_currentPage_returnPressed();
+    void onCurrentPageEditingFinished();
+    void onCurrentPageReturnPressed();
 
-    void on_scaleFactor_activated(int index);
-    void on_scaleFactor_editingFinished();
-    void on_scaleFactor_returnPressed();
+    void onScaleFactorActivated(int index);
+    void onScaleFactorEditingFinished();
+    void onScaleFactorReturnPressed();
 
-    void on_open_triggered();
-    void on_openInNewTab_triggered();
-    void on_openCopyInNewTab_triggered();
-    void on_openCopyInNewTab_triggered(const DocumentView* tab);
-    void on_openCopyInNewWindow_triggered();
-    void on_openCopyInNewWindow_triggered(const DocumentView* tab);
-    void on_openContainingFolder_triggered();
-    void on_openContainingFolder_triggered(const DocumentView* tab);
-    void on_moveToInstance_triggered();
-    void on_moveToInstance_triggered(DocumentView* tab);
-    void on_refresh_triggered();
-    void on_save_triggered();
-    void on_saveAs_triggered();
-    void on_saveCopy_triggered();
-    void on_print_triggered();
+    void onOpenTriggered();
+    void onOpenInNewTabTriggered();
+    void onOpenCopyInNewTabTriggered();
+    void onOpenCopyInNewTabTriggered(const qpdfview::DocumentView* tab);
+    void onOpenCopyInNewWindowTriggered();
+    static void onOpenCopyInNewWindowTriggered(const qpdfview::DocumentView* tab);
+    void onOpenContainingFolderTriggered();
+    static void onOpenContainingFolderTriggered(const qpdfview::DocumentView* tab);
+    void onMoveToInstanceTriggered();
+    void onMoveToInstanceTriggered(qpdfview::DocumentView* tab);
+    void onRefreshTriggered();
+    void onSaveTriggered();
+    void onSaveAsTriggered();
+    void onSaveCopyTriggered();
+    void onPrintTriggered();
 
-    void on_recentlyUsed_openTriggered(const QString& filePath);
+    void onRecentlyUsedOpenTriggered(const QString& filePath);
 
-    void on_previousPage_triggered();
-    void on_nextPage_triggered();
-    void on_firstPage_triggered();
-    void on_lastPage_triggered();
+    void onPreviousPageTriggered();
+    void onNextPageTriggered();
+    void onFirstPageTriggered();
+    void onLastPageTriggered();
 
-    void on_setFirstPage_triggered();
+    void onSetFirstPageTriggered();
 
-    void on_jumpToPage_triggered();
+    void onJumpToPageTriggered();
 
-    void on_jumpBackward_triggered();
-    void on_jumpForward_triggered();
+    void onJumpBackwardTriggered();
+    void onJumpForwardTriggered();
 
-    void on_search_triggered();
-    void on_findPrevious_triggered();
-    void on_findNext_triggered();
-    void on_cancelSearch_triggered();
+    void onSearchTriggered();
+    void onFindPreviousTriggered();
+    void onFindNextTriggered();
+    void onCancelSearchTriggered();
 
-    void on_copyToClipboardMode_triggered(bool checked);
-    void on_addAnnotationMode_triggered(bool checked);
+    void onCopyToClipboardModeTriggered(bool checked);
+    void onAddAnnotationModeTriggered(bool checked);
 
-    void on_settings_triggered();
+    void onSettingsTriggered();
 
-    void on_continuousMode_triggered(bool checked);
-    void on_twoPagesMode_triggered(bool checked);
-    void on_twoPagesWithCoverPageMode_triggered(bool checked);
-    void on_multiplePagesMode_triggered(bool checked);
+    void onContinuousModeTriggered(bool checked);
+    void onTwoPagesModeTriggered(bool checked);
+    void onTwoPagesWithCoverPageModeTriggered(bool checked);
+    void onMultiplePagesModeTriggered(bool checked);
 
-    void on_rightToLeftMode_triggered(bool checked);
+    void onRightToLeftModeTriggered(bool checked);
 
-    void on_zoomIn_triggered();
-    void on_zoomOut_triggered();
-    void on_originalSize_triggered();
+    void onZoomInTriggered();
+    void onZoomOutTriggered();
+    void onOriginalSizeTriggered();
 
-    void on_fitToPageWidthMode_triggered(bool checked);
-    void on_fitToPageSizeMode_triggered(bool checked);
+    void onFitToPageWidthModeTriggered(bool checked);
+    void onFitToPageSizeModeTriggered(bool checked);
 
-    void on_rotateLeft_triggered();
-    void on_rotateRight_triggered();
+    void onRotateLeftTriggered();
+    void onRotateRightTriggered();
 
-    void on_invertColors_triggered(bool checked);
-    void on_convertToGrayscale_triggered(bool checked);
-    void on_trimMargins_triggered(bool checked);
-    void on_darkenWithPaperColor_triggered(bool checked);
-    void on_lightenWithPaperColor_triggered(bool checked);
+    void onInvertColorsTriggered(bool checked);
+    void onConvertToGrayscaleTriggered(bool checked);
+    void onTrimMarginsTriggered(bool checked);
+    void onDarkenWithPaperColorTriggered(bool checked);
+    void onLightenWithPaperColorTriggered(bool checked);
 
-    void on_fonts_triggered();
+    void onFontsTriggered();
 
-    void on_fullscreen_triggered(bool checked);
-    void on_presentation_triggered();
+    void onFullscreenTriggered(bool checked);
+    void onPresentationTriggered();
 
-    void on_previousTab_triggered();
-    void on_nextTab_triggered();
-    void on_closeTab_triggered();
-    void on_closeAllTabs_triggered();
-    void on_closeAllTabsButCurrentTab_triggered();
-    void on_closeAllTabsButThisOne_triggered(int thisIndex);
-    void on_closeAllTabsToTheLeft_triggered(int ofIndex);
-    void on_closeAllTabsToTheRight_triggered(int ofIndex);
-    void on_closeTabs_triggered(const QVector< DocumentView* >& tabs);
+    void onPreviousTabTriggered();
+    void onNextTabTriggered();
+    void onCloseTabTriggered();
+    void onCloseAllTabsTriggered();
+    void onCloseAllTabsButCurrentTabTriggered();
+    void onCloseAllTabsButThisOneTriggered(int thisIndex);
+    void onCloseAllTabsToTheLeftTriggered(int ofIndex);
+    void onCloseAllTabsToTheRightTriggered(int ofIndex);
+    void onCloseTabsTriggered(const QVector<qpdfview::DocumentView*>& tabs);
 
-    void on_restoreMostRecentlyClosedTab_triggered();
+    void onRestoreMostRecentlyClosedTabTriggered();
 
-    void on_recentlyClosed_tabActionTriggered(QAction* tabAction);
+    void onRecentlyClosedTabActionTriggered(QAction* tabAction);
 
-    void on_tabAction_triggered();
-    void on_tabShortcut_activated();
+    void onTabActionTriggered();
+    void onTabShortcutActivated();
 
-    void on_previousBookmark_triggered();
-    void on_nextBookmark_triggered();
-    void on_addBookmark_triggered();
-    void on_removeBookmark_triggered();
-    void on_removeAllBookmarks_triggered();
+    void onPreviousBookmarkTriggered();
+    void onNextBookmarkTriggered();
+    void onAddBookmarkTriggered();
+    void onRemoveBookmarkTriggered();
+    void onRemoveAllBookmarksTriggered();
 
-    void on_bookmarksMenu_aboutToShow();
+    void onBookmarksMenuAboutToShow();
 
-    void on_bookmark_openTriggered(const QString& absoluteFilePath);
-    void on_bookmark_openInNewTabTriggered(const QString& absoluteFilePath);
-    void on_bookmark_jumpToPageTriggered(const QString& absoluteFilePath, int page);
-    void on_bookmark_removeBookmarkTriggered(const QString& absoluteFilePath);
+    void onBookmarkOpenTriggered(const QString& absoluteFilePath);
+    void onBookmarkOpenInNewTabTriggered(const QString& absoluteFilePath);
+    void onBookmarkJumpToPageTriggered(const QString& absoluteFilePath, int page);
+    void onBookmarkRemoveBookmarkTriggered(const QString& absoluteFilePath);
 
-    void on_contents_triggered();
-    void on_about_triggered();
+    void onContentsTriggered();
+    void onAboutTriggered();
 
-    void on_focusCurrentPage_activated();
-    void on_focusScaleFactor_activated();
+    void onFocusCurrentPageActivated();
+    void onFocusScaleFactorActivated();
 
-    void on_toggleToolBars_triggered(bool checked);
-    void on_toggleMenuBar_triggered(bool checked);
+    void onToggleToolBarsTriggered(bool checked);
+    void onToggleMenuBarTriggered(bool checked);
 
-    void on_searchInitiated(const QString& text, bool modified);
-    void on_highlightAll_clicked(bool checked);
+    void onSearchInitiated(const QString& text, bool modified);
+    void onHighlightAllClicked(bool checked);
 
-    void on_dock_dockLocationChanged(Qt::DockWidgetArea area);
+    void onDockLocationChanged(Qt::DockWidgetArea area);
 
-    void on_outline_sectionCountChanged();
-    void on_outline_clicked(const QModelIndex& index);
+    void onOutlineSectionCountChanged();
+    void onOutlineClicked(const QModelIndex& index);
 
-    void on_properties_sectionCountChanged();
+    void onPropertiesSectionCountChanged();
 
-    void on_thumbnails_dockLocationChanged(Qt::DockWidgetArea area);
-    void on_thumbnails_verticalScrollBar_valueChanged(int value);
+    void onThumbnailsDockLocationChanged(Qt::DockWidgetArea area);
+    void onThumbnailsVerticalScrollBarValueChanged(int value);
 
-    void on_bookmarks_sectionCountChanged();
-    void on_bookmarks_clicked(const QModelIndex& index);
-    void on_bookmarks_contextMenuRequested(QPoint pos);
+    void onBookmarksSectionCountChanged();
+    void onBookmarksClicked(const QModelIndex& index);
+    void onBookmarksContextMenuRequested(QPoint pos);
 
-    void on_search_sectionCountChanged();
-    void on_search_dockLocationChanged(Qt::DockWidgetArea area);
-    void on_search_visibilityChanged(bool visible);
-    void on_search_clicked(const QModelIndex& index);
-    void on_search_rowsInserted(const QModelIndex& parent, int first, int last);
+    void onSearchSectionCountChanged();
+    void onSearchDockLocationChanged(Qt::DockWidgetArea area);
+    void onSearchVisibilityChanged(bool visible);
+    void onSearchClicked(const QModelIndex& index);
+    void onSearchRowsInserted(const QModelIndex& parent, int first, int last);
 
-    void on_saveDatabase_timeout();
+    void onSaveDatabaseTimeout();
 
 protected:
-    bool eventFilter(QObject* target, QEvent* event);
+    bool eventFilter(QObject* target, QEvent* event) override;
 
-    void closeEvent(QCloseEvent* event);
+    void closeEvent(QCloseEvent* event) override;
 
-    void dragEnterEvent(QDragEnterEvent* event);
-    void dropEvent(QDropEvent* event);
+    void dragEnterEvent(QDragEnterEvent* event) override;
+    void dropEvent(QDropEvent* event) override;
 
 private:
     Q_DISABLE_COPY(MainWindow)
@@ -296,7 +296,7 @@ private:
     static ShortcutHandler* s_shortcutHandler;
     static SearchModel* s_searchModel;
 
-    void prepareStyle();
+    static void prepareStyle();
 
     TabWidget* m_tabWidget;
 
