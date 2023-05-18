@@ -118,7 +118,7 @@ QString searchText;
 
 QList< File > files;
 
-std::unique_ptr<MainWindow> mainWindow = nullptr;
+MainWindow* mainWindow = nullptr;
 
 bool loadTranslator(QTranslator* const translator, const QString& fileName, const QString& path)
 {
@@ -423,9 +423,9 @@ void activateUniqueInstance()
         }
         else
         {
-            mainWindow = std::make_unique<MainWindow>();
+            mainWindow = new MainWindow();
 
-            if(!MainWindowAdaptor::createAdaptor(mainWindow.get()))
+            if(!MainWindowAdaptor::createAdaptor(mainWindow))
             {
                 qCritical() << QDBusConnection::sessionBus().lastError().message();
                 exit(ExitDBusError);
@@ -434,7 +434,7 @@ void activateUniqueInstance()
     }
     else
     {
-        mainWindow = std::make_unique<MainWindow>();
+        mainWindow = new MainWindow();
     }
 
 #else
@@ -450,10 +450,10 @@ void prepareSignalHandler()
 
     if(SignalHandler::prepareSignals())
     {
-        auto signalHandler = std::make_unique<SignalHandler>(mainWindow.get());
+        auto signalHandler = std::make_unique<SignalHandler>(mainWindow);
 
-        QObject::connect(signalHandler.get(), SIGNAL(sigIntReceived()), mainWindow.get(), SLOT(close()));
-        QObject::connect(signalHandler.get(), SIGNAL(sigTermReceived()), mainWindow.get(), SLOT(close()));
+        QObject::connect(signalHandler.get(), SIGNAL(sigIntReceived()), mainWindow, SLOT(close()));
+        QObject::connect(signalHandler.get(), SIGNAL(sigTermReceived()), mainWindow, SLOT(close()));
     }
     else
     {
