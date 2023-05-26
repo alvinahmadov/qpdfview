@@ -26,7 +26,6 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include "memory"
 
-#include <QApplication>
 #include <QDebug>
 #include <QDir>
 #include <QInputDialog>
@@ -58,6 +57,7 @@ typedef synctex_node_t synctex_node_p;
 
 #endif // WITH_SYNCTEX
 
+#include "application.h"
 #include "documentview.h"
 #include "database.h"
 #include "mainwindow.h"
@@ -146,8 +146,8 @@ void loadTranslators()
     loadTranslator(toolkitTranslator, "qt", QLibraryInfo::location(QLibraryInfo::TranslationsPath));
     auto applicationTranslator = new QTranslator(qApp);
 	bool appTranslatorLoaded;
-    
-    appTranslatorLoaded = loadTranslator(applicationTranslator, "qpdfview", QDir(QApplication::applicationDirPath()).filePath("data"));
+
+    appTranslatorLoaded = loadTranslator(applicationTranslator, "qpdfview", QDir(QApplication::applicationDirPath()).filePath(APP_DIR_DATA_PATH));
     
     if(!appTranslatorLoaded)
     {
@@ -473,21 +473,7 @@ int main(int argc, char** argv)
 
     parseWorkbenchExtendedSelection(argc, argv);
 
-    QApplication application(argc, argv);
-
-    QApplication::setOrganizationDomain("local.qpdfview");
-    QApplication::setOrganizationName("qpdfview");
-    QApplication::setApplicationName("qpdfview");
-
-    QApplication::setApplicationVersion(APPLICATION_VERSION);
-
-    QApplication::setWindowIcon(QIcon(":icons/qpdfview"));
-
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
-#endif // QT_VERSION
+    Application application(argc, argv);
 
     loadTranslators();
 
@@ -499,6 +485,7 @@ int main(int argc, char** argv)
 
     prepareSignalHandler();
 
+    application.setMainWindow(mainWindow);
     mainWindow->show();
     mainWindow->setAttribute(Qt::WA_DeleteOnClose);
 

@@ -52,12 +52,6 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include <QVBoxLayout>
 #include <QWidgetAction>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-
-#include <QStandardPaths>
-
-#endif // QT_VERSION
-
 #ifdef WITH_DBUS
 
 #include <QDBusInterface>
@@ -3122,7 +3116,7 @@ QAction* MainWindow::createAction(const QString& text, const QString& objectName
     auto action = new QAction(text, this);
 
     action->setObjectName(objectName);
-    action->setIcon(icon);
+    setVisibleIcon(action, icon, !checkable);
     action->setShortcuts(shortcuts);
 
     if(!objectName.isEmpty())
@@ -3139,8 +3133,6 @@ QAction* MainWindow::createAction(const QString& text, const QString& objectName
     }
     else
     {
-        action->setIconVisibleInMenu(true);
-
         connect(action, SIGNAL(triggered()), member);
     }
 
@@ -3222,6 +3214,7 @@ void MainWindow::createActions()
     		QIcon::fromTheme("application-exit"),
     		QKeySequence::Quit, SLOT(close())
     );
+    m_exitAction->setMenuRole(QAction::QuitRole);
 
     // edit
 
@@ -3326,6 +3319,7 @@ void MainWindow::createActions()
 		    onAddAnnotationModeTriggered(bool)), true);
 
     m_settingsAction = this->createAction(tr("Settings..."), QString(), QIcon(), QKeySequence(), SLOT(onSettingsTriggered()));
+    m_settingsAction->setMenuRole(QAction::PreferencesRole);
 
     // view
 	
@@ -3598,6 +3592,7 @@ void MainWindow::createActions()
 			QKeySequence(),
 			SLOT(onAboutTriggered())
 	);
+    m_aboutAction->setMenuRole(QAction::AboutRole);
 	
 	// context
 	
@@ -4162,6 +4157,7 @@ MainWindowAdaptor* MainWindowAdaptor::createAdaptor(MainWindow* mainWindow)
     return adaptor.take();
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::raiseAndActivate()
 {
     mainWindow()->raise();
@@ -4173,21 +4169,25 @@ bool MainWindowAdaptor::open(const QString& absoluteFilePath, int page, const QR
     return mainWindow()->open(absoluteFilePath, page, highlight, quiet);
 }
 
+DECL_UNUSED
 bool MainWindowAdaptor::openInNewTab(const QString& absoluteFilePath, int page, const QRectF& highlight, bool quiet)
 {
     return mainWindow()->openInNewTab(absoluteFilePath, page, highlight, quiet);
 }
 
+DECL_UNUSED
 bool MainWindowAdaptor::jumpToPageOrOpenInNewTab(const QString& absoluteFilePath, int page, bool refreshBeforeJump, const QRectF& highlight, bool quiet)
 {
     return mainWindow()->jumpToPageOrOpenInNewTab(absoluteFilePath, page, refreshBeforeJump, highlight, quiet);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::startSearch(const QString& text)
 {
     mainWindow()->startSearch(text);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::saveDatabase()
 {
     mainWindow()->saveDatabase();
@@ -4205,6 +4205,7 @@ int MainWindowAdaptor::currentPage() const
     }
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::jumpToPage(int page)
 {
     if(DocumentView* tab = mainWindow()->currentTab())
@@ -4215,6 +4216,7 @@ void MainWindowAdaptor::jumpToPage(int page)
 
 #define ONLY_IF_CURRENT_TAB if(mainWindow()->m_tabWidget->currentIndex() == -1) { return; }
 
+DECL_UNUSED
 void MainWindowAdaptor::previousPage()
 {
     ONLY_IF_CURRENT_TAB
@@ -4222,6 +4224,7 @@ void MainWindowAdaptor::previousPage()
 	mainWindow()->onPreviousPageTriggered();
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::nextPage()
 {
     ONLY_IF_CURRENT_TAB
@@ -4229,6 +4232,7 @@ void MainWindowAdaptor::nextPage()
 	mainWindow()->onNextPageTriggered();
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::firstPage()
 {
     ONLY_IF_CURRENT_TAB
@@ -4236,6 +4240,7 @@ void MainWindowAdaptor::firstPage()
 	mainWindow()->onFirstPageTriggered();
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::lastPage()
 {
     ONLY_IF_CURRENT_TAB
@@ -4243,6 +4248,7 @@ void MainWindowAdaptor::lastPage()
 	mainWindow()->onLastPageTriggered();
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::previousBookmark()
 {
     ONLY_IF_CURRENT_TAB
@@ -4250,6 +4256,7 @@ void MainWindowAdaptor::previousBookmark()
 	mainWindow()->onPreviousBookmarkTriggered();
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::nextBookmark()
 {
     ONLY_IF_CURRENT_TAB
@@ -4257,6 +4264,7 @@ void MainWindowAdaptor::nextBookmark()
 	mainWindow()->onNextBookmarkTriggered();
 }
 
+DECL_UNUSED
 bool MainWindowAdaptor::jumpToBookmark(const QString& label)
 {
     if(mainWindow()->m_tabWidget->currentIndex() == -1) { return false; }
@@ -4281,6 +4289,7 @@ bool MainWindowAdaptor::jumpToBookmark(const QString& label)
     return false;
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::continuousMode(bool checked)
 {
     ONLY_IF_CURRENT_TAB
@@ -4288,6 +4297,7 @@ void MainWindowAdaptor::continuousMode(bool checked)
 	mainWindow()->onContinuousModeTriggered(checked);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::twoPagesMode(bool checked)
 {
     ONLY_IF_CURRENT_TAB
@@ -4295,6 +4305,7 @@ void MainWindowAdaptor::twoPagesMode(bool checked)
 	mainWindow()->onTwoPagesModeTriggered(checked);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::twoPagesWithCoverPageMode(bool checked)
 {
     ONLY_IF_CURRENT_TAB
@@ -4302,6 +4313,7 @@ void MainWindowAdaptor::twoPagesWithCoverPageMode(bool checked)
 	mainWindow()->onTwoPagesWithCoverPageModeTriggered(checked);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::multiplePagesMode(bool checked)
 {
     ONLY_IF_CURRENT_TAB
@@ -4309,6 +4321,7 @@ void MainWindowAdaptor::multiplePagesMode(bool checked)
 	mainWindow()->onMultiplePagesModeTriggered(checked);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::fitToPageWidthMode(bool checked)
 {
     ONLY_IF_CURRENT_TAB
@@ -4316,6 +4329,7 @@ void MainWindowAdaptor::fitToPageWidthMode(bool checked)
 	mainWindow()->onFitToPageWidthModeTriggered(checked);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::fitToPageSizeMode(bool checked)
 {
     ONLY_IF_CURRENT_TAB
@@ -4323,6 +4337,7 @@ void MainWindowAdaptor::fitToPageSizeMode(bool checked)
 	mainWindow()->onFitToPageSizeModeTriggered(checked);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::invertColors(bool checked)
 {
     ONLY_IF_CURRENT_TAB
@@ -4330,6 +4345,7 @@ void MainWindowAdaptor::invertColors(bool checked)
 	mainWindow()->onInvertColorsTriggered(checked);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::convertToGrayscale(bool checked)
 {
     ONLY_IF_CURRENT_TAB
@@ -4337,6 +4353,7 @@ void MainWindowAdaptor::convertToGrayscale(bool checked)
 	mainWindow()->onConvertToGrayscaleTriggered(checked);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::trimMargins(bool checked)
 {
     ONLY_IF_CURRENT_TAB
@@ -4344,6 +4361,7 @@ void MainWindowAdaptor::trimMargins(bool checked)
 	mainWindow()->onTrimMarginsTriggered(checked);
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::fullscreen(bool checked)
 {
     if(mainWindow()->m_fullscreenAction->isChecked() != checked)
@@ -4352,6 +4370,7 @@ void MainWindowAdaptor::fullscreen(bool checked)
     }
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::presentation()
 {
     ONLY_IF_CURRENT_TAB
@@ -4359,6 +4378,7 @@ void MainWindowAdaptor::presentation()
 	mainWindow()->onPresentationTriggered();
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::closeTab()
 {
     ONLY_IF_CURRENT_TAB
@@ -4366,16 +4386,19 @@ void MainWindowAdaptor::closeTab()
 	mainWindow()->onCloseTabTriggered();
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::closeAllTabs()
 {
 	mainWindow()->onCloseAllTabsTriggered();
 }
 
+DECL_UNUSED
 void MainWindowAdaptor::closeAllTabsButCurrentTab()
 {
 	mainWindow()->onCloseAllTabsButCurrentTabTriggered();
 }
 
+DECL_UNUSED
 bool MainWindowAdaptor::closeTab(const QString& absoluteFilePath)
 {
     if(mainWindow()->m_tabWidget->currentIndex() == -1) { return false; }

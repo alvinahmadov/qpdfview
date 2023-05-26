@@ -30,6 +30,7 @@ RecentlyClosedMenu::RecentlyClosedMenu(int count, QWidget* parent) : ToolTipMenu
     m_count(count)
 {
     menuAction()->setText(tr("&Recently closed"));
+    setVisibleIcon(menuAction(), QIcon::fromTheme("document-open-recent"));
 
     m_tabActionGroup = new QActionGroup(this);
     connect(m_tabActionGroup, SIGNAL(triggered(QAction*)), SLOT(onTabActionTriggered(QAction*)));

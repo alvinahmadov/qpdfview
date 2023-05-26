@@ -35,8 +35,8 @@ extern "C"
 
 #include <mupdf/fitz/context.h>
 
-typedef struct fz_page_s fz_page;
-typedef struct fz_document_s fz_document;
+typedef struct fz_page fz_page;
+typedef struct fz_document fz_document;
 
 }
 
@@ -79,6 +79,10 @@ namespace Model
         const class FitzDocument* m_parent;
 
         fz_page* m_page;
+        const fz_rect m_boundingRect;
+
+        struct DisplayList;
+        mutable DisplayList* m_displayList;
 
     };
 
@@ -170,7 +174,7 @@ private:
 
 	QSettings* m_settings;
     QMutex m_mutex[FZ_LOCK_MAX];
-    fz_locks_context m_locks_context;
+    fz_locks_context m_locksContext;
     fz_context* m_context;
 
     static void lock(void* user, int lock);

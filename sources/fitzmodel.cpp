@@ -64,6 +64,11 @@ const char* join(std::string& format, Args&& ... args)
 	return const_cast<const char*>(data);
 }
 
+static inline bool operator==(const fz_matrix& a, const fz_matrix& b)
+{
+    return a.a == b.a && a.b == b.b && a.c == b.c && a.d == b.d && a.e == b.e && a.f == b.f;
+}
+
 std::string fontStyleSheet = "body { margin: %spx %spx; font-family: %s!important; font-size: %spt;} pre, code {font-size: %spt;}";
 
 namespace
@@ -157,10 +162,20 @@ namespace qpdfview
 
 namespace Model
 {
+
+struct FitzPage::DisplayList
+{
+    fz_matrix matrix;
+    fz_display_list* displayList;
+    int refCount;
+};
+
 DECL_UNUSED
 FitzPage::FitzPage(const FitzDocument* parent, fz_page* page) :
     m_parent(parent),
-    m_page(page)
+    m_page(page),
+    m_boundingRect(fz_bound_page(m_parent->m_context, m_page)),
+    m_displayList()
 {
 }
 
@@ -171,17 +186,11 @@ FitzPage::~FitzPage()
 
 QSizeF FitzPage::size() const
 {
-    QMutexLocker mutexLocker(&m_parent->m_mutex);
-
-    fz_rect rect = fz_bound_page(m_parent->m_context, m_page);
-
-    return {rect.x1 - rect.x0, rect.y1 - rect.y0};
+    return {m_boundingRect.x1 - m_boundingRect.x0, m_boundingRect.y1 - m_boundingRect.y0};
 }
 
 QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const
 {
-    QMutexLocker mutexLocker(&m_parent->m_mutex);
-
     float hRes {static_cast<float>(horizontalResolution)};
     float vRes {static_cast<float>(verticalResolution)};
 
@@ -191,39 +200,55 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
     {
     default:
     case RotateBy0:
-        fz_pre_rotate(matrix, 0.0);
+        matrix = fz_pre_rotate(matrix, 0.0);
         break;
     case RotateBy90:
-        fz_pre_rotate(matrix, 90.0);
+        matrix = fz_pre_rotate(matrix, 90.0);
         break;
     case RotateBy180:
-        fz_pre_rotate(matrix, 180.0);
+        matrix = fz_pre_rotate(matrix, 180.0);
         break;
     case RotateBy270:
-        fz_pre_rotate(matrix, 270.0);
+        matrix = fz_pre_rotate(matrix, 270.0);
         break;
     }
 
-    fz_rect rect = fz_bound_page(m_parent->m_context, m_page);
-	rect = fz_transform_rect(rect, matrix);
+    const fz_rect rect = fz_transform_rect(m_boundingRect, matrix);
+    const fz_irect irect = fz_round_rect(rect);
 
-    fz_irect irect = fz_round_rect(rect);
+    fz_display_list* display_list;
+    fz_context* context;
 
+    {
+        QMutexLocker mutexLocker(&m_parent->m_mutex);
 
-    fz_context* context = fz_clone_context(m_parent->m_context);
-    fz_display_list* display_list = fz_new_display_list(context, rect);
+        if(m_displayList != nullptr && m_displayList->matrix == matrix)
+        {
+            display_list = m_displayList->displayList;
+            ++m_displayList->refCount;
+        }
+        else
+        {
+            display_list = fz_new_display_list(m_parent->m_context, rect);
 
-    fz_device* device = fz_new_list_device(context, display_list);
-    fz_run_page(m_parent->m_context, m_page, device, matrix, nullptr);
-    fz_close_device(m_parent->m_context, device);
-    fz_drop_device(m_parent->m_context, device);
+            fz_device* device = fz_new_list_device(m_parent->m_context, display_list);
+            fz_run_page(m_parent->m_context, m_page, device, matrix, nullptr);
+            fz_close_device(m_parent->m_context, device);
+            fz_drop_device(m_parent->m_context, device);
 
+            if(m_displayList == nullptr)
+            {
+                m_displayList = new DisplayList;
+                memcpy(&m_displayList->matrix, &matrix, sizeof(fz_matrix));
+                m_displayList->displayList = display_list;
+                m_displayList->refCount = 1;
+            }
+        }
 
-    mutexLocker.unlock();
-
+        context = fz_clone_context(m_parent->m_context);
+    }
 
     fz_matrix tileMatrix = fz_translate(-rect.x0, -rect.y0);
-
     fz_rect tileRect = fz_infinite_rect;
 
     int tileWidth = irect.x1 - irect.x0;
@@ -248,20 +273,33 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
         tileHeight = boundingRect.height();
     }
 
-
     QImage image(tileWidth, tileHeight, QImage::Format_RGB32);
     image.fill(m_parent->m_paperColor);
 
     auto pixmap = fz_new_pixmap_with_data(context, fz_device_bgr(context), image.width(), image.height(), nullptr, 1, image.bytesPerLine(), image.bits());
 
-    device = fz_new_draw_device(context, tileMatrix, pixmap);
+    fz_device* device = fz_new_draw_device(context, tileMatrix, pixmap);
     fz_run_display_list(context, display_list, device, fz_identity, tileRect, nullptr);
     fz_close_device(context, device);
     fz_drop_device(context, device);
 
     fz_drop_pixmap(context, pixmap);
-    fz_drop_display_list(context, display_list);
     fz_drop_context(context);
+
+    {
+        QMutexLocker mutexLocker(&m_parent->m_mutex);
+
+        if(m_displayList != nullptr && m_displayList->displayList == display_list)
+        {
+            if(--m_displayList->refCount == 0)
+            {
+                fz_drop_display_list(m_parent->m_context, display_list);
+
+                delete m_displayList;
+                m_displayList = nullptr;
+            }
+        }
+    }
 
     return image;
 }
@@ -272,10 +310,8 @@ QList< Link* > FitzPage::links() const
 
     QList< Link* > links;
 
-    fz_rect rect = fz_bound_page(m_parent->m_context, m_page);
-
-    const qreal width = qAbs(rect.x1 - rect.x0);
-    const qreal height = qAbs(rect.y1 - rect.y0);
+    const qreal width = qAbs(m_boundingRect.x1 - m_boundingRect.x0);
+    const qreal height = qAbs(m_boundingRect.y1 - m_boundingRect.y0);
 
     fz_link* first_link = fz_load_links(m_parent->m_context, m_page);
 
@@ -313,13 +349,8 @@ QString FitzPage::text(const QRectF &rect) const
 {
     QMutexLocker mutexLocker(&m_parent->m_mutex);
 
-    fz_rect mediaBox;
-    mediaBox.x0 = static_cast<float>(rect.x());
-    mediaBox.y0 = static_cast<float>(rect.y());
-    mediaBox.x1 = static_cast<float>(rect.right());
-    mediaBox.y1 = static_cast<float>(rect.bottom());
 
-    fz_stext_page* textPage = fz_new_stext_page(m_parent->m_context, mediaBox);
+    fz_stext_page* textPage = fz_new_stext_page(m_parent->m_context, m_boundingRect);
     fz_device* device = fz_new_stext_device(m_parent->m_context, textPage, nullptr);
     fz_run_page(m_parent->m_context, m_page, device, fz_identity, nullptr);
     fz_close_device(m_parent->m_context, device);
@@ -359,7 +390,7 @@ QList<QRectF> FitzPage::search(const QString& text, bool matchCase, bool wholeWo
 
     const QByteArray needle = text.toUtf8();
 
-    QVector< fz_rect > hits(32);
+    QVector< fz_quad > hits(32);
     int numberOfHits = fz_search_stext_page(m_parent->m_context, textPage, needle.constData(), reinterpret_cast<fz_quad*>(hits.data()), hits.size());
 
     while(numberOfHits == hits.size())
@@ -375,9 +406,9 @@ QList<QRectF> FitzPage::search(const QString& text, bool matchCase, bool wholeWo
     QList< QRectF > results;
     results.reserve(hits.size());
 
-    foreach(fz_rect rect, hits)
+    foreach(fz_quad rect, hits)
     {
-        results.append(QRectF(rect.x0, rect.y0, rect.x1 - rect.x0, rect.y1 - rect.y0));
+        results.append(QRectF(rect.ul.x, rect.ul.y, rect.ur.x - rect.ul.x, rect.ll.y - rect.ul.y));
     }
 
     return results;
@@ -504,17 +535,17 @@ void FitzSettingsWidget::reset()
 }
 
 FitzPlugin::FitzPlugin(QObject* parent) : QObject(parent),
-      m_locks_context()
+      m_locksContext()
 {
     setObjectName("FitzPlugin");
 
 	m_settings = new QSettings("qpdfview", "epub-plugin", this);
 
-    m_locks_context.user = this;
-    m_locks_context.lock = FitzPlugin::lock;
-    m_locks_context.unlock = FitzPlugin::unlock;
+    m_locksContext.user = this;
+    m_locksContext.lock = FitzPlugin::lock;
+    m_locksContext.unlock = FitzPlugin::unlock;
 
-    m_context = fz_new_context(nullptr, &m_locks_context, FZ_STORE_DEFAULT);
+    m_context = fz_new_context(nullptr, &m_locksContext, FZ_STORE_DEFAULT);
 
     fz_register_document_handlers(m_context);
 }

@@ -574,11 +574,17 @@ void PageItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     if(!m_rubberBand.isNull())
     {
-        if(m_boundingRect.contains(event->pos()))
+        const QPointF pos = event->pos();
+        if(m_boundingRect.contains(pos))
         {
-            m_rubberBand.setBottomRight(event->pos());
+            QRectF rubberBand = m_rubberBand;
+            rubberBand.setBottomRight(pos);
 
-            update();
+            if(!rubberBand.isNull())
+            {
+                m_rubberBand = rubberBand;
+                update();
+            }
 
             event->accept();
             return;
