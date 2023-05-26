@@ -1,0 +1,67 @@
+Language: Cpp
+ColumnLimit: 120
+UseTab: Never
+TabWidth: 4
+IndentWidth: 4
+ContinuationIndentWidth: 4
+IndentAccessModifiers: false
+IndentRequiresClause: false
+IndentPPDirectives: None
+NamespaceIndentation: Inner
+
+AccessModifierOffset: -4
+KeepEmptyLinesAtTheStartOfBlocks: true
+AlignOperands: Align
+AlignConsecutiveAssignments:
+  Enabled: false
+AlignEscapedNewlines: Left
+AlignArrayOfStructures: Left
+AlignAfterOpenBracket: Align
+AlignConsecutiveDeclarations:
+  Enabled: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeParens: Never
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
+SpaceAroundPointerQualifiers: After
+SpaceInEmptyBlock: false
+SpacesInParentheses: false
+SpacesInLineCommentPrefix:
+  Maximum: 1
+  Minimum: 1
+SpacesInAngles: Never
+SpacesInConditionalStatement: false
+SpacesInCStyleCastParentheses: false
+SpacesBeforeTrailingComments: 3
+SpacesInContainerLiterals: false
+SpacesInSquareBrackets: false
+SpaceBeforeInheritanceColon: true
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyParentheses: false
+CompactNamespaces: false
+AllowAllArgumentsOnNextLine: false
+AllowShortBlocksOnASingleLine: Empty
+PackConstructorInitializers: Never
+FixNamespaceComments: false
+BreakBeforeBraces: Allman
+BreakConstructorInitializers: BeforeColon
+LambdaBodyIndentation: Signature
+RequiresExpressionIndentation: OuterScope
+BraceWrapping:
+  AfterClass: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterUnion: true
+  BeforeCatch: true
+  SplitEmptyFunction: false
+  SplitEmptyNamespace: false
+  SplitEmptyRecord: false
+  IndentBraces: false
+DerivePointerAlignment: false
+PointerAlignment: Left
+ReferenceAlignment: Left
