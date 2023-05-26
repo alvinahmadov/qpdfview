@@ -213,8 +213,8 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
         break;
     }
 
-    fz_rect rect = fz_transform_rect(m_boundingRect, matrix);
-    fz_irect irect = fz_round_rect(rect);
+    const fz_rect rect = fz_transform_rect(m_boundingRect, matrix);
+    const fz_irect irect = fz_round_rect(rect);
 
     fz_display_list* display_list;
     fz_context* context;
@@ -284,7 +284,6 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
     fz_drop_device(context, device);
 
     fz_drop_pixmap(context, pixmap);
-    fz_drop_display_list(context, display_list);
     fz_drop_context(context);
 
     {
