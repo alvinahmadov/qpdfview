@@ -23,7 +23,6 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include "pluginhandler.h"
 
 #include <QApplication>
-#include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 #include <QImageReader>
@@ -66,7 +65,7 @@ Plugin* loadStaticPlugin(const QString& objectName)
 
     qCritical() << "Could not load static plug-in:" << objectName;
 
-    return 0;
+    return nullptr;
 }
 
 Plugin* loadPlugin(const QString& fileName)
@@ -99,13 +98,13 @@ Plugin* loadPlugin(const QString& fileName)
             qCritical() << "Could not load global plug-in:" << globalFileName;
             qCritical() << globalErrorString;
 
-            return 0;
+            return nullptr;
         }
     }
 
     Plugin* plugin = qobject_cast< Plugin* >(pluginLoader.instance());
 
-    if(plugin == 0)
+    if(plugin == nullptr)
     {
         qCritical() << "Could not instantiate plug-in:" << pluginLoader.fileName();
         qCritical() << pluginLoader.errorString();
@@ -139,16 +138,16 @@ struct MimeTypeMapping
 
 const MimeTypeMapping mimeTypeMappings[] =
 {
-    { "application/pdf", PluginHandler::PDF, "pdf", 0 },
+    { "application/pdf", PluginHandler::PDF, "pdf", nullptr },
     { "application/postscript", PluginHandler::PS, "ps", "eps" },
     { "image/vnd.djvu", PluginHandler::DjVu, "djvu", "djv" },
-    { "application/x-gzip", PluginHandler::GZip, "gz", 0 },
-    { "application/x-bzip2", PluginHandler::BZip2, "bz2", 0 },
-    { "application/x-xz", PluginHandler::XZ, "xz", 0 },
-    { "application/epub+zip", PluginHandler::EPUB, "epub", 0 },
-    { "application/x-fictionbook+xml", PluginHandler::FB2, "fb2", 0 },
-    { "application/x-zip-compressed-fb2", PluginHandler::FB2, "fb2", 0 },
-    { "application/zip", PluginHandler::ZIP, "zip", 0 }
+    { "application/x-gzip", PluginHandler::GZip, "gz", nullptr },
+    { "application/x-bzip2", PluginHandler::BZip2, "bz2", nullptr },
+    { "application/x-xz", PluginHandler::XZ, "xz", nullptr },
+    { "application/epub+zip", PluginHandler::EPUB, "epub", nullptr },
+    { "application/x-fictionbook+xml", PluginHandler::FB2, "fb2", nullptr },
+    { "application/x-zip-compressed-fb2", PluginHandler::FB2, "fb2", nullptr },
+    { "application/zip", PluginHandler::ZIP, "zip", nullptr }
 };
 
 const MimeTypeMapping* const endOfMimeTypeMappings = mimeTypeMappings + sizeof(mimeTypeMappings) / sizeof(mimeTypeMappings[0]);
@@ -318,7 +317,7 @@ QString decompressToTemporaryFile(const QString& filePath, const PluginHandler::
         command = "xz";
         break;
     default:
-        return QString();
+        return {};
     }
 
     QTemporaryFile file;
@@ -326,7 +325,7 @@ QString decompressToTemporaryFile(const QString& filePath, const PluginHandler::
 
     if(!file.open())
     {
-        return QString();
+        return {};
     }
 
     file.close();
@@ -337,7 +336,7 @@ QString decompressToTemporaryFile(const QString& filePath, const PluginHandler::
 
     if(execute(process, command, QStringList() << "-dck" << filePath) != 0)
     {
-        return QString();
+        return {};
     }
 
     return file.fileName();
@@ -348,11 +347,11 @@ QString decompressToTemporaryFile(const QString& filePath, const PluginHandler::
 namespace qpdfview
 {
 
-PluginHandler* PluginHandler::s_instance = 0;
+PluginHandler* PluginHandler::s_instance = nullptr;
 
 PluginHandler* PluginHandler::instance()
 {
-    if(s_instance == 0)
+    if(s_instance == nullptr)
     {
         s_instance = new PluginHandler(qApp);
     }
@@ -362,7 +361,7 @@ PluginHandler* PluginHandler::instance()
 
 PluginHandler::~PluginHandler()
 {
-    s_instance = 0;
+    s_instance = nullptr;
 }
 
 QLatin1String PluginHandler::fileTypeName(PluginHandler::FileType fileType)
@@ -487,7 +486,7 @@ Model::Document* PluginHandler::loadDocument(const QString& filePath)
         {
             qWarning() << tr("Could not decompress '%1'!").arg(filePath);
 
-            return 0;
+            return nullptr;
         }
 
         fileType = matchFileType(adjustedFilePath);
@@ -497,14 +496,14 @@ Model::Document* PluginHandler::loadDocument(const QString& filePath)
     {
         qWarning() << tr("Could not match file type of '%1'!").arg(filePath);
 
-        return 0;
+        return nullptr;
     }
 
     if(!loadPlugin(fileType))
     {
-        QMessageBox::critical(0, tr("Critical"), tr("Could not load plug-in for file type '%1'!").arg(fileTypeName(fileType)));
+        QMessageBox::critical(nullptr, tr("Critical"), tr("Could not load plug-in for file type '%1'!").arg(fileTypeName(fileType)));
 
-        return 0;
+        return nullptr;
     }
 
     return m_plugins.value(fileType)->loadDocument(adjustedFilePath);
@@ -512,7 +511,7 @@ Model::Document* PluginHandler::loadDocument(const QString& filePath)
 
 SettingsWidget* PluginHandler::createSettingsWidget(FileType fileType, QWidget* parent)
 {
-    return loadPlugin(fileType) ? m_plugins.value(fileType)->createSettingsWidget(parent) : 0;
+    return loadPlugin(fileType) ? m_plugins.value(fileType)->createSettingsWidget(parent) : nullptr;
 }
 
 PluginHandler::PluginHandler(QObject* parent) : QObject(parent),
@@ -520,9 +519,9 @@ PluginHandler::PluginHandler(QObject* parent) : QObject(parent),
 {
 #ifdef WITH_IMAGE
 #ifdef STATIC_IMAGE_PLUGIN
-    m_objectNames.insertMulti(Image, QLatin1String("ImagePlugin"));
+    m_objectNames.insert(Image, QLatin1String("ImagePlugin"));
 #else
-    m_fileNames.insertMulti(Image, QLatin1String(IMAGE_PLUGIN_NAME));
+    m_fileNames.insert(Image, QLatin1String(IMAGE_PLUGIN_NAME));
 #endif // STATIC_IMAGE_PLUGIN
 #endif // WITH_IMAGE
 
@@ -544,25 +543,25 @@ PluginHandler::PluginHandler(QObject* parent) : QObject(parent),
 
 #ifdef WITH_PDF
 #ifdef STATIC_PDF_PLUGIN
-    m_objectNames.insertMulti(PDF, QLatin1String("PdfPlugin"));
+    m_objectNames.insert(PDF, QLatin1String("PdfPlugin"));
 #else
-    m_fileNames.insertMulti(PDF, QLatin1String(PDF_PLUGIN_NAME));
+    m_fileNames.insert(PDF, QLatin1String(PDF_PLUGIN_NAME));
 #endif // STATIC_PDF_PLUGIN
 #endif // WITH_PDF
 
 #ifdef WITH_PS
 #ifdef STATIC_PS_PLUGIN
-    m_objectNames.insertMulti(PS, QLatin1String("PsPlugin"));
+    m_objectNames.insert(PS, QLatin1String("PsPlugin"));
 #else
-    m_fileNames.insertMulti(PS, QLatin1String(PS_PLUGIN_NAME));
+    m_fileNames.insert(PS, QLatin1String(PS_PLUGIN_NAME));
 #endif // STATIC_PS_PLUGIN
 #endif // WITH_PS
 
 #ifdef WITH_DJVU
 #ifdef STATIC_DJVU_PLUGIN
-    m_objectNames.insertMulti(DjVu, QLatin1String("DjVuPlugin"));
+    m_objectNames.insert(DjVu, QLatin1String("DjVuPlugin"));
 #else
-    m_fileNames.insertMulti(DjVu, QLatin1String(DJVU_PLUGIN_NAME));
+    m_fileNames.insert(DjVu, QLatin1String(DJVU_PLUGIN_NAME));
 #endif // STATIC_DJVU_PLUGIN
 #endif // WITH_DJVU
 }

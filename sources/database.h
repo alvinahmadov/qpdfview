@@ -47,7 +47,7 @@ class Database : public QObject
 
 public:
     static Database* instance();
-    ~Database();
+    ~Database() override;
 
     QStringList knownInstanceNames();
 
@@ -71,7 +71,7 @@ private:
     Q_DISABLE_COPY(Database)
 
     static Database* s_instance;
-    Database(QObject* parent = 0);
+    explicit Database(QObject* parent = nullptr);
 
     static QString instanceName();
 

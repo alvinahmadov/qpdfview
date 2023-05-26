@@ -48,15 +48,15 @@ namespace qpdfview
 namespace Model
 {
 
-ImagePage::ImagePage(const QImage& image) :
-    m_image(image)
+ImagePage::ImagePage(QImage image) :
+    m_image(std::move(image))
 {
 }
 
 QSizeF ImagePage::size() const
 {
-    return QSizeF(m_image.width() * 72.0 / dotsPerInchX(m_image),
-                  m_image.height() * 72.0 / dotsPerInchY(m_image));
+    return {m_image.width() * 72.0 / dotsPerInchX(m_image),
+            m_image.height() * 72.0 / dotsPerInchY(m_image)};
 }
 
 QImage ImagePage::render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const
@@ -92,8 +92,8 @@ QImage ImagePage::render(qreal horizontalResolution, qreal verticalResolution, R
     return image;
 }
 
-ImageDocument::ImageDocument(const QImage& image) :
-    m_image(image)
+ImageDocument::ImageDocument(QImage image) :
+    m_image(std::move(image))
 {
 }
 
@@ -104,7 +104,7 @@ int ImageDocument::numberOfPages() const
 
 Page* ImageDocument::page(int index) const
 {
-    return index == 0 ? new ImagePage(m_image) : 0;
+    return index == 0 ? new ImagePage(m_image) : nullptr;
 }
 
 QStringList ImageDocument::saveFilter() const
@@ -128,7 +128,7 @@ bool ImageDocument::canSave() const
 
 bool ImageDocument::save(const QString& filePath, bool withChanges) const
 {
-    Q_UNUSED(withChanges);
+    Q_UNUSED(withChanges)
 
     QImageWriter writer(filePath);
 
@@ -197,7 +197,7 @@ Model::Document* ImagePlugin::loadDocument(const QString& filePath) const
 {
     QImage image(filePath);
 
-    return !image.isNull() ? new Model::ImageDocument(image) : 0;
+    return !image.isNull() ? new Model::ImageDocument(image) : nullptr;
 }
 
 } // qpdfview

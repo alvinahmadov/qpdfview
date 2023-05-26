@@ -31,16 +31,16 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 namespace qpdfview
 {
 
-Settings* PrintDialog::s_settings = 0;
+Settings* PrintDialog::s_settings = nullptr;
 
 QPrinter* PrintDialog::createPrinter()
 {
-    QPrinter* printer = new QPrinter();
+    auto printer = new QPrinter();
 
     const Settings::PrintDialog& settings = Settings::instance()->printDialog();
     printer->setCollateCopies(settings.collateCopies());
     printer->setPageOrder(settings.pageOrder());
-    printer->setOrientation(settings.orientation());
+    printer->setPageOrientation(settings.orientation());
     printer->setColorMode(settings.colorMode());
     printer->setDuplex(settings.duplex());
 
@@ -49,7 +49,7 @@ QPrinter* PrintDialog::createPrinter()
 
 PrintDialog::PrintDialog(QPrinter* printer, QWidget* parent) : QPrintDialog(printer, parent)
 {
-    if(s_settings == 0)
+    if(s_settings == nullptr)
     {
         s_settings = Settings::instance();
     }
@@ -142,7 +142,7 @@ void PrintDialog::accept()
 
     s_settings->printDialog().setCollateCopies(printer()->collateCopies());
     s_settings->printDialog().setPageOrder(printer()->pageOrder());
-    s_settings->printDialog().setOrientation(printer()->orientation());
+    s_settings->printDialog().setOrientation(printer()->pageLayout().orientation());
     s_settings->printDialog().setColorMode(printer()->colorMode());
     s_settings->printDialog().setDuplex(printer()->duplex());
 

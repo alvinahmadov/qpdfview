@@ -89,15 +89,15 @@ using namespace qpdfview;
 
 struct File
 {
-    QString filePath;
-    int page;
+    QString filePath {};
+    int page {-1};
 
-    QString sourceName;
-    int sourceLine;
-    int sourceColumn;
-    QRectF enclosingBox;
+    QString sourceName {};
+    int sourceLine {-1};
+    int sourceColumn {-1};
+    QRectF enclosingBox {};
 
-    File() : filePath(), page(-1), sourceName(), sourceLine(-1), sourceColumn(-1), enclosingBox() {}
+    File() = default;
 
 };
 
@@ -256,7 +256,7 @@ void parseCommandLineArguments()
         }
         else
         {
-            File file;
+            File file {};
 
             if(fileAndPageRegExp.exactMatch(argument))
             {

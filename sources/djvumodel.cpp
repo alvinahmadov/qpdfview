@@ -91,7 +91,7 @@ void clearMessageQueue(ddjvu_context_t* context, bool wait)
 
     while(true)
     {
-        if(ddjvu_message_peek(context) != 0)
+        if(ddjvu_message_peek(context) != nullptr)
         {
             ddjvu_message_pop(context);
         }
@@ -110,7 +110,7 @@ void waitForMessageTag(ddjvu_context_t* context, ddjvu_message_tag_t tag)
     {
         ddjvu_message_t* message = ddjvu_message_peek(context);
 
-        if(message != 0)
+        if(message != nullptr)
         {
             if(message->m_any.tag == tag)
             {
@@ -137,7 +137,7 @@ QPainterPath loadLinkBoundary(const QString& type, miniexp_t boundaryExp, QSizeF
         QPoint p(miniexp_to_int(miniexp_car(boundaryExp)), miniexp_to_int(miniexp_cadr(boundaryExp)));
         QSize s(miniexp_to_int(miniexp_caddr(boundaryExp)), miniexp_to_int(miniexp_cadddr(boundaryExp)));
 
-        p.setY(size.height() - s.height() - p.y());
+        p.setY(static_cast<int>(size.height() - s.height() - p.y()));
 
         const QRectF r(p, s);
 
@@ -158,7 +158,7 @@ QPainterPath loadLinkBoundary(const QString& type, miniexp_t boundaryExp, QSizeF
         {
             QPoint p(miniexp_to_int(miniexp_nth(index, boundaryExp)), miniexp_to_int(miniexp_nth(index + 1, boundaryExp)));
 
-            p.setY(size.height() - p.y());
+            p.setY(static_cast<int>(size.height() - p.y()));
 
             polygon << p;
         }
@@ -184,7 +184,7 @@ Link* loadLinkTarget(const QPainterPath& boundary, miniexp_t targetExp, int inde
 
     if(target.isEmpty())
     {
-        return 0;
+        return nullptr;
     }
 
     if(target.at(0) == QLatin1Char('#'))
@@ -204,7 +204,7 @@ Link* loadLinkTarget(const QPainterPath& boundary, miniexp_t targetExp, int inde
             }
             else
             {
-                return 0;
+                return nullptr;
             }
         }
         else
@@ -254,7 +254,7 @@ QList< Link* > loadLinks(miniexp_t linkExp, QSizeF size, int index, const QHash<
             {
                 Link* link = loadLinkTarget(boundary, targetExp, index, pageByName);
 
-                if(link != 0)
+                if(link != nullptr)
                 {
                     links.append(link);
                 }
@@ -269,7 +269,7 @@ QString loadText(miniexp_t textExp, QSizeF size, const QRectF& rect)
 {
     if(miniexp_length(textExp) < 6 && !miniexp_symbolp(miniexp_car(textExp)))
     {
-        return QString();
+        return {};
     }
 
     const int xmin = miniexp_to_int(miniexp_cadr(textExp));
@@ -277,7 +277,7 @@ QString loadText(miniexp_t textExp, QSizeF size, const QRectF& rect)
     const int xmax = miniexp_to_int(miniexp_cadddr(textExp));
     const int ymax = miniexp_to_int(miniexp_caddddr(textExp));
 
-    if(rect.intersects(QRect(xmin, size.height() - ymax, xmax - xmin, ymax - ymin)))
+    if(rect.intersects(QRect(xmin, static_cast<int>(size.height() - ymax), xmax - xmin, ymax - ymin)))
     {
         const QString type = QString::fromUtf8(miniexp_to_name(miniexp_car(textExp)));
 
@@ -302,20 +302,20 @@ QString loadText(miniexp_t textExp, QSizeF size, const QRectF& rect)
         }
     }
 
-    return QString();
+    return {};
 }
 
 QList< QRectF > findText(miniexp_t pageTextExp, QSizeF size, const QTransform& transform, const QStringList& words, bool matchCase, bool wholeWords)
 {
     if(words.isEmpty())
     {
-        return QList< QRectF >();
+        return {};
     }
 
     const Qt::CaseSensitivity caseSensitivity = matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive;
 
     QRectF result;
-    int wordIndex = 0;
+    int wordIndex {};
 
     QList< miniexp_t > texts;
     QList< QRectF > results;
@@ -513,10 +513,6 @@ DjVuPage::DjVuPage(const DjVuDocument* parent, int index, const ddjvu_pageinfo_t
 {
 }
 
-DjVuPage::~DjVuPage()
-{
-}
-
 QSizeF DjVuPage::size() const
 {
     return 72.0 / m_resolution * m_size;
@@ -528,9 +524,9 @@ QImage DjVuPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
 
     ddjvu_page_t* page = ddjvu_page_create_by_pageno(m_parent->m_document, m_index);
 
-    if(page == 0)
+    if(page == nullptr)
     {
-        return QImage();
+        return {};
     }
 
     ddjvu_status_t status;
@@ -553,7 +549,7 @@ QImage DjVuPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
     {
         ddjvu_page_release(page);
 
-        return QImage();
+        return {};
     }
 
     switch(rotation)
@@ -610,7 +606,7 @@ QImage DjVuPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
         renderrect.h = boundingRect.height();
     }
 
-    QImage image(renderrect.w, renderrect.h, QImage::Format_RGB32);
+    QImage image(static_cast<int>(renderrect.w), static_cast<int>(renderrect.h), QImage::Format_RGB32);
 
     if(!ddjvu_page_render(page, DDJVU_RENDER_COLOR, &pagerect, &renderrect, m_parent->m_format, image.bytesPerLine(), reinterpret_cast< char* >(image.bits())))
     {
@@ -726,9 +722,9 @@ QList< QRectF > DjVuPage::search(const QString& text, bool matchCase, bool whole
     }
 
     const QTransform transform = QTransform::fromScale(72.0 / m_resolution, 72.0 / m_resolution);
-    const QStringList words = text.split(QRegExp(QLatin1String("\\W+")), QString::SkipEmptyParts);
+    const QStringList words = text.split(QRegExp(QLatin1String("\\W+")), Qt::SkipEmptyParts);
 
-    const QList< QRectF > results = findText(pageTextExp, m_size, transform, words, matchCase, wholeWords);
+    auto results = findText(pageTextExp, m_size, transform, words, matchCase, wholeWords);
 
     {
         LOCK_PAGE_GLOBAL
@@ -744,7 +740,7 @@ DjVuDocument::DjVuDocument(QMutex* globalMutex, ddjvu_context_t* context, ddjvu_
     m_globalMutex(globalMutex),
     m_context(context),
     m_document(document),
-    m_format(0),
+    m_format(),
     m_pageByName(),
     m_titleByIndex()
 {
@@ -794,7 +790,7 @@ Page* DjVuDocument::page(int index) const
 
     if(status >= DDJVU_JOB_FAILED)
     {
-        return 0;
+        return nullptr;
     }
 
     return new DjVuPage(this, index, pageinfo);
@@ -812,7 +808,7 @@ bool DjVuDocument::canSave() const
 
 bool DjVuDocument::save(const QString& filePath, bool withChanges) const
 {
-    Q_UNUSED(withChanges);
+    Q_UNUSED(withChanges)
 
     LOCK_DOCUMENT
 
@@ -826,12 +822,12 @@ bool DjVuDocument::save(const QString& filePath, bool withChanges) const
 
 #endif // _MSC_VER
 
-    if(file == 0)
+    if(file == nullptr)
     {
         return false;
     }
 
-    ddjvu_job_t* job = ddjvu_document_save(m_document, file, 0, 0);
+    ddjvu_job_t* job = ddjvu_document_save(m_document, file, 0, nullptr);
 
     while(!ddjvu_job_done(job))
     {
@@ -959,9 +955,9 @@ Model::Document* DjVuPlugin::loadDocument(const QString& filePath) const
 {
     ddjvu_context_t* context = ddjvu_context_create("qpdfview");
 
-    if(context == 0)
+    if(context == nullptr)
     {
-        return 0;
+        return nullptr;
     }
 
 #if DDJVUAPI_VERSION >= 19
@@ -974,11 +970,11 @@ Model::Document* DjVuPlugin::loadDocument(const QString& filePath) const
 
 #endif // DDJVUAPI_VERSION
 
-    if(document == 0)
+    if(document == nullptr)
     {
         ddjvu_context_release(context);
 
-        return 0;
+        return nullptr;
     }
 
     waitForMessageTag(context, DDJVU_DOCINFO);
@@ -988,7 +984,7 @@ Model::Document* DjVuPlugin::loadDocument(const QString& filePath) const
         ddjvu_document_release(document);
         ddjvu_context_release(context);
 
-        return 0;
+        return nullptr;
     }
 
     return new Model::DjVuDocument(&m_globalMutex, context, document);

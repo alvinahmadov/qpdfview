@@ -37,11 +37,11 @@ const qreal viewportPadding = 6.0f;
 namespace qpdfview
 {
 
-Settings* DocumentLayout::s_settings = 0;
+Settings* DocumentLayout::s_settings = nullptr;
 
 DocumentLayout::DocumentLayout()
 {
-    if(s_settings == 0)
+    if(s_settings == nullptr)
     {
         s_settings = Settings::instance();
     }
@@ -59,7 +59,7 @@ DocumentLayout* DocumentLayout::fromLayoutMode(LayoutMode layoutMode)
     }
 }
 
-bool DocumentLayout::isCurrentPage(const QRectF& visibleRect, const QRectF& pageRect) const
+bool DocumentLayout::isCurrentPage(const QRectF& visibleRect, const QRectF& pageRect)
 {
     // Works with vertically scrolling layouts, i.e. all currently implemented layouts.
     const qreal pageVisibleHeight = pageRect.intersected(visibleRect).height();
@@ -77,7 +77,7 @@ bool DocumentLayout::isCurrentPage(const QRectF& visibleRect, const QRectF& page
     }
 }
 
-qreal DocumentLayout::visibleHeight(int viewportHeight) const
+qreal DocumentLayout::visibleHeight(int viewportHeight)
 {
     const qreal pageSpacing = s_settings->documentView().pageSpacing();
 
@@ -92,20 +92,20 @@ int SinglePageLayout::currentPage(int page) const
 
 int SinglePageLayout::previousPage(int page) const
 {
-    return qMax(page - 1, 1);
+    return std::max(page - 1, 1);
 }
 
 int SinglePageLayout::nextPage(int page, int count) const
 {
-    return qMin(page + 1, count);
+    return std::min(page + 1, count);
 }
 
 QPair< int, int > SinglePageLayout::prefetchRange(int page, int count) const
 {
     const int prefetchDistance = s_settings->documentView().prefetchDistance();
 
-    return qMakePair(qMax(page - prefetchDistance / 2, 1),
-                     qMin(page + prefetchDistance, count));
+    return qMakePair(std::max(page - prefetchDistance / 2, 1),
+                     std::min(page + prefetchDistance, count));
 }
 
 int SinglePageLayout::leftIndex(int index) const
@@ -115,7 +115,7 @@ int SinglePageLayout::leftIndex(int index) const
 
 int SinglePageLayout::rightIndex(int index, int count) const
 {
-    Q_UNUSED(count);
+    Q_UNUSED(count)
 
     return index;
 }
@@ -131,7 +131,6 @@ void SinglePageLayout::prepareLayout(const QVector< PageItem* >& pageItems, bool
                                      qreal& left, qreal& right, qreal& height)
 {
     const qreal pageSpacing = s_settings->documentView().pageSpacing();
-    qreal pageHeight = 0.0f;
 
     for(int index = 0; index < pageItems.count(); ++index)
     {
@@ -140,10 +139,11 @@ void SinglePageLayout::prepareLayout(const QVector< PageItem* >& pageItems, bool
 
         page->setPos(-boundingRect.left() - 0.5f * boundingRect.width(), height - boundingRect.top());
 
-        pageHeight = boundingRect.height();
+        qreal pageHeight = boundingRect.height();
+        qreal pageWidth = boundingRect.width();
 
-        left = qMin(left, -0.5f * boundingRect.width() - pageSpacing);
-        right = qMax(right, 0.5f * boundingRect.width() + pageSpacing);
+        left = std::min(left, -0.5f * pageWidth - pageSpacing);
+        right = std::max(right, 0.5f * pageWidth + pageSpacing);
         height += pageHeight + pageSpacing;
     }
 }
@@ -156,20 +156,20 @@ int TwoPagesLayout::currentPage(int page) const
 
 int TwoPagesLayout::previousPage(int page) const
 {
-    return qMax(page - 2, 1);
+    return std::max(page - 2, 1);
 }
 
 int TwoPagesLayout::nextPage(int page, int count) const
 {
-    return qMin(page + 2, count);
+    return std::min(page + 2, count);
 }
 
 QPair< int, int > TwoPagesLayout::prefetchRange(int page, int count) const
 {
     const int prefetchDistance = s_settings->documentView().prefetchDistance();
 
-    return qMakePair(qMax(page - prefetchDistance, 1),
-                     qMin(page + 2 * prefetchDistance + 1, count));
+    return qMakePair(std::max(page - prefetchDistance, 1),
+                     std::min(page + 2 * prefetchDistance + 1, count));
 }
 
 int TwoPagesLayout::leftIndex(int index) const
@@ -179,7 +179,7 @@ int TwoPagesLayout::leftIndex(int index) const
 
 int TwoPagesLayout::rightIndex(int index, int count) const
 {
-    return qMin(index % 2 == 0 ? index + 1 : index, count - 1);
+    return std::min(index % 2 == 0 ? index + 1 : index, count - 1);
 }
 
 qreal TwoPagesLayout::visibleWidth(int viewportWidth) const
@@ -211,16 +211,16 @@ void TwoPagesLayout::prepareLayout(const QVector< PageItem* >& pageItems, bool r
 
             if(rightToLeft)
             {
-                right = qMax(right, boundingRect.width() + 1.5f * pageSpacing);
+                right = std::max(right, boundingRect.width() + 1.5f * pageSpacing);
             }
             else
             {
-                left = qMin(left, -boundingRect.width() - 1.5f * pageSpacing);
+                left = std::min(left, -boundingRect.width() - 1.5f * pageSpacing);
             }
 
             if(index == rightIndex(index, pageItems.count()))
             {
-                right = qMax(right, 0.5f * pageSpacing);
+                right = std::max(right, 0.5f * pageSpacing);
                 height += pageHeight + pageSpacing;
             }
         }
@@ -228,15 +228,15 @@ void TwoPagesLayout::prepareLayout(const QVector< PageItem* >& pageItems, bool r
         {
             page->setPos(rightToLeft ? leftPos : rightPos, height - boundingRect.top());
 
-            pageHeight = qMax(pageHeight, boundingRect.height());
+            pageHeight = std::max(pageHeight, boundingRect.height());
 
             if(rightToLeft)
             {
-                left = qMin(left, -boundingRect.width() - 1.5f * pageSpacing);
+                left = std::min(left, -boundingRect.width() - 1.5f * pageSpacing);
             }
             else
             {
-                right = qMax(right, boundingRect.width() + 1.5f * pageSpacing);
+                right = std::max(right, boundingRect.width() + 1.5f * pageSpacing);
             }
 
             height += pageHeight + pageSpacing;
@@ -257,7 +257,7 @@ int TwoPagesWithCoverPageLayout::leftIndex(int index) const
 
 int TwoPagesWithCoverPageLayout::rightIndex(int index, int count) const
 {
-    return qMin(index % 2 != 0 ? index + 1 : index, count - 1);
+    return std::min(index % 2 != 0 ? index + 1 : index, count - 1);
 }
 
 
@@ -272,14 +272,14 @@ int MultiplePagesLayout::previousPage(int page) const
 {
     const int pagesPerRow = s_settings->documentView().pagesPerRow();
 
-    return qMax(page - pagesPerRow, 1);
+    return std::max(page - pagesPerRow, 1);
 }
 
 int MultiplePagesLayout::nextPage(int page, int count) const
 {
     const int pagesPerRow = s_settings->documentView().pagesPerRow();
 
-    return qMin(page + pagesPerRow, count);
+    return std::min(page + pagesPerRow, count);
 }
 
 QPair<int, int> MultiplePagesLayout::prefetchRange(int page, int count) const
@@ -287,8 +287,8 @@ QPair<int, int> MultiplePagesLayout::prefetchRange(int page, int count) const
     const int prefetchDistance = s_settings->documentView().prefetchDistance();
     const int pagesPerRow = s_settings->documentView().pagesPerRow();
 
-    return qMakePair(qMax(page - pagesPerRow * (prefetchDistance / 2), 1),
-                     qMin(page + pagesPerRow * (prefetchDistance + 1) - 1, count));
+    return qMakePair(std::max(page - pagesPerRow * (prefetchDistance / 2), 1),
+                     std::min(page + pagesPerRow * (prefetchDistance + 1) - 1, count));
 }
 
 int MultiplePagesLayout::leftIndex(int index) const
@@ -302,7 +302,7 @@ int MultiplePagesLayout::rightIndex(int index, int count) const
 {
     const int pagesPerRow = s_settings->documentView().pagesPerRow();
 
-    return qMin(index - (index % pagesPerRow) + pagesPerRow - 1, count - 1);
+    return std::min(index - (index % pagesPerRow) + pagesPerRow - 1, count - 1);
 }
 
 qreal MultiplePagesLayout::visibleWidth(int viewportWidth) const
@@ -329,7 +329,7 @@ void MultiplePagesLayout::prepareLayout(const QVector< PageItem* >& pageItems, b
 
         page->setPos(rightToLeft ? rightPos : leftPos, height - boundingRect.top());
 
-        pageHeight = qMax(pageHeight, boundingRect.height());
+        pageHeight = std::max(pageHeight, boundingRect.height());
 
         if(rightToLeft)
         {
@@ -347,12 +347,12 @@ void MultiplePagesLayout::prepareLayout(const QVector< PageItem* >& pageItems, b
 
             if(rightToLeft)
             {
-                left = qMin(left, right - pageSpacing);
+                left = std::min(left, right - pageSpacing);
                 right = 0.0f;
             }
             else
             {
-                right = qMax(right, left + pageSpacing);
+                right = std::max(right, left + pageSpacing);
                 left = 0.0f;
             }
         }

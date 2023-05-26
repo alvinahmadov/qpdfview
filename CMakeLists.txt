@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(qpdfview)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CONFIGURATION_TYPES Debug;Release)
 #set(CMAKE_COLOR_MAKEFILE OFF)
@@ -12,7 +12,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 # build/(win32|linux)/(release|debug)
-set(BUILD_PATH ${CMAKE_SOURCE_DIR}/build/${CMAKE_SYSTEM_NAME}/${CMAKE_BUILD_TYPE})
+string(TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE)
+set(BUILD_PATH ${CMAKE_SOURCE_DIR}/build/${BUILD_TYPE})
 
 set(CMAKE_BINARY_DIR ${BUILD_PATH})
 
@@ -26,7 +27,7 @@ else()
     set(CXX_FLAGS "-Wall")
     if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
         set(CXX_FLAGS_DEBUG "-Wextra -g -O0 ")
-        set(CXX_FLAGS_RELEASE "-O3 -ffp-contract=off -march=native -fno-expensive-optimizations")
+        set(CXX_FLAGS_RELEASE "-O3 -ffp-contract=off -march=native -fno-expensive-optimizations -Wno-deprecated-declarations")
     else()
         set(CXX_FLAGS_DEBUG "-Wextra -g -O0 -fstandalone-debug")
         set(CXX_FLAGS_RELEASE "-O3 -ffp-contract=off")
@@ -370,7 +371,6 @@ foreach(var "${QPDFVIEW_MIME_TYPES}")
     string(APPEND __output "${var};")
 endforeach()
 string(REPLACE "MIME_TYPES" "${__output}" CONTENTS "${CONTENTS}")
-
 file(WRITE "${DESKTOP_FILE}" "${CONTENTS}")
 
 install(TARGETS qpdfview RUNTIME

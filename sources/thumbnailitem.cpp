@@ -117,9 +117,9 @@ void ThumbnailItem::setHighlighted(bool highlighted)
 void ThumbnailItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if(event->modifiers() == Qt::NoModifier
-            && (event->button() == Qt::LeftButton || event->button() == Qt::MidButton))
+            && (event->button() == Qt::LeftButton || event->button() == Qt::MiddleButton))
     {
-        emit linkClicked(event->button() == Qt::MidButton, index() + 1);
+        emit linkClicked(event->button() == Qt::MiddleButton, index() + 1);
 
         event->accept();
         return;
@@ -149,8 +149,8 @@ void ThumbnailItem::prepareToolTip()
     const qreal width = size().width() / 72.0 * 25.4;
     const qreal height = size().height() / 72.0 * 25.4;
 
-    const qreal longEdge = qMax(width, height);
-    const qreal shortEdge = qMin(width, height);
+    const qreal longEdge = std::max(width, height);
+    const qreal shortEdge = std::min(width, height);
 
     QString paperSize;
 

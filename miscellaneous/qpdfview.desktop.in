@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=qpdfview
+GenericName=PDF reader
+Comment=A tabbed document viewer
+TryExec=qpdfview
+Exec=qpdfview %U
+Icon=qpdfview
+Categories=Office;
+X-GNOME-UsesNotifications=true
+Keywords=PLUGINS
+MimeType=MIME_TYPES

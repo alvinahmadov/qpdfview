@@ -61,11 +61,11 @@ using namespace qpdfview;
 class Transaction
 {
 public:
-    Transaction(QSqlDatabase& database) :
+    explicit Transaction(QSqlDatabase& database) :
         m_database(database),
         m_committed(false)
     {
-        if(s_current != 0)
+        if(s_current != nullptr)
         {
             return;
         }
@@ -78,7 +78,7 @@ public:
         s_current = this;
     }
 
-    ~Transaction() throw()
+    ~Transaction() noexcept
     {
         if(s_current != this)
         {
@@ -90,7 +90,7 @@ public:
             m_database.rollback();
         }
 
-        s_current = 0;
+        s_current = nullptr;
     }
 
     void commit()
@@ -118,7 +118,7 @@ private:
 
 };
 
-Transaction* Transaction::s_current = 0;
+Transaction* Transaction::s_current = nullptr;
 
 class Query
 {
@@ -132,7 +132,7 @@ private:
         explicit BindValue(const T& value) : m_value(value) {}
 
     public:
-        inline operator QVariant() const
+        inline operator QVariant() const // NOLINT(google-explicit-constructor)
         {
             return Conversion< T >::convert(m_value);
         }
@@ -166,11 +166,11 @@ public:
     private:
         friend class Query;
 
-        explicit Value(const QVariant& value) : m_value(value) {}
+        explicit Value(QVariant value) : m_value(std::move(value)) {}
 
     public:
         template< typename T >
-        inline operator T() const
+        inline operator T() const // NOLINT(google-explicit-constructor)
         {
             return Conversion< T >::convert(m_value);
         }
@@ -199,7 +199,7 @@ public:
     };
 
 public:
-    Query(QSqlDatabase& database) :
+    explicit Query(QSqlDatabase& database) :
         m_query(database),
         m_bindValueIndex(0),
         m_valueIndex(0)
@@ -289,11 +289,11 @@ inline QByteArray hashFilePath(const QString& filePath)
 namespace qpdfview
 {
 
-Database* Database::s_instance = 0;
+Database* Database::s_instance = nullptr;
 
 Database* Database::instance()
 {
-    if(s_instance == 0)
+    if(s_instance == nullptr)
     {
         s_instance = new Database(qApp);
     }
@@ -303,7 +303,7 @@ Database* Database::instance()
 
 Database::~Database()
 {
-    s_instance = 0;
+    s_instance = nullptr;
 }
 
 QStringList Database::knownInstanceNames()
@@ -981,7 +981,7 @@ void Database::migrateBookmarks_v1_v3()
             const QString filePath = outerQuery.nextValue();
             const QString pages = outerQuery.nextValue();
 
-            foreach(const QString& page, pages.split(",", QString::SkipEmptyParts))
+            foreach(const QString& page, pages.split(",", Qt::SkipEmptyParts))
             {
                 innerQuery << filePath
                            << page

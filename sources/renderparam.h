@@ -43,9 +43,9 @@ Q_DECLARE_FLAGS(RenderFlags, RenderFlag)
 class RenderParam
 {
 public:
-    RenderParam(int resolutionX = 72, int resolutionY = 72, qreal devicePixelRatio = 1.0,
-                qreal scaleFactor = 1.0, Rotation rotation = RotateBy0,
-                RenderFlags flags = 0) : d(new SharedData)
+    explicit RenderParam(int resolutionX = 72, int resolutionY = 72, qreal devicePixelRatio = 1.0,
+                         qreal scaleFactor = 1.0, Rotation rotation = RotateBy0,
+                         RenderFlags flags = {}) : d(new SharedData())
     {
         d->resolutionX = resolutionX;
         d->resolutionY = resolutionY;
@@ -55,24 +55,33 @@ public:
         d->flags = flags;
     }
 
+    DECL_NODISCARD
     int resolutionX() const { return d->resolutionX; }
+    DECL_NODISCARD
     int resolutionY() const { return d->resolutionY; }
+    DECL_UNUSED
     void setResolution(int resolutionX, int resolutionY)
     {
         d->resolutionX = resolutionX;
         d->resolutionY = resolutionY;
     }
 
+    DECL_NODISCARD
     qreal devicePixelRatio() const { return d->devicePixelRatio; }
     void setDevicePixelRatio(qreal devicePixelRatio) { d->devicePixelRatio = devicePixelRatio; }
 
+    DECL_NODISCARD
     qreal scaleFactor() const { return d->scaleFactor; }
     void setScaleFactor(qreal scaleFactor) { d->scaleFactor = scaleFactor; }
 
+    DECL_NODISCARD
     Rotation rotation() const { return d->rotation; }
+    DECL_UNUSED
     void setRotation(Rotation rotation) { d->rotation = rotation; }
 
+    DECL_NODISCARD
     RenderFlags flags() const { return d->flags; }
+    DECL_UNUSED
     void setFlags(RenderFlags flags) { d->flags = flags; }
     void setFlag(RenderFlag flag, bool enabled = true)
     {
@@ -86,19 +95,29 @@ public:
         }
     }
 
+    DECL_NODISCARD
     bool invertColors() const { return d->flags.testFlag(InvertColors); }
+    DECL_UNUSED
     void setInvertColors(bool invertColors) { setFlag(InvertColors, invertColors); }
 
+    DECL_NODISCARD
     bool convertToGrayscale() const { return d->flags.testFlag(ConvertToGrayscale); }
+    DECL_UNUSED
     void setConvertToGrayscale(bool convertToGrayscale) { setFlag(ConvertToGrayscale, convertToGrayscale); }
 
+    DECL_NODISCARD
     bool trimMargins() const { return d->flags.testFlag(TrimMargins); }
+    DECL_UNUSED
     void setTrimMargins(bool trimMargins) { setFlag(TrimMargins, trimMargins); }
 
+    DECL_NODISCARD
     bool darkenWithPaperColor() const { return d->flags.testFlag(DarkenWithPaperColor); }
+    DECL_UNUSED
     void setDarkenWithPaperColor(bool darkenWithPaperColor) { setFlag(DarkenWithPaperColor, darkenWithPaperColor); }
 
+    DECL_NODISCARD
     bool lightenWithPaperColor() const { return d->flags.testFlag(LightenWithPaperColor); }
+    DECL_UNUSED
     void setLightenWithPaperColor(bool lightenWithPaperColor) { setFlag(LightenWithPaperColor, lightenWithPaperColor); }
 
     bool operator==(const RenderParam& other) const
@@ -123,12 +142,12 @@ public:
 private:
     struct SharedData : public QSharedData
     {
-        int resolutionX;
-        int resolutionY;
-        qreal devicePixelRatio;
+        int resolutionX {};
+        int resolutionY {};
+        qreal devicePixelRatio {};
 
-        qreal scaleFactor;
-        Rotation rotation;
+        qreal scaleFactor {};
+        Rotation rotation {};
 
         RenderFlags flags;
 

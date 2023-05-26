@@ -56,12 +56,12 @@ namespace Model
         friend class PdfPage;
 
     public:
-        ~PdfAnnotation();
+        ~PdfAnnotation() override;
 
-        QRectF boundary() const;
-        QString contents() const;
+        QRectF boundary() const override;
+        QString contents() const override;
 
-        QWidget* createWidget();
+        QWidget* createWidget() override;
 
     private:
         Q_DISABLE_COPY(PdfAnnotation)
@@ -80,12 +80,12 @@ namespace Model
         friend class PdfPage;
 
     public:
-        ~PdfFormField();
+        ~PdfFormField() override;
 
-        QRectF boundary() const;
-        QString name() const;
+        QRectF boundary() const override;
+        QString name() const override;
 
-        QWidget* createWidget();
+        QWidget* createWidget() override;
 
     private:
         Q_DISABLE_COPY(PdfFormField)
@@ -97,36 +97,36 @@ namespace Model
 
     };
 
-    class PdfPage : public Page
+    class PdfPage final : public Page
     {
         Q_DECLARE_TR_FUNCTIONS(Model::PdfPage)
 
         friend class PdfDocument;
 
     public:
-        ~PdfPage();
+        ~PdfPage() final;
 
-        QSizeF size() const;
+        QSizeF size() const final;
 
-        QImage render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const;
+        QImage render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const final;
 
-        QString label() const;
+        QString label() const final;
 
-        QList< Link* > links() const;
+        QList< Link* > links() const final;
 
-        QString text(const QRectF& rect) const;
-        QString cachedText(const QRectF& rect) const;
+        QString text(const QRectF& rect) const final;
+        QString cachedText(const QRectF& rect) const final;
 
-        QList< QRectF > search(const QString& text, bool matchCase, bool wholeWords) const;
+        QList< QRectF > search(const QString& text, bool matchCase, bool wholeWords) const final;
 
-        QList< Annotation* > annotations() const;
+        QList< Annotation* > annotations() const final;
 
-        bool canAddAndRemoveAnnotations() const;
-        Annotation* addTextAnnotation(const QRectF& boundary, const QColor& color);
-        Annotation* addHighlightAnnotation(const QRectF& boundary, const QColor& color);
-        void removeAnnotation(Annotation* annotation);
+        bool canAddAndRemoveAnnotations() const final;
+        Annotation* addTextAnnotation(const QRectF& boundary, const QColor& color) final;
+        Annotation* addHighlightAnnotation(const QRectF& boundary, const QColor& color) final;
+        void removeAnnotation(Annotation* annotation) final;
 
-        QList< FormField* > formFields() const;
+        QList< FormField* > formFields() const final;
 
     private:
         Q_DISABLE_COPY(PdfPage)
@@ -138,46 +138,62 @@ namespace Model
 
     };
 
-    class PdfDocument : public Document
+    class PdfDocument final : public Document
     {
         Q_DECLARE_TR_FUNCTIONS(Model::PdfDocument)
 
         friend class qpdfview::PdfPlugin;
 
     public:
-        ~PdfDocument();
+        ~PdfDocument() final;
 
-        int numberOfPages() const;
+        DECL_NODISCARD
+        int numberOfPages() const final;
 
-        Page* page(int index) const;
+        DECL_NODISCARD
+        Page* page(int index) const final;
 
-        bool isLocked() const;
-        bool unlock(const QString& password);
+        DECL_NODISCARD
+        bool isLocked() const final;
+        DECL_NODISCARD
+        bool unlock(const QString& password) final;
 
-        QStringList saveFilter() const;
+        DECL_NODISCARD
+        QStringList saveFilter() const final;
 
-        bool canSave() const;
-        bool save(const QString& filePath, bool withChanges) const;
+        DECL_NODISCARD
+        bool canSave() const final;
+        DECL_NODISCARD
+        bool save(const QString& filePath, bool withChanges) const final;
 
-        bool canBePrintedUsingCUPS() const;
+        DECL_NODISCARD
+        bool canBePrintedUsingCUPS() const final;
 
-        void setPaperColor(const QColor& paperColor);
+        void setPaperColor(const QColor& paperColor) final;
 
-        Outline outline() const;
-        Properties properties() const;
+        DECL_NODISCARD
+        Outline outline() const final;
+        DECL_NODISCARD
+        Properties properties() const final;
 
-        QAbstractItemModel* fonts() const;
+        DECL_NODISCARD
+        QAbstractItemModel* fonts() const final;
 
-        bool wantsContinuousMode() const;
-        bool wantsSinglePageMode() const;
-        bool wantsTwoPagesMode() const;
-        bool wantsTwoPagesWithCoverPageMode() const;
-        bool wantsRightToLeftMode() const;
+        DECL_NODISCARD
+        bool wantsContinuousMode() const final;
+        DECL_NODISCARD
+        bool wantsSinglePageMode() const final;
+        DECL_NODISCARD
+        bool wantsTwoPagesMode() const final;
+        DECL_NODISCARD
+        bool wantsTwoPagesWithCoverPageMode() const final;
+        DECL_NODISCARD
+        bool wantsRightToLeftMode() const final;
 
     private:
         Q_DISABLE_COPY(PdfDocument)
 
-        PdfDocument(Poppler::Document* document);
+        explicit PdfDocument(Poppler::Document* document);
 
         mutable QMutex m_mutex;
         Poppler::Document* m_document;
@@ -185,15 +201,15 @@ namespace Model
     };
 }
 
-class PdfSettingsWidget : public SettingsWidget
+class PdfSettingsWidget final : public SettingsWidget
 {
     Q_OBJECT
 
 public:
-    PdfSettingsWidget(QSettings* settings, QWidget* parent = 0);
+    explicit PdfSettingsWidget(QSettings* settings, QWidget* parent = nullptr);
 
-    void accept();
-    void reset();
+    void accept() final;
+    void reset() final;
 
 private:
     Q_DISABLE_COPY(PdfSettingsWidget)
@@ -237,7 +253,7 @@ private:
 
 };
 
-class PdfPlugin : public QObject, Plugin
+class PdfPlugin final : public QObject, Plugin
 {
     Q_OBJECT
     Q_INTERFACES(qpdfview::Plugin)
@@ -249,11 +265,13 @@ class PdfPlugin : public QObject, Plugin
 #endif // QT_VERSION
 
 public:
-    PdfPlugin(QObject* parent = 0);
+    explicit PdfPlugin(QObject* parent = nullptr);
 
-    Model::Document* loadDocument(const QString& filePath) const;
+    DECL_NODISCARD
+    Model::Document* loadDocument(const QString& filePath) const final;
 
-    SettingsWidget* createSettingsWidget(QWidget* parent) const;
+    DECL_NODISCARD
+    SettingsWidget* createSettingsWidget(QWidget* parent) const final;
 
 private:
     Q_DISABLE_COPY(PdfPlugin)

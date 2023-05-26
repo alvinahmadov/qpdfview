@@ -41,13 +41,13 @@ class AnnotationWidget : public QPlainTextEdit
     Q_OBJECT
 
 public:
-    AnnotationWidget(QMutex* mutex, Poppler::Annotation* annotation, QWidget* parent = 0);
+    AnnotationWidget(QMutex* mutex, Poppler::Annotation* annotation, QWidget* parent = nullptr);
 
 signals:
     void wasModified();
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 
 protected slots:
     void on_textChanged();
@@ -66,17 +66,17 @@ class FileAttachmentAnnotationWidget : public QToolButton
     Q_OBJECT
 
 public:
-    FileAttachmentAnnotationWidget(QMutex* mutex, Poppler::FileAttachmentAnnotation* annotation, QWidget* parent = 0);
+    FileAttachmentAnnotationWidget(QMutex* mutex, Poppler::FileAttachmentAnnotation* annotation, QWidget* parent = nullptr);
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 
 protected slots:
-    void on_aboutToShow();
-    void on_aboutToHide();
+    void onAboutToShow();
+    void onAboutToHide();
 
-    void on_save_triggered();
-    void on_saveAndOpen_triggered();
+    void onSaveTriggered();
+    void onSaveAndOpenTriggered();
 
 private:
     Q_DISABLE_COPY(FileAttachmentAnnotationWidget)

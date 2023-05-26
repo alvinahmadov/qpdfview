@@ -34,19 +34,20 @@ class RecentlyUsedMenu : public ToolTipMenu
     Q_OBJECT
 
 public:
-    explicit RecentlyUsedMenu(const QStringList& filePaths, int count, QWidget* parent = 0);
+    explicit RecentlyUsedMenu(const QStringList& filePaths, int count, QWidget* parent = nullptr);
 
     void addOpenAction(const QFileInfo& fileInfo);
     void removeOpenAction(const QString& filePath);
 
+    DECL_NODISCARD
     QStringList filePaths() const;
 
 signals:
     void openTriggered(const QString& filePath);
 
 protected slots:
-    void on_open_triggered(QAction* action);
-    void on_clearList_triggered();
+    void onOpenTriggered(QAction* action);
+    void onClearListTriggered();
 
 private:
     Q_DISABLE_COPY(RecentlyUsedMenu)
@@ -54,6 +55,7 @@ private:
     int m_count;
 
     QActionGroup* m_openActionGroup;
+    DECL_UNUSED
     QAction* m_separatorAction;
     QAction* m_clearListAction;
 

@@ -92,11 +92,11 @@ void setDataSize(QSettings* settings, const QString& key, int value)
 namespace qpdfview
 {
 
-Settings* Settings::s_instance = 0;
+Settings* Settings::s_instance = nullptr;
 
 Settings* Settings::instance()
 {
-    if(s_instance == 0)
+    if(s_instance == nullptr)
     {
         s_instance = new Settings(qApp);
 
@@ -108,7 +108,7 @@ Settings* Settings::instance()
 
 Settings::~Settings()
 {
-    s_instance = 0;
+    s_instance = nullptr;
 }
 
 // page item
@@ -269,6 +269,8 @@ void Settings::PageItem::setFormFieldOverlay(bool overlay)
 Settings::PageItem::PageItem(QSettings* settings) :
     m_settings(settings),
     m_cacheSize(Defaults::PageItem::cacheSize()),
+    m_useTiling(Defaults::PageItem::useTiling()),
+    m_tileSize(Defaults::PageItem::tileSize()),
     m_progressIcon(),
     m_errorIcon(),
     m_keepObsoletePixmaps(Defaults::PageItem::keepObsoletePixmaps()),
@@ -298,7 +300,7 @@ int Settings::PresentationView::screen() const
 {
     int screen = m_settings->value("presentationView/screen", Defaults::PresentationView::screen()).toInt();
 
-    if(screen < -1 || screen >= QApplication::desktop()->screenCount())
+    if(screen < -1 || screen >= QGuiApplication::screens().size())
     {
         screen = -1;
     }
@@ -665,6 +667,7 @@ Settings::DocumentView::DocumentView(QSettings *settings) :
     m_prefetch(Defaults::DocumentView::prefetch()),
     m_prefetchDistance(Defaults::DocumentView::prefetchDistance()),
     m_pagesPerRow(Defaults::DocumentView::pagesPerRow()),
+    m_minimalScrolling(Defaults::DocumentView::minimalScrolling()),
     m_highlightCurrentThumbnail(Defaults::DocumentView::highlightCurrentThumbnail()),
     m_limitThumbnailsToResults(Defaults::DocumentView::limitThumbnailsToResults()),
     m_pageSpacing(Defaults::DocumentView::pageSpacing()),
@@ -1128,12 +1131,12 @@ void Settings::PrintDialog::setPageOrder(QPrinter::PageOrder pageOrder)
     m_settings->setValue("printDialog/pageOrder", static_cast< int >(pageOrder));
 }
 
-QPrinter::Orientation Settings::PrintDialog::orientation() const
+QPageLayout::Orientation Settings::PrintDialog::orientation() const
 {
-    return static_cast< QPrinter::Orientation >(m_settings->value("printDialog/orientation", static_cast< int >(Defaults::PrintDialog::orientation())).toInt());
+    return static_cast< QPageLayout::Orientation >(m_settings->value("printDialog/orientation", static_cast< int >(Defaults::PrintDialog::orientation())).toInt());
 }
 
-void Settings::PrintDialog::setOrientation(QPrinter::Orientation orientation)
+void Settings::PrintDialog::setOrientation(QPageLayout::Orientation orientation)
 {
     m_settings->setValue("printDialog/orientation", static_cast< int >(orientation));
 }

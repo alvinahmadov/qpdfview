@@ -36,13 +36,16 @@ class PageItem;
 class TileItem : public RenderTaskParent
 {
 public:
-    TileItem(PageItem* page);
-    ~TileItem();
+    explicit TileItem(PageItem* page);
+    ~TileItem() override;
 
+    DECL_NODISCARD
     const QRect& rect() const { return m_rect; }
     void setRect(QRect rect) { m_rect = rect; }
 
+    DECL_NODISCARD
     const QRectF& cropRect() const { return m_cropRect; }
+    DECL_UNUSED
     void resetCropRect() { m_cropRect = QRectF(); }
     void setCropRect(const QRectF& cropRect);
 
@@ -51,6 +54,7 @@ public:
 
     static void dropCachedPixmaps(PageItem* page);
 
+    DECL_NODISCARD
     bool paint(QPainter* painter, QPointF topLeft);
 
 public:
@@ -62,11 +66,11 @@ public:
     void deleteAfterRender();
 
 private:
-    void on_finished(const RenderParam& renderParam,
+    void onFinished(const RenderParam& renderParam,
                      const QRect& rect, bool prefetch,
-                     const QImage& image, const QRectF& cropRect);
-    void on_canceled();
-    void on_finishedOrCanceled();
+                     const QImage& image, const QRectF& cropRect) override;
+    void onCanceled() override;
+    void onFinishedOrCanceled();
 
 private:
     Q_DISABLE_COPY(TileItem)
@@ -98,4 +102,4 @@ private:
 
 } // qpdfview
 
-#endif // PAGEITEM_H
+#endif // TILEITEM_H

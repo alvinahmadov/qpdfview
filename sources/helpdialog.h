@@ -37,13 +37,13 @@ class HelpDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit HelpDialog(QWidget* parent = 0);
-    ~HelpDialog();
+    explicit HelpDialog(QWidget* parent = nullptr);
+    ~HelpDialog() override;
 
 protected slots:
-    void on_findPrevious_triggered();
-    void on_findNext_triggered();
-    void on_search_textEdited();
+    void onFindPreviousTriggered();
+    void onFindNextTriggered();
+    void onSearchTextEdited();
 
 private:
     Q_DISABLE_COPY(HelpDialog)

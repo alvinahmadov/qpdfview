@@ -76,11 +76,11 @@ inline bool matches(const QKeySequence& keySequence, const QList< QKeySequence >
 namespace qpdfview
 {
 
-ShortcutHandler* ShortcutHandler::s_instance = 0;
+ShortcutHandler* ShortcutHandler::s_instance = nullptr;
 
 ShortcutHandler* ShortcutHandler::instance()
 {
-    if(s_instance == 0)
+    if(s_instance == nullptr)
     {
         s_instance = new ShortcutHandler(qApp);
     }
@@ -90,7 +90,7 @@ ShortcutHandler* ShortcutHandler::instance()
 
 ShortcutHandler::~ShortcutHandler()
 {
-    s_instance = 0;
+    s_instance = nullptr;
 }
 
 void ShortcutHandler::registerAction(QAction* action)
@@ -109,14 +109,14 @@ void ShortcutHandler::registerAction(QAction* action)
 
 int ShortcutHandler::columnCount(const QModelIndex& parent) const
 {
-    Q_UNUSED(parent);
+    Q_UNUSED(parent)
 
     return 2;
 }
 
 int ShortcutHandler::rowCount(const QModelIndex& parent) const
 {
-    Q_UNUSED(parent);
+    Q_UNUSED(parent)
 
     return m_actions.count();
 }
@@ -136,12 +136,14 @@ Qt::ItemFlags ShortcutHandler::flags(const QModelIndex& index) const
 
 QVariant ShortcutHandler::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    Q_UNUSED(orientation);
+    Q_UNUSED(orientation)
 
     if(role == Qt::DisplayRole)
     {
         switch(section)
         {
+        default:
+            return {};
         case 0:
             return tr("Action");
         case 1:
@@ -149,7 +151,7 @@ QVariant ShortcutHandler::headerData(int section, Qt::Orientation orientation, i
         }
     }
 
-    return QVariant();
+    return {};
 }
 
 QVariant ShortcutHandler::data(const QModelIndex& index, int role) const
@@ -167,14 +169,14 @@ QVariant ShortcutHandler::data(const QModelIndex& index, int role) const
         }
     }
 
-    return QVariant();
+    return {};
 }
 
 bool ShortcutHandler::setData(const QModelIndex& index, const QVariant& value, int role)
 {
     if(role == Qt::EditRole && index.column() == 1 && index.row() >= 0 && index.row() < m_actions.count())
     {
-        QList< QKeySequence > shortcuts = toShortcuts(value.toString().split(";", QString::SkipEmptyParts));
+        QList< QKeySequence > shortcuts = toShortcuts(value.toString().split(";", Qt::SkipEmptyParts));
 
         if(!shortcuts.isEmpty() || value.toString().isEmpty())
         {
@@ -285,7 +287,7 @@ ShortcutHandler::ShortcutHandler(QObject* parent) : QAbstractTableModel(parent),
 
 QAction* ShortcutHandler::createAction(const QString& text, const QString& objectName, const QList<QKeySequence>& shortcuts)
 {
-    QAction* action = new QAction(text, this);
+    auto action = new QAction(text, this);
     action->setObjectName(objectName);
     action->setShortcuts(shortcuts);
 

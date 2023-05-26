@@ -69,7 +69,7 @@ private:
     Q_DISABLE_COPY(ShortcutHandler)
 
     static ShortcutHandler* s_instance;
-    ShortcutHandler(QObject* parent = 0);
+    ShortcutHandler(QObject* parent = nullptr);
 
     QSettings* m_settings;
 

@@ -32,7 +32,7 @@ class RecentlyClosedMenu : public ToolTipMenu
     Q_OBJECT
 
 public:
-    explicit RecentlyClosedMenu(int count, QWidget *parent = 0);
+    explicit RecentlyClosedMenu(int count, QWidget *parent = nullptr);
 
     void addTabAction(QAction* tabAction);
 
@@ -40,12 +40,13 @@ signals:
     void tabActionTriggered(QAction* tabAction);
 
 public slots:
+    DECL_UNUSED
     void triggerFirstTabAction();
     void triggerLastTabAction();
 
 protected slots:
-    void on_tabAction_triggered(QAction* tabAction);
-    void on_clearList_triggered();
+    void onTabActionTriggered(QAction* tabAction);
+    void onClearListTriggered();
 
 private:
     Q_DISABLE_COPY(RecentlyClosedMenu)
@@ -53,6 +54,7 @@ private:
     int m_count;
 
     QActionGroup* m_tabActionGroup;
+    DECL_UNUSED
     QAction* m_separatorAction;
     QAction* m_clearListAction;
 

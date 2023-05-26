@@ -73,7 +73,7 @@ struct PrintOptions
 
 #else
 
-    PrintOptions() : fitToPage(false), pageRanges() {}
+    PrintOptions() : fitToPage(), pageRanges() {}
 
 #endif // QT_VERSION
 

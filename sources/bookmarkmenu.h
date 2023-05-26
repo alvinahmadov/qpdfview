@@ -39,11 +39,13 @@ class BookmarkMenu : public QMenu
     Q_OBJECT
 
 public:
-    BookmarkMenu(const QFileInfo& fileInfo, QWidget* parent = 0);
+    explicit BookmarkMenu(const QFileInfo& fileInfo, QWidget* parent = nullptr);
 
+    DECL_NODISCARD
     QString absoluteFilePath() const { return menuAction()->data().toString(); }
 
     void addJumpToPageAction(int page, const QString& label);
+    DECL_UNUSED
     void removeJumpToPageAction(int page);
 
 signals:
@@ -53,10 +55,10 @@ signals:
     void removeBookmarkTriggered(const QString& filePath);
 
 protected slots:
-    void on_open_triggered();
-    void on_openInNewTab_triggered();
-    void on_jumpToPage_triggered(QAction* action);
-    void on_removeBookmark_triggered();
+    void onOpenTriggered();
+    void onOpenInNewTabTriggered();
+    void onJumpToPageTriggered(QAction* action);
+    void onRemoveBookmarkTriggered();
 
 private:
     Q_DISABLE_COPY(BookmarkMenu)

@@ -50,7 +50,7 @@ void addSettingsWidget(QTabWidget* tabWidget, SettingsWidget*& settingsWidget, P
 {
     settingsWidget = PluginHandler::instance()->createSettingsWidget(fileType, tabWidget);
 
-    if(settingsWidget != 0)
+    if(settingsWidget != nullptr)
     {
         tabWidget->addTab(settingsWidget, PluginHandler::fileTypeName(fileType));
     }
@@ -93,11 +93,11 @@ Qt::KeyboardModifier keyboardModifierFromCurrentIndex(const QComboBox* comboBox)
 namespace qpdfview
 {
 
-Settings* SettingsDialog::s_settings = 0;
+Settings* SettingsDialog::s_settings = nullptr;
 
 SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent)
 {
-    if(s_settings == 0)
+    if(s_settings == nullptr)
     {
         s_settings = Settings::instance();
     }
@@ -165,18 +165,18 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent)
     m_buttonModifiersLayout = new QFormLayout(m_buttonModifiersGroupBox);
 
     QWidget* modifiersTab = m_tabWidget->widget(4);
-    QVBoxLayout* modifiersLayout = new QVBoxLayout(modifiersTab);
+    auto modifiersLayout = new QVBoxLayout(modifiersTab);
     modifiersTab->setLayout(modifiersLayout);
     modifiersLayout->addWidget(m_wheelModifiersGroupBox);
     modifiersLayout->addWidget(m_buttonModifiersGroupBox);
     modifiersLayout->addStretch();
 
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    auto layout = new QVBoxLayout(this);
     setLayout(layout);
     layout->addWidget(m_tabWidget);
     layout->addWidget(m_dialogButtonBox);
 
-    resize(s_settings->mainWindow().settingsDialogSize(sizeHint()));
+    resize(s_settings->mainWindow().settingsDialogSize());
 
     createBehaviorTab();
     createGraphicsTab();
@@ -283,7 +283,7 @@ void SettingsDialog::createBehaviorTab()
                                                     s_settings->presentationView().synchronize());
 
     m_presentationScreenSpinBox = addSpinBox(m_behaviorLayout, tr("Presentation screen:"), QString(), QString(), tr("Default"),
-                                             -1, QApplication::desktop()->screenCount() - 1, 1, s_settings->presentationView().screen());
+                                             -1, QGuiApplication::screens().size() - 1, 1, s_settings->presentationView().screen());
 
 
     m_synchronizeOutlineViewCheckBox = addCheckBox(m_behaviorLayout, tr("Synchronize outline view:"), QString(),
@@ -467,22 +467,22 @@ void SettingsDialog::acceptGraphicsTab()
     s_settings->documentView().setPrefetch(m_prefetchCheckBox->isChecked());
     s_settings->documentView().setPrefetchDistance(m_prefetchDistanceSpinBox->value());
 
-    if(m_pdfSettingsWidget != 0)
+    if(m_pdfSettingsWidget != nullptr)
     {
         m_pdfSettingsWidget->accept();
     }
 
-    if(m_psSettingsWidget != 0)
+    if(m_psSettingsWidget != nullptr)
     {
         m_psSettingsWidget->accept();
     }
 
-    if(m_djvuSettingsWidget != 0)
+    if(m_djvuSettingsWidget != nullptr)
     {
         m_djvuSettingsWidget->accept();
     }
 
-    if(m_epubSettingsWidget != 0)
+    if(m_epubSettingsWidget != nullptr)
     {
 	    m_epubSettingsWidget->accept();
     }
@@ -513,22 +513,22 @@ void SettingsDialog::resetGraphicsTab()
     m_prefetchCheckBox->setChecked(Defaults::DocumentView::prefetch());
     m_prefetchDistanceSpinBox->setValue(Defaults::DocumentView::prefetchDistance());
 
-    if(m_pdfSettingsWidget != 0)
+    if(m_pdfSettingsWidget != nullptr)
     {
         m_pdfSettingsWidget->reset();
     }
 
-    if(m_psSettingsWidget != 0)
+    if(m_psSettingsWidget != nullptr)
     {
         m_psSettingsWidget->reset();
     }
 
-    if(m_djvuSettingsWidget != 0)
+    if(m_djvuSettingsWidget != nullptr)
     {
         m_djvuSettingsWidget->reset();
     }
 
-    if(m_epubSettingsWidget != 0)
+    if(m_epubSettingsWidget != nullptr)
     {
 	    m_epubSettingsWidget->reset();
     }
@@ -644,12 +644,12 @@ void SettingsDialog::acceptInterfaceTab()
     s_settings->mainWindow().setRecentlyUsedCount(m_recentlyUsedCountSpinBox->value());
     s_settings->mainWindow().setRecentlyClosedCount(m_recentlyClosedCountSpinBox->value());
 
-    s_settings->mainWindow().setFileToolBar(m_fileToolBarLineEdit->text().split(",", QString::SkipEmptyParts));
-    s_settings->mainWindow().setEditToolBar(m_editToolBarLineEdit->text().split(",", QString::SkipEmptyParts));
-    s_settings->mainWindow().setViewToolBar(m_viewToolBarLineEdit->text().split(",", QString::SkipEmptyParts));
+    s_settings->mainWindow().setFileToolBar(m_fileToolBarLineEdit->text().split(",", Qt::SkipEmptyParts));
+    s_settings->mainWindow().setEditToolBar(m_editToolBarLineEdit->text().split(",", Qt::SkipEmptyParts));
+    s_settings->mainWindow().setViewToolBar(m_viewToolBarLineEdit->text().split(",", Qt::SkipEmptyParts));
 
-    s_settings->mainWindow().setDocumentContextMenu(m_documentContextMenuLineEdit->text().split(",", QString::SkipEmptyParts));
-    s_settings->mainWindow().setTabContextMenu(m_tabContextMenuLineEdit->text().split(",", QString::SkipEmptyParts));
+    s_settings->mainWindow().setDocumentContextMenu(m_documentContextMenuLineEdit->text().split(",", Qt::SkipEmptyParts));
+    s_settings->mainWindow().setTabContextMenu(m_tabContextMenuLineEdit->text().split(",", Qt::SkipEmptyParts));
 
     s_settings->mainWindow().setScrollableMenus(m_scrollableMenusCheckBox->isChecked());
     s_settings->mainWindow().setSearchableMenus(m_searchableMenusCheckBox->isChecked());
@@ -763,7 +763,7 @@ void SettingsDialog::resetModifiersTab()
 
 QCheckBox* SettingsDialog::addCheckBox(QFormLayout* layout, const QString& label, const QString& toolTip, bool checked)
 {
-    QCheckBox* checkBox = new QCheckBox(this);
+    auto checkBox = new QCheckBox(this);
     checkBox->setChecked(checked);
 
     checkBox->setToolTip(toolTip);
@@ -774,7 +774,7 @@ QCheckBox* SettingsDialog::addCheckBox(QFormLayout* layout, const QString& label
 
 QLineEdit* SettingsDialog::addLineEdit(QFormLayout* layout, const QString& label, const QString& toolTip, const QString& text)
 {
-    QLineEdit* lineEdit = new QLineEdit(this);
+    auto lineEdit = new QLineEdit(this);
     lineEdit->setText(text);
 
     lineEdit->setToolTip(toolTip);
@@ -785,7 +785,7 @@ QLineEdit* SettingsDialog::addLineEdit(QFormLayout* layout, const QString& label
 
 QSpinBox* SettingsDialog::addSpinBox(QFormLayout* layout, const QString& label, const QString& toolTip, const QString& suffix, const QString& special, int min, int max, int step, int val)
 {
-    QSpinBox* spinBox = new QSpinBox(this);
+    auto spinBox = new QSpinBox(this);
     spinBox->setRange(min, max);
     spinBox->setSingleStep(step);
     spinBox->setValue(val);
@@ -801,7 +801,7 @@ QSpinBox* SettingsDialog::addSpinBox(QFormLayout* layout, const QString& label, 
 
 QDoubleSpinBox* SettingsDialog::addDoubleSpinBox(QFormLayout* layout, const QString& label, const QString& toolTip, const QString& suffix, const QString& special, double min, double max, double step, double val)
 {
-    QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
+    auto spinBox = new QDoubleSpinBox(this);
     spinBox->setRange(min, max);
     spinBox->setSingleStep(step);
     spinBox->setValue(val);
@@ -817,7 +817,7 @@ QDoubleSpinBox* SettingsDialog::addDoubleSpinBox(QFormLayout* layout, const QStr
 
 QComboBox* SettingsDialog::addComboBox(QFormLayout* layout, const QString& label, const QString& toolTip, const QStringList& text, const QList< int >& data, int value)
 {
-    QComboBox* comboBox = new QComboBox(this);
+    auto comboBox = new QComboBox(this);
 
     for(int index = 0, count = text.count(); index < count; ++index)
     {
@@ -834,7 +834,7 @@ QComboBox* SettingsDialog::addComboBox(QFormLayout* layout, const QString& label
 
 QComboBox* SettingsDialog::addDataSizeComboBox(QFormLayout* layout, const QString& label, const QString& toolTip, int initialDataSize)
 {
-    QComboBox* comboBox = new QComboBox(this);
+    auto comboBox = new QComboBox(this);
 
     for(int dataSize = 8; dataSize <= 8192; dataSize *= 2)
     {
@@ -860,7 +860,7 @@ QComboBox* SettingsDialog::addDataSizeComboBox(QFormLayout* layout, const QStrin
 
 QComboBox* SettingsDialog::addColorComboBox(QFormLayout* layout, const QString& label, const QString& toolTip, const QColor& color)
 {
-    QComboBox* comboBox = new QComboBox(this);
+    auto comboBox = new QComboBox(this);
     comboBox->setEditable(true);
     comboBox->setInsertPolicy(QComboBox::NoInsert);
     comboBox->addItems(QColor::colorNames());
@@ -875,7 +875,7 @@ QComboBox* SettingsDialog::addColorComboBox(QFormLayout* layout, const QString& 
 
 QComboBox* SettingsDialog::addModifiersComboBox(QFormLayout* layout, const QString& label, const QString& toolTip, Qt::KeyboardModifiers modifiers)
 {
-    QComboBox* comboBox = new QComboBox(this);
+    auto comboBox = new QComboBox(this);
     comboBox->addItem(QShortcut::tr("Shift"), static_cast< int >(Qt::ShiftModifier));
     comboBox->addItem(QShortcut::tr("Ctrl"), static_cast< int >(Qt::ControlModifier));
     comboBox->addItem(QShortcut::tr("Alt"), static_cast< int >(Qt::AltModifier));
@@ -883,7 +883,7 @@ QComboBox* SettingsDialog::addModifiersComboBox(QFormLayout* layout, const QStri
     comboBox->addItem(QShortcut::tr("Shift and Alt"), static_cast< int >(Qt::ShiftModifier | Qt::AltModifier));
     comboBox->addItem(QShortcut::tr("Ctrl and Alt"), static_cast< int >(Qt::ControlModifier | Qt::AltModifier));
     comboBox->addItem(QShortcut::tr("Right mouse button"), static_cast< int >(Qt::RightButton));
-    comboBox->addItem(QShortcut::tr("Middle mouse button"), static_cast< int >(Qt::MidButton));
+    comboBox->addItem(QShortcut::tr("Middle mouse button"), static_cast< int >(Qt::MiddleButton));
     comboBox->addItem(QShortcut::tr("None"), static_cast< int >(Qt::NoModifier));
 
     setCurrentIndexFromKeyboardModifiers(comboBox, modifiers);

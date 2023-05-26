@@ -33,21 +33,21 @@ namespace qpdfview
 
 class DocumentView;
 
-class SearchModel : public QAbstractItemModel
+class SearchModel final : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
     static SearchModel* instance();
-    ~SearchModel();
+    ~SearchModel() final;
 
 
-    QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+    QModelIndex index(int row, int column, const QModelIndex& parent) const final;
 
-    QModelIndex parent(const QModelIndex& child) const;
+    QModelIndex parent(const QModelIndex& child) const final;
 
-    int rowCount(const QModelIndex& parent = QModelIndex()) const;
-    int columnCount(const QModelIndex& parent = QModelIndex()) const;
+    int rowCount(const QModelIndex& parent) const final;
+    int columnCount(const QModelIndex& parent) const final;
 
     enum
     {
@@ -62,7 +62,7 @@ public:
         SurroundingTextRole
     };
 
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+    QVariant data(const QModelIndex& index, int role) const final;
 
 
     DocumentView* viewForIndex(const QModelIndex& index) const;
@@ -87,13 +87,13 @@ public:
     void updateProgress(DocumentView* view);
 
 protected slots:
-    void on_fetchSurroundingText_finished();
+    void onFetchSurroundingTextFinished();
 
 private:
     Q_DISABLE_COPY(SearchModel)
 
     static SearchModel* s_instance;
-    SearchModel(QObject* parent = 0);
+    explicit SearchModel(QObject* parent = nullptr);
 
     QVector< DocumentView* > m_views;
 
@@ -115,8 +115,8 @@ private:
         TextCacheKey key;
         TextCacheObject* object;
 
-        TextJob() : key(), object(0) {}
-        TextJob(const TextCacheKey& key, TextCacheObject* object) : key(key), object(object) {}
+        TextJob() : key(), object() {}
+        TextJob(TextCacheKey key, TextCacheObject* object) : key(std::move(key)), object(object) {}
 
     };
 

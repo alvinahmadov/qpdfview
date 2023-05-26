@@ -31,7 +31,6 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <QCheckBox>
 #include <QClipboard>
-#include <QDateTime>
 #include <QDesktopServices>
 #include <QDockWidget>
 #include <QDrag>
@@ -266,6 +265,7 @@ private:
     MainWindow* const that;
 
 public:
+    DECL_UNUSED
     explicit CurrentTabChangeBlocker(MainWindow* const that) : that(that)
     {
         that->m_currentTabChangedBlocked = true;
@@ -317,7 +317,7 @@ public:
         if(currentTab == nullptr || !(currentTab->hasFrontMatter() || qpdfview::MainWindow::s_settings->mainWindow().usePageLabel()))
         {
             ok = false;
-            return QString();
+            return {};
         }
 
         ok = true;
@@ -369,8 +369,8 @@ SearchModel* MainWindow::s_searchModel = nullptr;
 			  m_tabWidget(),
 			  m_currentTabChangedBlocked(),
 			  m_saveDatabaseTimer(),
-			  m_outlineView(nullptr),
-			  m_thumbnailsView(nullptr)
+			  m_outlineView(),
+			  m_thumbnailsView()
 {
     if(qpdfview::MainWindow::s_settings == nullptr)
     {
@@ -1336,8 +1336,8 @@ void MainWindow::onScaleFactorEditingFinished()
         bool ok = false;
         qreal scaleFactor = m_scaleFactorComboBox->lineEdit()->text().toInt(&ok) / 100.0;
 
-        scaleFactor = qMax(scaleFactor, s_settings->documentView().minimumScaleFactor());
-        scaleFactor = qMin(scaleFactor, s_settings->documentView().maximumScaleFactor());
+        scaleFactor = std::max(scaleFactor, s_settings->documentView().minimumScaleFactor());
+        scaleFactor = std::min(scaleFactor, s_settings->documentView().maximumScaleFactor());
 
         if(ok)
         {
@@ -1380,6 +1380,7 @@ void MainWindow::onOpenInNewTabTriggered()
 
     if(!filePaths.isEmpty())
     {
+        DECL_UNUSED
         CurrentTabChangeBlocker currentTabChangeBlocker(this);
 
         for(const QString& filePath : filePaths)
@@ -1908,6 +1909,7 @@ void MainWindow::onCloseAllTabsToTheRightTriggered(int ofIndex)
 
 void MainWindow::onCloseTabsTriggered(const QVector<DocumentView*>& tabs)
 {
+    DECL_UNUSED
     CurrentTabChangeBlocker currentTabChangeBlocker(this);
 
     for(DocumentView* tab : tabs)
@@ -1977,9 +1979,10 @@ void MainWindow::onPreviousBookmarkTriggered()
 
         if(!pages.isEmpty())
         {
-            qSort(pages);
+            std::sort(pages.begin(), pages.end());
 
-            QList<int>::const_iterator lowerBound = --qLowerBound(pages, currentTab()->currentPage());
+            QList<int>::const_iterator lowerBound = --std::lower_bound(pages.cbegin(), pages.cend(),
+                                                                       currentTab()->currentPage());
 
             if(lowerBound >= pages.constBegin())
             {
@@ -2006,9 +2009,9 @@ void MainWindow::onNextBookmarkTriggered()
 
         if(!pages.isEmpty())
         {
-            qSort(pages);
+            std::sort(pages.begin(), pages.end());
 
-            QList<int>::const_iterator upperBound = qUpperBound(pages, currentTab()->currentPage());
+            QList<int>::const_iterator upperBound = std::upper_bound(pages.cbegin(), pages.cend(), currentTab()->currentPage());
 
             if(upperBound < pages.constEnd())
             {
@@ -2691,6 +2694,7 @@ void MainWindow::dropEvent(QDropEvent* event)
     {
         event->acceptProposedAction();
 
+        DECL_UNUSED
         CurrentTabChangeBlocker currentTabChangeBlocker(this);
 
         for(const auto& url : event->mimeData()->urls())
@@ -3786,11 +3790,13 @@ void MainWindow::createToolbarDock()
 
 	m_toolbarWidget = new QWidget(this);
 	m_toolbarDock->setWidget(m_toolbarWidget);
-	
+
 	const auto fileActions = QList<QAction *>()
+					<< m_openAction
 					<< m_openInNewTabAction
+					<< m_openContainingFolderAction
 					<< m_refreshAction;
-	
+
 	const auto editActions = QList<QAction *>()
 					<< m_scaleFactorAction
 					<< m_originalSizeAction
@@ -3831,11 +3837,7 @@ void MainWindow::createToolbarDock()
 			tr("&File"),
 			QLatin1String("fileToolBar"),
 			s_settings->mainWindow().fileToolBar(),
-			QList<QAction *>()
-					<< m_openAction
-					<< m_openInNewTabAction
-					<< m_openContainingFolderAction
-					<< m_refreshAction,
+            fileActions,
 			false
 	);
 	

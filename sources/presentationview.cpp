@@ -48,10 +48,10 @@ inline void adjustScaleFactor(RenderParam& renderParam, qreal scaleFactor)
 namespace qpdfview
 {
 
-Settings* PresentationView::s_settings = 0;
+Settings* PresentationView::s_settings = nullptr;
 
 PresentationView::PresentationView(const QVector< Model::Page* >& pages, QWidget* parent) : QGraphicsView(parent),
-    m_prefetchTimer(0),
+    m_prefetchTimer(nullptr),
     m_pages(pages),
     m_currentPage(1),
     m_past(),
@@ -59,10 +59,10 @@ PresentationView::PresentationView(const QVector< Model::Page* >& pages, QWidget
     m_scaleMode(FitToPageSizeMode),
     m_scaleFactor(1.0),
     m_rotation(RotateBy0),
-    m_renderFlags(0),
+    m_renderFlags(),
     m_pageItems()
 {
-    if(s_settings == 0)
+    if(s_settings == nullptr)
     {
         s_settings = Settings::instance();
     }
@@ -95,7 +95,7 @@ PresentationView::PresentationView(const QVector< Model::Page* >& pages, QWidget
     connect(this, SIGNAL(rotationChanged(Rotation)), m_prefetchTimer, SLOT(start()));
     connect(this, SIGNAL(renderFlagsChanged(qpdfview::RenderFlags)), m_prefetchTimer, SLOT(start()));
 
-    connect(m_prefetchTimer, SIGNAL(timeout()), SLOT(on_prefetch_timeout()));
+    connect(m_prefetchTimer, SIGNAL(timeout()), SLOT(onPrefetchTimeout()));
 
     if(s_settings->documentView().prefetch())
     {
@@ -119,7 +119,7 @@ PresentationView::~PresentationView()
 
 void PresentationView::setScaleMode(ScaleMode scaleMode)
 {
-    if(m_scaleMode != scaleMode && scaleMode >= 0 && scaleMode < NumberOfScaleModes)
+    if(m_scaleMode != scaleMode && scaleMode < NumberOfScaleModes)
     {
         m_scaleMode = scaleMode;
 
@@ -251,15 +251,15 @@ void PresentationView::zoomIn()
     {
         const qreal currentScaleFactor = m_pageItems.at(m_currentPage - 1)->renderParam().scaleFactor();
 
-        setScaleFactor(qMin(currentScaleFactor * s_settings->documentView().zoomFactor(),
-                            s_settings->documentView().maximumScaleFactor()));
+        setScaleFactor(std::min(currentScaleFactor * s_settings->documentView().zoomFactor(),
+                                s_settings->documentView().maximumScaleFactor()));
 
         setScaleMode(ScaleFactorMode);
     }
     else
     {
-        setScaleFactor(qMin(m_scaleFactor * s_settings->documentView().zoomFactor(),
-                            s_settings->documentView().maximumScaleFactor()));
+        setScaleFactor(std::min(m_scaleFactor * s_settings->documentView().zoomFactor(),
+                                s_settings->documentView().maximumScaleFactor()));
     }
 }
 
@@ -269,15 +269,15 @@ void PresentationView::zoomOut()
     {
         const qreal currentScaleFactor = m_pageItems.at(m_currentPage - 1)->renderParam().scaleFactor();
 
-        setScaleFactor(qMax(currentScaleFactor / s_settings->documentView().zoomFactor(),
-                            s_settings->documentView().minimumScaleFactor()));
+        setScaleFactor(std::max(currentScaleFactor / s_settings->documentView().zoomFactor(),
+                                s_settings->documentView().minimumScaleFactor()));
 
         setScaleMode(ScaleFactorMode);
     }
     else
     {
-        setScaleFactor(qMax(m_scaleFactor / s_settings->documentView().zoomFactor(),
-                            s_settings->documentView().minimumScaleFactor()));
+        setScaleFactor(std::max(m_scaleFactor / s_settings->documentView().zoomFactor(),
+                                s_settings->documentView().minimumScaleFactor()));
     }
 }
 
@@ -327,15 +327,15 @@ void PresentationView::rotateRight()
     }
 }
 
-void PresentationView::on_prefetch_timeout()
+void PresentationView::onPrefetchTimeout()
 {
     int fromPage = m_currentPage, toPage = m_currentPage;
 
     fromPage -= s_settings->documentView().prefetchDistance() / 2;
     toPage += s_settings->documentView().prefetchDistance();
 
-    fromPage = qMax(fromPage, 1);
-    toPage = qMin(toPage, m_pages.count());
+    fromPage = std::max(fromPage, 1);
+    toPage = std::min(toPage, m_pages.count());
 
     const int maxCost = toPage - fromPage + 1;
     int cost = 0;
@@ -361,20 +361,20 @@ void PresentationView::on_prefetch_timeout()
     }
 }
 
-void PresentationView::on_pages_cropRectChanged()
+void PresentationView::onPagesCropRectChanged()
 {
     prepareScene();
     prepareView();
 }
 
-void PresentationView::on_pages_linkClicked(bool newTab, int page, qreal left, qreal top)
+void PresentationView::onPagesLinkClicked(bool newTab, int page, qreal left, qreal top)
 {
-    Q_UNUSED(newTab);
-    Q_UNUSED(left);
-    Q_UNUSED(top);
+    Q_UNUSED(newTab)
+    Q_UNUSED(left)
+    Q_UNUSED(top)
 
-    page = qMax(page, 1);
-    page = qMin(page, m_pages.count());
+    page = std::max(page, 1);
+    page = std::min(page, m_pages.count());
 
     jumpToPage(page, true);
 }
@@ -485,14 +485,15 @@ void PresentationView::keyPressEvent(QKeyEvent* event)
         return;
     }
 
-    QWidget::keyPressEvent(event);
+    QGraphicsView::keyPressEvent(event);
 }
 
 void PresentationView::wheelEvent(QWheelEvent* event)
 {
+    const int delta = event->angleDelta().y() - event->angleDelta().x();
     if(event->modifiers() == s_settings->documentView().zoomModifiers())
     {
-        if(event->delta() > 0)
+        if(delta > 0)
         {
             zoomIn();
         }
@@ -506,7 +507,7 @@ void PresentationView::wheelEvent(QWheelEvent* event)
     }
     else if(event->modifiers() == s_settings->documentView().rotateModifiers())
     {
-        if(event->delta() > 0)
+        if(delta > 0)
         {
             rotateLeft();
         }
@@ -520,14 +521,14 @@ void PresentationView::wheelEvent(QWheelEvent* event)
     }
     else if(event->modifiers() == Qt::NoModifier)
     {
-        if(event->delta() > 0 && m_currentPage != 1)
+        if(delta > 0 && m_currentPage != 1)
         {
             previousPage();
 
             event->accept();
             return;
         }
-        else if(event->delta() < 0 && m_currentPage != m_pages.count())
+        else if(delta < 0 && m_currentPage != m_pages.count())
         {
             nextPage();
 
@@ -543,14 +544,14 @@ void PresentationView::preparePages()
 {
     for(int index = 0; index < m_pages.count(); ++index)
     {
-        PageItem* page = new PageItem(m_pages.at(index), index, PageItem::PresentationMode);
+        auto page = new PageItem(m_pages.at(index), index, PageItem::PresentationMode);
 
         scene()->addItem(page);
         m_pageItems.append(page);
 
-        connect(page, SIGNAL(cropRectChanged()), SLOT(on_pages_cropRectChanged()));
+        connect(page, SIGNAL(cropRectChanged()), SLOT(onPagesCropRectChanged()));
 
-        connect(page, SIGNAL(linkClicked(bool,int,qreal,qreal)), SLOT(on_pages_linkClicked(bool,int,qreal,qreal)));
+        connect(page, SIGNAL(linkClicked(bool,int,qreal,qreal)), SLOT(onPagesLinkClicked(bool,int,qreal,qreal)));
     }
 }
 
@@ -606,7 +607,7 @@ void PresentationView::prepareScene()
         }
         else if(m_scaleMode == FitToPageSizeMode)
         {
-            adjustScaleFactor(renderParam, qMin(visibleWidth / displayedSize.width(), visibleHeight / displayedSize.height()));
+            adjustScaleFactor(renderParam, std::min(visibleWidth / displayedSize.width(), visibleHeight / displayedSize.height()));
         }
 
         page->setRenderParam(renderParam);

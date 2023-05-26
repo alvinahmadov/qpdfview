@@ -34,12 +34,12 @@ RecentlyUsedMenu::RecentlyUsedMenu(const QStringList& absoluteFilePaths, int cou
     menuAction()->setIconVisibleInMenu(true);
 
     m_openActionGroup = new QActionGroup(this);
-    connect(m_openActionGroup, SIGNAL(triggered(QAction*)), SLOT(on_open_triggered(QAction*)));
+    connect(m_openActionGroup, SIGNAL(triggered(QAction*)), SLOT(onOpenTriggered(QAction*)));
 
     m_separatorAction = addSeparator();
 
     m_clearListAction = addAction(tr("&Clear list"));
-    connect(m_clearListAction, SIGNAL(triggered()), SLOT(on_clearList_triggered()));
+    connect(m_clearListAction, SIGNAL(triggered()), SLOT(onClearListTriggered()));
 
     foreach(const QString& absoluteFilePath, absoluteFilePaths)
     {
@@ -73,7 +73,7 @@ void RecentlyUsedMenu::addOpenAction(const QFileInfo& fileInfo)
         delete first;
     }
 
-    QAction* action = new QAction(fileInfo.completeBaseName(), this);
+    auto action = new QAction(fileInfo.completeBaseName(), this);
     action->setToolTip(fileInfo.absoluteFilePath());
     action->setData(fileInfo.absoluteFilePath());
 
@@ -108,12 +108,12 @@ QStringList RecentlyUsedMenu::filePaths() const
     return filePaths;
 }
 
-void RecentlyUsedMenu::on_open_triggered(QAction* action)
+void RecentlyUsedMenu::onOpenTriggered(QAction* action)
 {
     emit openTriggered(action->data().toString());
 }
 
-void RecentlyUsedMenu::on_clearList_triggered()
+void RecentlyUsedMenu::onClearListTriggered()
 {
     qDeleteAll(m_openActionGroup->actions());
 }

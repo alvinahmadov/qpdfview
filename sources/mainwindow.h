@@ -79,7 +79,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget* parent = nullptr);
 
+    DECL_NODISCARD
     QSize sizeHint() const override;
+    DECL_NODISCARD
     QMenu* createPopupMenu() override;
 
 public slots:
@@ -300,11 +302,16 @@ private:
 
     TabWidget* m_tabWidget;
 
+    DECL_NODISCARD
     DocumentView* currentTab() const;
+    DECL_NODISCARD
     DocumentView* currentTab(int index) const;
+    DECL_NODISCARD
     QVector< DocumentView* > allTabs(int index) const;
+    DECL_NODISCARD
     QVector< DocumentView* > allTabs() const;
 
+    DECL_NODISCARD
     bool senderIsCurrentTab() const;
 
     bool m_currentTabChangedBlocked;
@@ -340,109 +347,109 @@ private:
 
     class TextValueMapper;
 
-    MappingSpinBox* m_currentPageSpinBox;
-    QWidgetAction* m_currentPageAction;
+    MappingSpinBox* m_currentPageSpinBox {};
+    QWidgetAction* m_currentPageAction {};
 
-    ComboBox* m_scaleFactorComboBox;
-    QWidgetAction* m_scaleFactorAction;
+    ComboBox* m_scaleFactorComboBox {};
+    QWidgetAction* m_scaleFactorAction {};
 
-    SearchLineEdit* m_searchLineEdit;
-    QCheckBox* m_matchCaseCheckBox;
-    QCheckBox* m_wholeWordsCheckBox;
-    QCheckBox* m_highlightAllCheckBox;
-    QToolButton* m_findPreviousButton;
-    QToolButton* m_findNextButton;
-    QToolButton* m_cancelSearchButton;
+    SearchLineEdit* m_searchLineEdit {};
+    QCheckBox* m_matchCaseCheckBox {};
+    QCheckBox* m_wholeWordsCheckBox {};
+    QCheckBox* m_highlightAllCheckBox {};
+    QToolButton* m_findPreviousButton {};
+    QToolButton* m_findNextButton {};
+    QToolButton* m_cancelSearchButton {};
 
     void createWidgets();
 
-    QAction* m_openAction;
-    QAction* m_openInNewTabAction;
-    QAction* m_refreshAction;
-    QAction* m_saveAction;
-    QAction* m_saveAsAction;
-    QAction* m_saveCopyAction;
-    QAction* m_printAction;
-    QAction* m_exitAction;
+    QAction* m_openAction {};
+    QAction* m_openInNewTabAction {};
+    QAction* m_refreshAction {};
+    QAction* m_saveAction {};
+    QAction* m_saveAsAction {};
+    QAction* m_saveCopyAction {};
+    QAction* m_printAction {};
+    QAction* m_exitAction {};
 
-    QAction* m_previousPageAction;
-    QAction* m_nextPageAction;
-    QAction* m_firstPageAction;
-    QAction* m_lastPageAction;
+    QAction* m_previousPageAction {};
+    QAction* m_nextPageAction {};
+    QAction* m_firstPageAction {};
+    QAction* m_lastPageAction {};
 
-    QAction* m_setFirstPageAction;
+    QAction* m_setFirstPageAction {};
 
-    QAction* m_jumpToPageAction;
+    QAction* m_jumpToPageAction {};
 
-    QAction* m_jumpBackwardAction;
-    QAction* m_jumpForwardAction;
+    QAction* m_jumpBackwardAction {};
+    QAction* m_jumpForwardAction {};
 
-    QAction* m_searchAction;
-    QAction* m_findPreviousAction;
-    QAction* m_findNextAction;
-    QAction* m_cancelSearchAction;
+    QAction* m_searchAction {};
+    QAction* m_findPreviousAction {};
+    QAction* m_findNextAction {};
+    QAction* m_cancelSearchAction {};
 
-    QAction* m_copyToClipboardModeAction;
-    QAction* m_addAnnotationModeAction;
+    QAction* m_copyToClipboardModeAction {};
+    QAction* m_addAnnotationModeAction {};
 
-    QAction* m_settingsAction;
+    QAction* m_settingsAction {};
 
-    QAction* m_continuousModeAction;
-    QAction* m_twoPagesModeAction;
-    QAction* m_twoPagesWithCoverPageModeAction;
-    QAction* m_multiplePagesModeAction;
+    QAction* m_continuousModeAction {};
+    QAction* m_twoPagesModeAction {};
+    QAction* m_twoPagesWithCoverPageModeAction {};
+    QAction* m_multiplePagesModeAction {};
 
-    QAction* m_rightToLeftModeAction;
+    QAction* m_rightToLeftModeAction {};
 
-    QAction* m_zoomInAction;
-    QAction* m_zoomOutAction;
-    QAction* m_originalSizeAction;
+    QAction* m_zoomInAction {};
+    QAction* m_zoomOutAction {};
+    QAction* m_originalSizeAction {};
 
-    QAction* m_fitToPageWidthModeAction;
-    QAction* m_fitToPageSizeModeAction;
+    QAction* m_fitToPageWidthModeAction {};
+    QAction* m_fitToPageSizeModeAction {};
 
-    QAction* m_rotateLeftAction;
-    QAction* m_rotateRightAction;
+    QAction* m_rotateLeftAction {};
+    QAction* m_rotateRightAction {};
 
-    QAction* m_invertColorsAction;
-    QAction* m_convertToGrayscaleAction;
-    QAction* m_trimMarginsAction;
-    QAction* m_darkenWithPaperColorAction;
-    QAction* m_lightenWithPaperColorAction;
+    QAction* m_invertColorsAction {};
+    QAction* m_convertToGrayscaleAction {};
+    QAction* m_trimMarginsAction {};
+    QAction* m_darkenWithPaperColorAction {};
+    QAction* m_lightenWithPaperColorAction {};
 
-    QAction* m_fontsAction;
+    QAction* m_fontsAction {};
 
-    QAction* m_fullscreenAction;
-    QAction* m_presentationAction;
+    QAction* m_fullscreenAction {};
+    QAction* m_presentationAction {};
 
-    QAction* m_previousTabAction;
-    QAction* m_nextTabAction;
+    QAction* m_previousTabAction {};
+    QAction* m_nextTabAction {};
 
-    QAction* m_closeTabAction;
-    QAction* m_closeAllTabsAction;
-    QAction* m_closeAllTabsButCurrentTabAction;
+    QAction* m_closeTabAction {};
+    QAction* m_closeAllTabsAction {};
+    QAction* m_closeAllTabsButCurrentTabAction {};
 
-    QAction* m_restoreMostRecentlyClosedTabAction;
+    QAction* m_restoreMostRecentlyClosedTabAction {};
 
-    QShortcut* m_tabShortcuts[9];
+    QShortcut* m_tabShortcuts[9] {};
 
-    QAction* m_previousBookmarkAction;
-    QAction* m_nextBookmarkAction;
+    QAction* m_previousBookmarkAction {};
+    QAction* m_nextBookmarkAction {};
 
-    QAction* m_addBookmarkAction;
-    QAction* m_removeBookmarkAction;
-    QAction* m_removeAllBookmarksAction;
+    QAction* m_addBookmarkAction {};
+    QAction* m_removeBookmarkAction {};
+    QAction* m_removeAllBookmarksAction {};
 
-    QAction* m_contentsAction;
-    QAction* m_aboutAction;
+    QAction* m_contentsAction {};
+    QAction* m_aboutAction {};
 
-    QAction* m_openCopyInNewTabAction;
-    QAction* m_openCopyInNewWindowAction;
-    QAction* m_openContainingFolderAction;
-    QAction* m_moveToInstanceAction;
-    QAction* m_splitViewHorizontallyAction;
-    QAction* m_splitViewVerticallyAction;
-    QAction* m_closeCurrentViewAction;
+    QAction* m_openCopyInNewTabAction {};
+    QAction* m_openCopyInNewWindowAction {};
+    QAction* m_openContainingFolderAction {};
+    QAction* m_moveToInstanceAction {};
+    QAction* m_splitViewHorizontallyAction {};
+    QAction* m_splitViewVerticallyAction {};
+    QAction* m_closeCurrentViewAction {};
 
     QAction* createAction(const QString& text, const QString& objectName, const QIcon& icon, const QList< QKeySequence >& shortcuts, const char* member, bool checkable = false, bool checked = false);
     QAction* createAction(const QString& text, const QString& objectName, const QIcon& icon, const QKeySequence& shortcut, const char* member, bool checkable = false, bool checked = false);
@@ -451,35 +458,35 @@ private:
 
     void createActions();
 
-    QToolBar* m_fileToolBar;
-    QToolBar* m_editToolBar;
-    QToolBar* m_viewToolBar;
+    QToolBar* m_fileToolBar {};
+    QToolBar* m_editToolBar {};
+    QToolBar* m_viewToolBar {};
 
-    QShortcut* m_focusCurrentPageShortcut;
-    QShortcut* m_focusScaleFactorShortcut;
+    QShortcut* m_focusCurrentPageShortcut {};
+    QShortcut* m_focusScaleFactorShortcut {};
 
     QToolBar* createToolBar(const QString& text, const QString& objectName, const QStringList& actionNames, const QList< QAction* >& actions, bool child = true);
 
     void createToolBars();
 
-    QDockWidget* m_outlineDock;
-    TreeView* m_outlineView;
+    QDockWidget* m_outlineDock {};
+    TreeView* m_outlineView {};
 
-    QDockWidget* m_propertiesDock;
-    QTableView* m_propertiesView;
+    QDockWidget* m_propertiesDock {};
+    QTableView* m_propertiesView {};
 
-    QDockWidget* m_thumbnailsDock;
-    QGraphicsView* m_thumbnailsView;
+    QDockWidget* m_thumbnailsDock {};
+    QGraphicsView* m_thumbnailsView {};
 
-    QDockWidget* m_bookmarksDock;
-    QTableView* m_bookmarksView;
+    QDockWidget* m_bookmarksDock {};
+    QTableView* m_bookmarksView {};
 
-	QDockWidget* m_toolbarDock;
-	QWidget* m_toolbarWidget;
+    QDockWidget* m_toolbarDock {};
+    QWidget* m_toolbarWidget {};
 
-    QDockWidget* m_searchDock;
-    QTreeView* m_searchView;
-    QWidget* m_searchWidget;
+    QDockWidget* m_searchDock {};
+    QTreeView* m_searchView {};
+    QWidget* m_searchWidget {};
 
     QDockWidget* createDock(const QString& text, const QString& objectName, const QKeySequence& toggleViewShortcut);
 	void createToolbarDock();
@@ -487,28 +494,28 @@ private:
 
     void createDocks();
 
-    QMenu* m_fileMenu;
-    RecentlyUsedMenu* m_recentlyUsedMenu;
-    QMenu* m_editMenu;
-    QMenu* m_viewMenu;
-    QMenu* m_compositionModeMenu;
-    SearchableMenu* m_tabsMenu;
-    RecentlyClosedMenu* m_recentlyClosedMenu;
-    SearchableMenu* m_bookmarksMenu;
-    QMenu* m_helpMenu;
+    QMenu* m_fileMenu {};
+    RecentlyUsedMenu* m_recentlyUsedMenu {};
+    QMenu* m_editMenu {};
+    QMenu* m_viewMenu {};
+    QMenu* m_compositionModeMenu {};
+    SearchableMenu* m_tabsMenu {};
+    RecentlyClosedMenu* m_recentlyClosedMenu {};
+    SearchableMenu* m_bookmarksMenu {};
+    QMenu* m_helpMenu {};
 
-    bool m_bookmarksMenuIsDirty;
+    bool m_bookmarksMenuIsDirty {};
 
     void createMenus();
 
-    int m_tabBarHadPolicy;
+    int m_tabBarHadPolicy {};
 
-    bool m_fileToolBarWasVisible;
-    bool m_editToolBarWasVisible;
-    bool m_viewToolBarWasVisible;
+    bool m_fileToolBarWasVisible {};
+    bool m_editToolBarWasVisible {};
+    bool m_viewToolBarWasVisible {};
 
-    QAction* m_toggleToolBarsAction;
-    QAction* m_toggleMenuBarAction;
+    QAction* m_toggleToolBarsAction {};
+    QAction* m_toggleMenuBarAction {};
 
     QPointer< HelpDialog > m_helpDialog;
 
@@ -528,55 +535,108 @@ public:
     static MainWindowAdaptor* createAdaptor(MainWindow* mainWindow);
 
 public slots:
-    Q_NOREPLY void raiseAndActivate();
+    Q_NOREPLY
+    DECL_UNUSED
+    void raiseAndActivate();
 
     bool open(const QString& absoluteFilePath, int page = -1, const QRectF& highlight = QRectF(), bool quiet = false);
+    DECL_UNUSED
     bool openInNewTab(const QString& absoluteFilePath, int page = -1, const QRectF& highlight = QRectF(), bool quiet = false);
 
+    DECL_UNUSED
     bool jumpToPageOrOpenInNewTab(const QString& absoluteFilePath, int page = -1, bool refreshBeforeJump = false, const QRectF& highlight = QRectF(), bool quiet = false);
 
-    Q_NOREPLY void startSearch(const QString& text);
+    Q_NOREPLY
+    DECL_UNUSED
+    void startSearch(const QString& text);
 
-    Q_NOREPLY void saveDatabase();
+    Q_NOREPLY
+    DECL_UNUSED
+    void saveDatabase();
 
 
-    int currentPage() const;
-    Q_NOREPLY void jumpToPage(int page);
+    DECL_NODISCARD int currentPage() const;
+    Q_NOREPLY
+    DECL_UNUSED
+    void jumpToPage(int page);
 
-    Q_NOREPLY void previousPage();
-    Q_NOREPLY void nextPage();
-    Q_NOREPLY void firstPage();
-    Q_NOREPLY void lastPage();
+    Q_NOREPLY
+    DECL_UNUSED
+    void previousPage();
+    Q_NOREPLY
+    DECL_UNUSED
+    void nextPage();
+    Q_NOREPLY
+    DECL_UNUSED
+    void firstPage();
+    Q_NOREPLY
+    DECL_UNUSED
+    void lastPage();
 
-    Q_NOREPLY void previousBookmark();
-    Q_NOREPLY void nextBookmark();
+    Q_NOREPLY
+    DECL_UNUSED
+    void previousBookmark();
+    Q_NOREPLY
+    DECL_UNUSED
+    void nextBookmark();
 
+    DECL_UNUSED
     bool jumpToBookmark(const QString& label);
 
 
-    Q_NOREPLY void continuousMode(bool checked);
-    Q_NOREPLY void twoPagesMode(bool checked);
-    Q_NOREPLY void twoPagesWithCoverPageMode(bool checked);
-    Q_NOREPLY void multiplePagesMode(bool checked);
+    Q_NOREPLY
+    DECL_UNUSED
+    void continuousMode(bool checked);
+    Q_NOREPLY
+    DECL_UNUSED
+    void twoPagesMode(bool checked);
+    Q_NOREPLY
+    DECL_UNUSED
+    void twoPagesWithCoverPageMode(bool checked);
+    Q_NOREPLY
+    DECL_UNUSED
+    void multiplePagesMode(bool checked);
 
-    Q_NOREPLY void fitToPageWidthMode(bool checked);
-    Q_NOREPLY void fitToPageSizeMode(bool checked);
+    Q_NOREPLY
+    DECL_UNUSED
+    void fitToPageWidthMode(bool checked);
+    Q_NOREPLY
+    DECL_UNUSED
+    void fitToPageSizeMode(bool checked);
 
-    Q_NOREPLY void invertColors(bool checked);
-    Q_NOREPLY void convertToGrayscale(bool checked);
-    Q_NOREPLY void trimMargins(bool checked);
+    Q_NOREPLY
+    DECL_UNUSED
+    void invertColors(bool checked);
+    Q_NOREPLY
+    DECL_UNUSED
+    void convertToGrayscale(bool checked);
+    Q_NOREPLY
+    DECL_UNUSED
+    void trimMargins(bool checked);
 
-    Q_NOREPLY void fullscreen(bool checked);
-    Q_NOREPLY void presentation();
+    Q_NOREPLY
+    DECL_UNUSED
+    void fullscreen(bool checked);
+    Q_NOREPLY
+    DECL_UNUSED
+    void presentation();
 
 
-    Q_NOREPLY void closeTab();
-    Q_NOREPLY void closeAllTabs();
-    Q_NOREPLY void closeAllTabsButCurrentTab();
+    Q_NOREPLY
+    DECL_UNUSED
+    void closeTab();
+    Q_NOREPLY
+    DECL_UNUSED
+    void closeAllTabs();
+    Q_NOREPLY
+    DECL_UNUSED
+    void closeAllTabsButCurrentTab();
 
+    DECL_UNUSED
     bool closeTab(const QString& absoluteFilePath);
 
 private:
+    DECL_NODISCARD
     MainWindow* mainWindow() const;
 
     static QString serviceName(QString instanceName = QString());

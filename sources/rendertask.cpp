@@ -97,7 +97,7 @@ QRectF trimMargins(QRgb paperColor, const QImage& image)
 {
     if(image.isNull())
     {
-        return QRectF(0.0, 0.0, 1.0, 1.0);
+        return {0.0, 0.0, 1.0, 1.0};
     }
 
     const int width = image.width();
@@ -111,7 +111,7 @@ QRectF trimMargins(QRgb paperColor, const QImage& image)
             break;
         }
     }
-    left = qMin(left, width / 3);
+    left = std::min(left, width / 3);
 
     int right;
     for(right = width - 1; right >= left; --right)
@@ -121,7 +121,7 @@ QRectF trimMargins(QRgb paperColor, const QImage& image)
             break;
         }
     }
-    right = qMax(right, 2 * width / 3);
+    right = std::max(right, 2 * width / 3);
 
     int top;
     for(top = 0; top < height; ++top)
@@ -131,7 +131,7 @@ QRectF trimMargins(QRgb paperColor, const QImage& image)
             break;
         }
     }
-    top = qMin(top, height / 3);
+    top = std::min(top, height / 3);
 
     int bottom;
     for(bottom = height - 1; bottom >= top; --bottom)
@@ -141,24 +141,24 @@ QRectF trimMargins(QRgb paperColor, const QImage& image)
             break;
         }
     }
-    bottom = qMax(bottom, 2 * height / 3);
+    bottom = std::max(bottom, 2 * height / 3);
 
-    left = qMax(left - width / 100, 0);
-    top = qMax(top - height / 100, 0);
+    left = std::max(left - width / 100, 0);
+    top = std::max(top - height / 100, 0);
 
-    right = qMin(right + width / 100, width);
-    bottom = qMin(bottom + height / 100, height);
+    right = std::min(right + width / 100, width);
+    bottom = std::min(bottom + height / 100, height);
 
-    return QRectF(static_cast< qreal >(left) / width,
-                  static_cast< qreal >(top) / height,
-                  static_cast< qreal >(right - left) / width,
-                  static_cast< qreal >(bottom - top) / height);
+    return {static_cast< qreal >(left) / width,
+            static_cast< qreal >(top) / height,
+            static_cast< qreal >(right - left) / width,
+            static_cast< qreal >(bottom - top) / height};
 }
 
 void convertToGrayscale(QImage& image)
 {
-    QRgb* const begin = reinterpret_cast< QRgb* >(image.bits());
-    QRgb* const end = reinterpret_cast< QRgb* >(image.bits() + image.byteCount());
+    auto const begin = reinterpret_cast< QRgb* >(image.bits());
+    auto const end = reinterpret_cast< QRgb* >(image.bits() + image.sizeInBytes());
 
     for(QRgb* pointer = begin; pointer != end; ++pointer)
     {
@@ -179,36 +179,32 @@ void composeWithColor(QPainter::CompositionMode mode, const QColor& color, QImag
 
 } // anonymous
 
-RenderTaskParent::~RenderTaskParent()
-{
-}
-
 struct RenderTaskFinishedEvent : public QEvent
 {
     static QEvent::Type registeredType;
 
     RenderTaskFinishedEvent(RenderTaskParent* const parent,
-                            const RenderParam& renderParam,
+                            RenderParam renderParam,
                             const QRect& rect,
                             const bool prefetch,
-                            const QImage& image,
+                            QImage image,
                             const QRectF& cropRect)
         : QEvent(registeredType)
         , parent(parent)
-        , renderParam(renderParam)
+        , renderParam(std::move(renderParam))
         , rect(rect)
         , prefetch(prefetch)
-        , image(image)
+        , image(std::move(image))
         , cropRect(cropRect)
     {
     }
-    ~RenderTaskFinishedEvent();
+    ~RenderTaskFinishedEvent() override = default;
 
     void dispatch() const
     {
-        parent->on_finished(renderParam,
-                            rect, prefetch,
-                            image, cropRect);
+        parent->onFinished(renderParam,
+                           rect, prefetch,
+                           image, cropRect);
     }
 
     RenderTaskParent* const parent;
@@ -222,25 +218,21 @@ struct RenderTaskFinishedEvent : public QEvent
 
 QEvent::Type RenderTaskFinishedEvent::registeredType = QEvent::None;
 
-RenderTaskFinishedEvent::~RenderTaskFinishedEvent()
-{
-}
-
 struct RenderTaskCanceledEvent : public QEvent
 {
 
     static QEvent::Type registeredType;
 
-    RenderTaskCanceledEvent(RenderTaskParent* parent)
+    explicit RenderTaskCanceledEvent(RenderTaskParent* parent)
         : QEvent(registeredType)
         , parent(parent)
     {
     }
-    ~RenderTaskCanceledEvent();
+    ~RenderTaskCanceledEvent() override = default;
 
     void dispatch() const
     {
-        parent->on_canceled();
+        parent->onCanceled();
     }
 
     RenderTaskParent* const parent;
@@ -248,20 +240,16 @@ struct RenderTaskCanceledEvent : public QEvent
 
 QEvent::Type RenderTaskCanceledEvent::registeredType = QEvent::None;
 
-RenderTaskCanceledEvent::~RenderTaskCanceledEvent()
-{
-}
-
 struct DeleteParentLaterEvent : public QEvent
 {
     static QEvent::Type registeredType;
 
-    DeleteParentLaterEvent(RenderTaskParent* const parent)
+    explicit DeleteParentLaterEvent(RenderTaskParent* const parent)
         : QEvent(registeredType)
         , parent(parent)
     {
     }
-    ~DeleteParentLaterEvent();
+    ~DeleteParentLaterEvent() override = default;
 
     void dispatch() const
     {
@@ -272,10 +260,6 @@ struct DeleteParentLaterEvent : public QEvent
 };
 
 QEvent::Type DeleteParentLaterEvent::registeredType = QEvent::None;
-
-DeleteParentLaterEvent::~DeleteParentLaterEvent()
-{
-}
 
 namespace
 {
@@ -292,11 +276,11 @@ public:
     template< typename Event >
     DispatchChain& dispatch()
     {
-        if(m_event != 0 && m_event->type() == Event::registeredType)
+        if(m_event != nullptr && m_event->type() == Event::registeredType)
         {
-            const Event* const event = static_cast< const Event* >(m_event);
+            const auto* const event = static_cast< const Event* >(m_event);
 
-            m_event = 0;
+            m_event = nullptr;
 
             if(m_activeParents.contains(event->parent))
             {
@@ -307,9 +291,10 @@ public:
         return *this;
     }
 
+    DECL_NODISCARD
     bool wasDispatched() const
     {
-        return m_event == 0;
+        return m_event == nullptr;
     }
 
 private:
@@ -331,10 +316,10 @@ void RenderTaskDispatcher::finished(RenderTaskParent* parent,
                                     const QRect& rect, bool prefetch,
                                     const QImage& image, const QRectF& cropRect)
 {
-    RenderTaskFinishedEvent* const event = new RenderTaskFinishedEvent(parent,
-                                                                       renderParam,
-                                                                       rect, prefetch,
-                                                                       image, cropRect);
+    auto const event = new RenderTaskFinishedEvent(parent,
+                                                   renderParam,
+                                                   rect, prefetch,
+                                                   image, cropRect);
 
     QApplication::postEvent(this, event, Qt::HighEventPriority);
 }
@@ -370,27 +355,27 @@ void RenderTaskDispatcher::removeActiveParent(RenderTaskParent* parent)
     m_activeParents.remove(parent);
 }
 
-RenderTaskDispatcher* RenderTask::s_dispatcher = 0;
+RenderTaskDispatcher* RenderTask::s_dispatcher = nullptr;
 
-Settings* RenderTask::s_settings = 0;
+Settings* RenderTask::s_settings = nullptr;
 
 const RenderParam RenderTask::s_defaultRenderParam;
 
 RenderTask::RenderTask(Model::Page* page, RenderTaskParent* parent) : QRunnable(),
     m_parent(parent),
-    m_isRunning(false),
+    m_isRunning(),
     m_wasCanceled(NotCanceled),
     m_page(page),
     m_renderParam(s_defaultRenderParam),
     m_rect(),
-    m_prefetch(false)
+    m_prefetch()
 {
-    if(s_settings == 0)
+    if(s_settings == nullptr)
     {
         s_settings = Settings::instance();
     }
 
-    if(s_dispatcher == 0)
+    if(s_dispatcher == nullptr)
     {
         s_dispatcher = new RenderTaskDispatcher(qApp);
     }

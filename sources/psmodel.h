@@ -43,16 +43,16 @@ class PsPlugin;
 
 namespace Model
 {
-    class PsPage : public Page
+    class PsPage final : public Page
     {
         friend class PsDocument;
 
     public:
-        ~PsPage();
+        ~PsPage() final;
 
-        QSizeF size() const;
+        QSizeF size() const final;
 
-        QImage render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const;
+        QImage render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const final;
 
     private:
         Q_DISABLE_COPY(PsPage)
@@ -65,27 +65,27 @@ namespace Model
 
     };
 
-    class PsDocument : public Document
+    class PsDocument final : public Document
     {
         Q_DECLARE_TR_FUNCTIONS(Model::PsDocument)
 
         friend class qpdfview::PsPlugin;
 
     public:
-        ~PsDocument();
+        ~PsDocument() final;
 
-        int numberOfPages() const;
+        int numberOfPages() const final;
 
-        Page* page(int index) const;
+        Page* page(int index) const final;
 
-        QStringList saveFilter() const;
+        QStringList saveFilter() const final;
 
-        bool canSave() const;
-        bool save(const QString& filePath, bool withChanges) const;
+        bool canSave() const final;
+        bool save(const QString& filePath, bool withChanges) const final;
 
-        bool canBePrintedUsingCUPS() const;
+        bool canBePrintedUsingCUPS() const final;
 
-        Properties properties() const;
+        Properties properties() const final;
 
     private:
         Q_DISABLE_COPY(PsDocument)
@@ -99,15 +99,15 @@ namespace Model
     };
 }
 
-class PsSettingsWidget : public SettingsWidget
+class PsSettingsWidget final : public SettingsWidget
 {
     Q_OBJECT
 
 public:
-    PsSettingsWidget(QSettings* settings, QWidget* parent = 0);
+    explicit PsSettingsWidget(QSettings* settings, QWidget* parent = nullptr);
 
-    void accept();
-    void reset();
+    void accept() final;
+    void reset() final;
 
 private:
     Q_DISABLE_COPY(PsSettingsWidget)
@@ -121,7 +121,7 @@ private:
 
 };
 
-class PsPlugin : public QObject, Plugin
+class PsPlugin final : public QObject, Plugin
 {
     Q_OBJECT
     Q_INTERFACES(qpdfview::Plugin)
@@ -133,11 +133,13 @@ class PsPlugin : public QObject, Plugin
 #endif // QT_VERSION
 
 public:
-    PsPlugin(QObject* parent = 0);
+    explicit PsPlugin(QObject* parent = nullptr);
 
-    Model::Document* loadDocument(const QString& filePath) const;
+    DECL_NODISCARD
+    Model::Document* loadDocument(const QString& filePath) const final;
 
-    SettingsWidget* createSettingsWidget(QWidget* parent) const;
+    DECL_NODISCARD
+    SettingsWidget* createSettingsWidget(QWidget* parent) const final;
 
 private:
     Q_DISABLE_COPY(PsPlugin)

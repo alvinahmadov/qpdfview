@@ -116,11 +116,11 @@ FileAttachmentAnnotationWidget::FileAttachmentAnnotationWidget(QMutex* mutex, Po
     setPopupMode(QToolButton::InstantPopup);
     setIcon(QIcon::fromTheme(QLatin1String("mail-attachment"), QIcon(QLatin1String(":icons/mail-attachment"))));
 
-    connect(m_menu, SIGNAL(aboutToShow()), SLOT(on_aboutToShow()));
-    connect(m_menu, SIGNAL(aboutToHide()), SLOT(on_aboutToHide()));
+    connect(m_menu, SIGNAL(aboutToShow()), SLOT(onAboutToShow()));
+    connect(m_menu, SIGNAL(aboutToHide()), SLOT(onAboutToHide()));
 
-    connect(m_saveAction, SIGNAL(triggered()), SLOT(on_save_triggered()));
-    connect(m_saveAndOpenAction, SIGNAL(triggered()), SLOT(on_saveAndOpen_triggered()));
+    connect(m_saveAction, SIGNAL(triggered()), SLOT(onSaveTriggered()));
+    connect(m_saveAndOpenAction, SIGNAL(triggered()), SLOT(onSaveAndOpenTriggered()));
 }
 
 void FileAttachmentAnnotationWidget::keyPressEvent(QKeyEvent *event)
@@ -131,22 +131,22 @@ void FileAttachmentAnnotationWidget::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void FileAttachmentAnnotationWidget::on_aboutToShow()
+void FileAttachmentAnnotationWidget::onAboutToShow()
 {
     graphicsProxyWidget()->setZValue(1.0);
 }
 
-void FileAttachmentAnnotationWidget::on_aboutToHide()
+void FileAttachmentAnnotationWidget::onAboutToHide()
 {
     graphicsProxyWidget()->setZValue(0.0);
 }
 
-void FileAttachmentAnnotationWidget::on_save_triggered()
+void FileAttachmentAnnotationWidget::onSaveTriggered()
 {
     save(false);
 }
 
-void FileAttachmentAnnotationWidget::on_saveAndOpen_triggered()
+void FileAttachmentAnnotationWidget::onSaveAndOpenTriggered()
 {
     save(true);
 }
@@ -157,7 +157,7 @@ void FileAttachmentAnnotationWidget::save(bool open)
 
     Poppler::EmbeddedFile* embeddedFile = m_annotation->embeddedFile();
 
-    QString filePath = QFileDialog::getSaveFileName(0, tr("Save file attachment"), embeddedFile->name());
+    QString filePath = QFileDialog::getSaveFileName(nullptr, tr("Save file attachment"), embeddedFile->name());
 
     if(!filePath.isEmpty())
     {
@@ -173,13 +173,13 @@ void FileAttachmentAnnotationWidget::save(bool open)
             {
                 if(!QDesktopServices::openUrl(QUrl::fromLocalFile(filePath)))
                 {
-                    QMessageBox::warning(0, tr("Warning"), tr("Could not open file attachment saved to '%1'.").arg(filePath));
+                    QMessageBox::warning(nullptr, tr("Warning"), tr("Could not open file attachment saved to '%1'.").arg(filePath));
                 }
             }
         }
         else
         {
-            QMessageBox::warning(0, tr("Warning"), tr("Could not save file attachment to '%1'.").arg(filePath));
+            QMessageBox::warning(nullptr, tr("Warning"), tr("Could not save file attachment to '%1'.").arg(filePath));
         }
     }
 }

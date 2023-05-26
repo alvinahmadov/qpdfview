@@ -36,8 +36,8 @@ class FontsDialog : public QDialog
     Q_OBJECT
 
 public:
-    FontsDialog(QAbstractItemModel* model, QWidget* parent = 0);
-    ~FontsDialog();
+    explicit FontsDialog(QAbstractItemModel* model, QWidget* parent = nullptr);
+    ~FontsDialog() override;
 
 private:
     Q_DISABLE_COPY(FontsDialog)
