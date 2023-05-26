@@ -64,6 +64,11 @@ const char* join(std::string& format, Args&& ... args)
 	return const_cast<const char*>(data);
 }
 
+static inline bool operator==(const fz_matrix& a, const fz_matrix& b)
+{
+    return a.a == b.a && a.b == b.b && a.c == b.c && a.d == b.d && a.e == b.e && a.f == b.f;
+}
+
 std::string fontStyleSheet = "body { margin: %spx %spx; font-family: %s!important; font-size: %spt;} pre, code {font-size: %spt;}";
 
 namespace
@@ -157,11 +162,20 @@ namespace qpdfview
 
 namespace Model
 {
+
+struct FitzPage::DisplayList
+{
+    fz_matrix matrix;
+    fz_display_list* displayList;
+    int refCount;
+};
+
 DECL_UNUSED
 FitzPage::FitzPage(const FitzDocument* parent, fz_page* page) :
     m_parent(parent),
     m_page(page),
-    m_boundingRect(fz_bound_page(m_parent->m_context, m_page))
+    m_boundingRect(fz_bound_page(m_parent->m_context, m_page)),
+    m_displayList()
 {
 }
 
@@ -199,21 +213,40 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
         break;
     }
 
-    QMutexLocker mutexLocker(&m_parent->m_mutex);
-
     fz_rect rect = fz_transform_rect(m_boundingRect, matrix);
     fz_irect irect = fz_round_rect(rect);
 
-    fz_context* context = fz_clone_context(m_parent->m_context);
-    fz_display_list* display_list = fz_new_display_list(context, rect);
+    fz_display_list* display_list;
+    fz_context* context;
 
-    fz_device* device = fz_new_list_device(context, display_list);
-    fz_run_page(m_parent->m_context, m_page, device, matrix, nullptr);
-    fz_close_device(m_parent->m_context, device);
-    fz_drop_device(m_parent->m_context, device);
+    {
+        QMutexLocker mutexLocker(&m_parent->m_mutex);
 
-    mutexLocker.unlock();
+        if(m_displayList != nullptr && m_displayList->matrix == matrix)
+        {
+            display_list = m_displayList->displayList;
+            ++m_displayList->refCount;
+        }
+        else
+        {
+            display_list = fz_new_display_list(m_parent->m_context, rect);
 
+            fz_device* device = fz_new_list_device(m_parent->m_context, display_list);
+            fz_run_page(m_parent->m_context, m_page, device, matrix, nullptr);
+            fz_close_device(m_parent->m_context, device);
+            fz_drop_device(m_parent->m_context, device);
+
+            if(m_displayList == nullptr)
+            {
+                m_displayList = new DisplayList;
+                memcpy(&m_displayList->matrix, &matrix, sizeof(fz_matrix));
+                m_displayList->displayList = display_list;
+                m_displayList->refCount = 1;
+            }
+        }
+
+        context = fz_clone_context(m_parent->m_context);
+    }
 
     fz_matrix tileMatrix = fz_translate(-rect.x0, -rect.y0);
     fz_rect tileRect = fz_infinite_rect;
@@ -240,13 +273,12 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
         tileHeight = boundingRect.height();
     }
 
-
     QImage image(tileWidth, tileHeight, QImage::Format_RGB32);
     image.fill(m_parent->m_paperColor);
 
     auto pixmap = fz_new_pixmap_with_data(context, fz_device_bgr(context), image.width(), image.height(), nullptr, 1, image.bytesPerLine(), image.bits());
 
-    device = fz_new_draw_device(context, tileMatrix, pixmap);
+    fz_device* device = fz_new_draw_device(context, tileMatrix, pixmap);
     fz_run_display_list(context, display_list, device, fz_identity, tileRect, nullptr);
     fz_close_device(context, device);
     fz_drop_device(context, device);
@@ -254,6 +286,21 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
     fz_drop_pixmap(context, pixmap);
     fz_drop_display_list(context, display_list);
     fz_drop_context(context);
+
+    {
+        QMutexLocker mutexLocker(&m_parent->m_mutex);
+
+        if(m_displayList != nullptr && m_displayList->displayList == display_list)
+        {
+            if(--m_displayList->refCount == 0)
+            {
+                fz_drop_display_list(m_parent->m_context, display_list);
+
+                delete m_displayList;
+                m_displayList = nullptr;
+            }
+        }
+    }
 
     return image;
 }
