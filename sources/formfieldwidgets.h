@@ -47,16 +47,16 @@ class NormalTextFieldWidget : public QLineEdit
     Q_OBJECT
 
 public:
-    NormalTextFieldWidget(QMutex* mutex, Poppler::FormFieldText* formField, QWidget* parent = 0);
+    NormalTextFieldWidget(QMutex* mutex, Poppler::FormFieldText* formField, QWidget* parent = nullptr);
 
 signals:
     void wasModified();
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 
 protected slots:
-    void on_textChanged(const QString& text);
+    void onTextChanged(const QString& text);
 
 private:
     Q_DISABLE_COPY(NormalTextFieldWidget)
@@ -71,16 +71,16 @@ class MultilineTextFieldWidget : public QPlainTextEdit
     Q_OBJECT
 
 public:
-    MultilineTextFieldWidget(QMutex* mutex, Poppler::FormFieldText* formField, QWidget* parent = 0);
+    MultilineTextFieldWidget(QMutex* mutex, Poppler::FormFieldText* formField, QWidget* parent = nullptr);
 
 signals:
     void wasModified();
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 
 protected slots:
-    void on_textChanged();
+    void onTextChanged();
 
 private:
     Q_DISABLE_COPY(MultilineTextFieldWidget)
@@ -95,20 +95,20 @@ class ComboBoxChoiceFieldWidget : public QComboBox
     Q_OBJECT
 
 public:
-    ComboBoxChoiceFieldWidget(QMutex* mutex, Poppler::FormFieldChoice* formField, QWidget* parent = 0);
+    ComboBoxChoiceFieldWidget(QMutex* mutex, Poppler::FormFieldChoice* formField, QWidget* parent = nullptr);
 
 signals:
     void wasModified();
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 
-    void showPopup();
-    void hidePopup();
+    void showPopup() override;
+    void hidePopup() override;
 
 protected slots:
-    void on_currentIndexChanged(int index);
-    void on_currentTextChanged(const QString& text);
+    void onCurrentIndexChanged(int index);
+    void onCurrentTextChanged(const QString& text);
 
 private:
     Q_DISABLE_COPY(ComboBoxChoiceFieldWidget)
@@ -123,16 +123,16 @@ class ListBoxChoiceFieldWidget : public QListWidget
     Q_OBJECT
 
 public:
-    ListBoxChoiceFieldWidget(QMutex* mutex, Poppler::FormFieldChoice* formField, QWidget* parent = 0);
+    ListBoxChoiceFieldWidget(QMutex* mutex, Poppler::FormFieldChoice* formField, QWidget* parent = nullptr);
 
 signals:
     void wasModified();
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 
 protected slots:
-    void on_itemSelectionChanged();
+    void onItemSelectionChanged();
 
 private:
     Q_DISABLE_COPY(ListBoxChoiceFieldWidget)
@@ -147,16 +147,16 @@ class CheckBoxChoiceFieldWidget : public QCheckBox
     Q_OBJECT
 
 public:
-    CheckBoxChoiceFieldWidget(QMutex* mutex, Poppler::FormFieldButton* formField, QWidget* parent = 0);
+    CheckBoxChoiceFieldWidget(QMutex* mutex, Poppler::FormFieldButton* formField, QWidget* parent = nullptr);
 
 signals:
     void wasModified();
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 
 protected slots:
-    void on_toggled(bool checked);
+    void onToggled(bool checked);
 
 protected slots:
 
@@ -173,17 +173,17 @@ class RadioChoiceFieldWidget : public QRadioButton
     Q_OBJECT
 
 public:
-    RadioChoiceFieldWidget(QMutex* mutex, Poppler::FormFieldButton* formField, QWidget* parent = 0);
-    ~RadioChoiceFieldWidget();
+    RadioChoiceFieldWidget(QMutex* mutex, Poppler::FormFieldButton* formField, QWidget* parent = nullptr);
+    ~RadioChoiceFieldWidget() override;
 
 signals:
     void wasModified();
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 
 protected slots:
-    void on_toggled(bool checked);
+    void onToggled(bool checked);
 
 private:
     Q_DISABLE_COPY(RadioChoiceFieldWidget)

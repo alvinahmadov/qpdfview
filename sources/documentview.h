@@ -64,104 +64,147 @@ public:
     explicit DocumentView(QWidget* parent = nullptr);
     ~DocumentView() override;
 
+    DECL_NODISCARD
     const QFileInfo& fileInfo() const { return m_fileInfo; }
+    DECL_NODISCARD
     bool wasModified() const { return m_wasModified; }
 
+    DECL_NODISCARD
     int numberOfPages() const { return m_pages.count(); }
+    DECL_NODISCARD
     int currentPage() const { return m_currentPage; }
 
+    DECL_NODISCARD
     bool hasFrontMatter() const { return m_firstPage> 1; }
 
+    DECL_NODISCARD
     int firstPage() const { return m_firstPage; }
     void setFirstPage(int firstPage);
 
+    DECL_NODISCARD
     QString defaultPageLabelFromNumber(int number) const;
+    DECL_NODISCARD
     QString pageLabelFromNumber(int number) const;
+    DECL_NODISCARD
     int pageNumberFromLabel(const QString& label) const;
 
+    DECL_NODISCARD
     QString title() const;
 
     static QStringList openFilter();
+    DECL_NODISCARD
     QStringList saveFilter() const;
 
+    DECL_NODISCARD
     bool canSave() const;
 
+    DECL_NODISCARD
     bool continuousMode() const { return m_continuousMode; }
     void setContinuousMode(bool continuousMode);
 
+    DECL_NODISCARD
     qpdfview::LayoutMode layoutMode() const;
     void setLayoutMode(qpdfview::LayoutMode layoutMode);
 
+    DECL_NODISCARD
     bool rightToLeftMode() const { return m_rightToLeftMode; }
     void setRightToLeftMode(bool rightToLeftMode);
 
+    DECL_NODISCARD
     qpdfview::ScaleMode scaleMode() const { return m_scaleMode; }
     void setScaleMode(qpdfview::ScaleMode scaleMode);
 
+    DECL_NODISCARD
     qreal scaleFactor() const { return m_scaleFactor; }
     void setScaleFactor(qreal scaleFactor);
 
+    DECL_NODISCARD
     qpdfview::Rotation rotation() const { return m_rotation; }
     void setRotation(qpdfview::Rotation rotation);
 
+    DECL_NODISCARD
     qpdfview::RenderFlags renderFlags() const { return m_renderFlags; }
     void setRenderFlags(qpdfview::RenderFlags renderFlags);
     void setRenderFlag(qpdfview::RenderFlag renderFlag, bool enabled = true);
 
+    DECL_NODISCARD
     bool invertColors() const { return m_renderFlags.testFlag(InvertColors); }
     void setInvertColors(bool invertColors) { setRenderFlag(InvertColors, invertColors); }
 
+    DECL_NODISCARD
     bool convertToGrayscale() const { return m_renderFlags.testFlag(ConvertToGrayscale); }
     void setConvertToGrayscale(bool convertToGrayscale) { setRenderFlag(ConvertToGrayscale, convertToGrayscale); }
 
+    DECL_NODISCARD
     bool trimMargins() const { return m_renderFlags.testFlag(TrimMargins); }
     void setTrimMargins(bool trimMargins) { setRenderFlag(TrimMargins, trimMargins); }
 
+    DECL_NODISCARD
     qpdfview::CompositionMode compositionMode() const;
     void setCompositionMode(qpdfview::CompositionMode compositionMode);
 
+    DECL_NODISCARD
     bool highlightAll() const { return m_highlightAll; }
     void setHighlightAll(bool highlightAll);
 
+    DECL_NODISCARD
     qpdfview::RubberBandMode rubberBandMode() const { return m_rubberBandMode; }
     void setRubberBandMode(qpdfview::RubberBandMode rubberBandMode);
 
+    DECL_UNUSED
+    DECL_NODISCARD
     QSize thumbnailsViewportSize() const { return m_thumbnailsViewportSize; }
     void setThumbnailsViewportSize(QSize thumbnailsViewportSize);
 
+    DECL_UNUSED
+    DECL_NODISCARD
     Qt::Orientation thumbnailsOrientation() const { return m_thumbnailsOrientation; }
     void setThumbnailsOrientation(Qt::Orientation thumbnailsOrientation);
 
+    DECL_NODISCARD
     const QVector<qpdfview::ThumbnailItem*>& thumbnailItems() const { return m_thumbnailItems; }
+    DECL_NODISCARD
     QGraphicsScene* thumbnailsScene() const { return m_thumbnailsScene; }
 
+    DECL_NODISCARD
     QAbstractItemModel* outlineModel() const { return m_outlineModel.data(); }
+    DECL_NODISCARD
     QAbstractItemModel* propertiesModel() const { return m_propertiesModel.data(); }
 
+    DECL_NODISCARD
     QSet<QByteArray> saveExpandedPaths() const;
     void restoreExpandedPaths(const QSet<QByteArray>& expandedPaths);
 
+    DECL_NODISCARD
     QAbstractItemModel* fontsModel() const;
 
+    DECL_NODISCARD
     bool searchWasCanceled() const;
+    DECL_NODISCARD
     int searchProgress() const;
 
+    DECL_NODISCARD
     QString searchText() const;
+    DECL_NODISCARD
     bool searchMatchCase() const;
+    DECL_NODISCARD
     bool searchWholeWords() const;
 
+    DECL_NODISCARD
     QPair<QString, QString> searchContext(int page, const QRectF& rect) const;
 
     bool hasSearchResults();
 
+    DECL_NODISCARD
     QString resolveFileName(QString fileName) const;
+    DECL_NODISCARD
     QUrl resolveUrl(QUrl url) const;
 
     struct SourceLink
     {
         QString name;
-        int line;
-        int column;
+        int line {};
+        int column {};
 
         explicit operator bool() const { return !name.isNull(); }
 
@@ -213,26 +256,36 @@ public slots:
 
     void previousPage();
     void nextPage();
+    DECL_UNUSED
     void firstPage();
+    DECL_UNUSED
     void lastPage();
 
     void jumpToPage(int page, bool trackChange = true, qreal newLeft = qQNaN(), qreal newTop = qQNaN());
 
+    DECL_UNUSED
+    DECL_NODISCARD
     bool canJumpBackward() const;
     void jumpBackward();
 
+    DECL_UNUSED
+    DECL_NODISCARD
     bool canJumpForward() const;
     void jumpForward();
 
+    DECL_UNUSED
     void temporaryHighlight(int page, const QRectF& highlight);
 
+    DECL_UNUSED
     void startSearch(const QString& text, bool matchCase, bool wholeWords);
     void cancelSearch();
 
     void clearResults();
 
+    DECL_UNUSED
     void findPrevious();
     void findNext();
+    DECL_UNUSED
     void findResult(QModelIndex index);
 
     void zoomIn();
@@ -258,7 +311,9 @@ protected slots:
     void onPagesCropRectChanged();
     void onThumbnailsCropRectChanged();
 
+    DECL_UNUSED
     void onPagesLinkClicked(bool newTab, int page, qreal left, qreal top);
+    DECL_UNUSED
     void onPagesLinkClicked(bool newTab, const QString& fileName, int page);
     void onPagesLinkClicked(const QString& url);
 

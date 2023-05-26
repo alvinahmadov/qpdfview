@@ -26,7 +26,6 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include "memory"
 
-#include <QApplication>
 #include <QDebug>
 #include <QDir>
 #include <QInputDialog>
@@ -58,6 +57,7 @@ typedef synctex_node_t synctex_node_p;
 
 #endif // WITH_SYNCTEX
 
+#include "application.h"
 #include "documentview.h"
 #include "database.h"
 #include "mainwindow.h"
@@ -89,15 +89,15 @@ using namespace qpdfview;
 
 struct File
 {
-    QString filePath;
-    int page;
+    QString filePath {};
+    int page {-1};
 
-    QString sourceName;
-    int sourceLine;
-    int sourceColumn;
-    QRectF enclosingBox;
+    QString sourceName {};
+    int sourceLine {-1};
+    int sourceColumn {-1};
+    QRectF enclosingBox {};
 
-    File() : filePath(), page(-1), sourceName(), sourceLine(-1), sourceColumn(-1), enclosingBox() {}
+    File() = default;
 
 };
 
@@ -118,7 +118,7 @@ QString searchText;
 
 QList< File > files;
 
-std::unique_ptr<MainWindow> mainWindow = nullptr;
+MainWindow* mainWindow = nullptr;
 
 bool loadTranslator(QTranslator* const translator, const QString& fileName, const QString& path)
 {
@@ -146,8 +146,8 @@ void loadTranslators()
     loadTranslator(toolkitTranslator, "qt", QLibraryInfo::location(QLibraryInfo::TranslationsPath));
     auto applicationTranslator = new QTranslator(qApp);
 	bool appTranslatorLoaded;
-    
-    appTranslatorLoaded = loadTranslator(applicationTranslator, "qpdfview", QDir(QApplication::applicationDirPath()).filePath("data"));
+
+    appTranslatorLoaded = loadTranslator(applicationTranslator, "qpdfview", QDir(QApplication::applicationDirPath()).filePath(APP_DIR_DATA_PATH));
     
     if(!appTranslatorLoaded)
     {
@@ -256,7 +256,7 @@ void parseCommandLineArguments()
         }
         else
         {
-            File file;
+            File file {};
 
             if(fileAndPageRegExp.exactMatch(argument))
             {
@@ -423,9 +423,9 @@ void activateUniqueInstance()
         }
         else
         {
-            mainWindow = std::make_unique<MainWindow>();
+            mainWindow = new MainWindow();
 
-            if(!MainWindowAdaptor::createAdaptor(mainWindow.get()))
+            if(!MainWindowAdaptor::createAdaptor(mainWindow))
             {
                 qCritical() << QDBusConnection::sessionBus().lastError().message();
                 exit(ExitDBusError);
@@ -434,7 +434,7 @@ void activateUniqueInstance()
     }
     else
     {
-        mainWindow = std::make_unique<MainWindow>();
+        mainWindow = new MainWindow();
     }
 
 #else
@@ -450,10 +450,10 @@ void prepareSignalHandler()
 
     if(SignalHandler::prepareSignals())
     {
-        auto signalHandler = std::make_unique<SignalHandler>(mainWindow.get());
+        auto signalHandler = std::make_unique<SignalHandler>(mainWindow);
 
-        QObject::connect(signalHandler.get(), SIGNAL(sigIntReceived()), mainWindow.get(), SLOT(close()));
-        QObject::connect(signalHandler.get(), SIGNAL(sigTermReceived()), mainWindow.get(), SLOT(close()));
+        QObject::connect(signalHandler.get(), SIGNAL(sigIntReceived()), mainWindow, SLOT(close()));
+        QObject::connect(signalHandler.get(), SIGNAL(sigTermReceived()), mainWindow, SLOT(close()));
     }
     else
     {
@@ -473,21 +473,7 @@ int main(int argc, char** argv)
 
     parseWorkbenchExtendedSelection(argc, argv);
 
-    QApplication application(argc, argv);
-
-    QApplication::setOrganizationDomain("local.qpdfview");
-    QApplication::setOrganizationName("qpdfview");
-    QApplication::setApplicationName("qpdfview");
-
-    QApplication::setApplicationVersion(APPLICATION_VERSION);
-
-    QApplication::setWindowIcon(QIcon(":icons/qpdfview"));
-
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
-#endif // QT_VERSION
+    Application application(argc, argv);
 
     loadTranslators();
 
@@ -499,6 +485,7 @@ int main(int argc, char** argv)
 
     prepareSignalHandler();
 
+    application.setMainWindow(mainWindow);
     mainWindow->show();
     mainWindow->setAttribute(Qt::WA_DeleteOnClose);
 

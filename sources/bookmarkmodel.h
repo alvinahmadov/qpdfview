@@ -22,6 +22,8 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef BOOKMARKMODEL_H
 #define BOOKMARKMODEL_H
 
+#include "macros.h"
+
 #include <QAbstractListModel>
 
 #include <QDateTime>
@@ -39,12 +41,20 @@ struct BookmarkItem
     QString comment;
     QDateTime modified;
 
-    BookmarkItem(int page = -1, const QString& label = QString(), const QString& comment = QString(), const QDateTime& modified = QDateTime::currentDateTime()) :
+    explicit BookmarkItem(int page = -1, QString label = {}, QString comment = {}, QDateTime modified = QDateTime::currentDateTime()) :
         page(page),
-        label(label),
-        comment(comment),
-        modified(modified) {}
+        label(std::move(label)),
+        comment(std::move(comment)),
+        modified(std::move(modified)) {}
 
+    inline bool operator==(const BookmarkItem& other) const { return other.page == page; }
+    inline bool operator!=(const BookmarkItem& other) const { return other.page != page; }
+    inline bool operator<(const BookmarkItem& other) const { return other.page > page; }
+    inline bool operator>(const BookmarkItem& other) const { return other.page < page; }
+    inline bool operator==(int pageNum) const { return pageNum == page; }
+    inline bool operator!=(int pageNum) const { return pageNum != page; }
+    inline bool operator<(int pageNum) const { return pageNum < page; }
+    inline bool operator>(int pageNum) const { return pageNum > page; }
 };
 
 } // namespace qpdfview
@@ -67,6 +77,7 @@ public:
     static void removeAllPaths();
 
 
+    DECL_NODISCARD
     bool isEmpty() const { return m_bookmarks.isEmpty(); }
 
     void addBookmark(const BookmarkItem& bookmark);
@@ -83,18 +94,22 @@ public:
         ModifiedRole
     };
 
-    Qt::ItemFlags flags(const QModelIndex&) const;
+    DECL_NODISCARD
+    Qt::ItemFlags flags(const QModelIndex&) const override;
 
-    int columnCount(const QModelIndex& parent = QModelIndex()) const;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const;
+    DECL_NODISCARD
+    int columnCount(const QModelIndex& parent = {}) const override;
+    DECL_NODISCARD
+    int rowCount(const QModelIndex& parent = {}) const override;
 
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+    DECL_NODISCARD
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
 private:
     Q_DISABLE_COPY(BookmarkModel)
 
     static QHash< QString, BookmarkModel* > s_instances;
-    BookmarkModel(QObject* parent = 0);
+    explicit BookmarkModel(QObject* parent = nullptr);
 
     QVector< BookmarkItem > m_bookmarks;
 

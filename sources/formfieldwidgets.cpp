@@ -68,7 +68,7 @@ NormalTextFieldWidget::NormalTextFieldWidget(QMutex* mutex, Poppler::FormFieldTe
     setAlignment(m_formField->textAlignment());
     setEchoMode(m_formField->isPassword() ? QLineEdit::Password : QLineEdit::Normal);
 
-    connect(this, SIGNAL(textChanged(QString)), SLOT(on_textChanged(QString)));
+    connect(this, SIGNAL(textChanged(QString)), SLOT(onTextChanged(QString)));
     connect(this, SIGNAL(textChanged(QString)), SIGNAL(wasModified()));
 
     connect(this, SIGNAL(returnPressed()), SLOT(hide()));
@@ -82,7 +82,7 @@ void NormalTextFieldWidget::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void NormalTextFieldWidget::on_textChanged(const QString& text)
+void NormalTextFieldWidget::onTextChanged(const QString& text)
 {
     LOCK_FORM_FIELD
 
@@ -97,7 +97,7 @@ MultilineTextFieldWidget::MultilineTextFieldWidget(QMutex* mutex, Poppler::FormF
 
     setPlainText(m_formField->text());
 
-    connect(this, SIGNAL(textChanged()), SLOT(on_textChanged()));
+    connect(this, SIGNAL(textChanged()), SLOT(onTextChanged()));
     connect(this, SIGNAL(textChanged()), SIGNAL(wasModified()));
 
     moveCursor(QTextCursor::End);
@@ -111,7 +111,7 @@ void MultilineTextFieldWidget::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void MultilineTextFieldWidget::on_textChanged()
+void MultilineTextFieldWidget::onTextChanged()
 {
     LOCK_FORM_FIELD
 
@@ -131,7 +131,7 @@ ComboBoxChoiceFieldWidget::ComboBoxChoiceFieldWidget(QMutex* mutex, Poppler::For
         setCurrentIndex(m_formField->currentChoices().at(0));
     }
 
-    connect(this, SIGNAL(currentIndexChanged(int)), SLOT(on_currentIndexChanged(int)));
+    connect(this, SIGNAL(currentIndexChanged(int)), SLOT(onCurrentIndexChanged(int)));
     connect(this, SIGNAL(currentIndexChanged(int)), SIGNAL(wasModified()));
 
 #ifdef HAS_POPPLER_22
@@ -143,7 +143,7 @@ ComboBoxChoiceFieldWidget::ComboBoxChoiceFieldWidget(QMutex* mutex, Poppler::For
 
         lineEdit()->setText(m_formField->editChoice());
 
-        connect(lineEdit(), SIGNAL(textChanged(QString)), SLOT(on_currentTextChanged(QString)));
+        connect(lineEdit(), SIGNAL(textChanged(QString)), SLOT(onCurrentTextChanged(QString)));
         connect(lineEdit(), SIGNAL(textChanged(QString)), SIGNAL(wasModified()));
 
         connect(lineEdit(), SIGNAL(returnPressed()), SLOT(hide()));
@@ -182,14 +182,14 @@ void ComboBoxChoiceFieldWidget::hidePopup()
     graphicsProxyWidget()->setZValue(0.0);
 }
 
-void ComboBoxChoiceFieldWidget::on_currentIndexChanged(int index)
+void ComboBoxChoiceFieldWidget::onCurrentIndexChanged(int index)
 {
     LOCK_FORM_FIELD
 
     m_formField->setCurrentChoices(QList< int >() << index);
 }
 
-void ComboBoxChoiceFieldWidget::on_currentTextChanged(const QString& text)
+void ComboBoxChoiceFieldWidget::onCurrentTextChanged(const QString& text)
 {
     LOCK_FORM_FIELD
 
@@ -217,7 +217,7 @@ ListBoxChoiceFieldWidget::ListBoxChoiceFieldWidget(QMutex* mutex, Poppler::FormF
         }
     }
 
-    connect(this, SIGNAL(itemSelectionChanged()), SLOT(on_itemSelectionChanged()));
+    connect(this, SIGNAL(itemSelectionChanged()), SLOT(onItemSelectionChanged()));
     connect(this, SIGNAL(itemSelectionChanged()), SIGNAL(wasModified()));
 }
 
@@ -229,7 +229,7 @@ void ListBoxChoiceFieldWidget::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void ListBoxChoiceFieldWidget::on_itemSelectionChanged()
+void ListBoxChoiceFieldWidget::onItemSelectionChanged()
 {
     LOCK_FORM_FIELD
 
@@ -254,7 +254,7 @@ CheckBoxChoiceFieldWidget::CheckBoxChoiceFieldWidget(QMutex* mutex, Poppler::For
 
     setChecked(m_formField->state());
 
-    connect(this, SIGNAL(toggled(bool)), SLOT(on_toggled(bool)));
+    connect(this, SIGNAL(toggled(bool)), SLOT(onToggled(bool)));
     connect(this, SIGNAL(toggled(bool)), SIGNAL(wasModified()));
 }
 
@@ -266,7 +266,7 @@ void CheckBoxChoiceFieldWidget::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void CheckBoxChoiceFieldWidget::on_toggled(bool checked)
+void CheckBoxChoiceFieldWidget::onToggled(bool checked)
 {
     LOCK_FORM_FIELD
 
@@ -286,7 +286,7 @@ RadioChoiceFieldWidget::RadioChoiceFieldWidget(QMutex* mutex, Poppler::FormField
     setAutoExclusive(false);
     setChecked(m_formField->state());
 
-    connect(this, SIGNAL(toggled(bool)), SLOT(on_toggled(bool)));
+    connect(this, SIGNAL(toggled(bool)), SLOT(onToggled(bool)));
     connect(this, SIGNAL(toggled(bool)), SIGNAL(wasModified()));
 }
 
@@ -305,7 +305,7 @@ void RadioChoiceFieldWidget::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void RadioChoiceFieldWidget::on_toggled(bool checked)
+void RadioChoiceFieldWidget::onToggled(bool checked)
 {
     LOCK_FORM_FIELD
 

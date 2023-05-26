@@ -38,13 +38,13 @@ class BookmarkDialog : public QDialog
     Q_OBJECT
 
 public:
-    BookmarkDialog(BookmarkItem& bookmark, QWidget* parent = 0);
+    explicit BookmarkDialog(BookmarkItem& bookmark, QWidget* parent = nullptr);
 
 public slots:
-    void accept();
+    void accept() override;
 
 protected:
-    void showEvent(QShowEvent*);
+    void showEvent(QShowEvent*) override;
 
 private:
     Q_DISABLE_COPY(BookmarkDialog)

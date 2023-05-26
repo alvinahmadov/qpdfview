@@ -64,7 +64,7 @@ void SearchItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& op
 }
 
 void SearchItemDelegate::paintProgress(QPainter* painter, const QStyleOptionViewItem& option,
-                                       int progress) const
+                                       int progress)
 {
     QRect highlightedRect = option.rect;
     highlightedRect.setWidth(progress * highlightedRect.width() / 100);
@@ -78,7 +78,7 @@ void SearchItemDelegate::paintProgress(QPainter* painter, const QStyleOptionView
 }
 
 void SearchItemDelegate::paintText(QPainter* painter, const QStyleOptionViewItem& option,
-                                   const QString& matchedText, const QString& surroundingText) const
+                                   const QString& matchedText, const QString& surroundingText)
 {
     const int textMargin = QApplication::style()->pixelMetric(QStyle::PM_FocusFrameHMargin) + 1;
     const QRect textRect = option.rect.adjusted(textMargin, 0, -textMargin, 0);
@@ -111,7 +111,7 @@ void SearchItemDelegate::paintText(QPainter* painter, const QStyleOptionViewItem
         additionalFormats.append(formatRange);
     }
 
-    textLayout.setAdditionalFormats(additionalFormats);
+    textLayout.setFormats(additionalFormats.toVector());
 
 
     textLayout.beginLayout();

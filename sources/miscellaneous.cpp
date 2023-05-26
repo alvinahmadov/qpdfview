@@ -25,7 +25,6 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include "miscellaneous.h"
 
 #include <QApplication>
-#include <QDebug>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QLabel>
@@ -86,6 +85,7 @@ ProxyStyle::ProxyStyle() : QProxyStyle(),
 {
 }
 
+DECL_UNUSED
 bool ProxyStyle::scrollableMenus() const
 {
     return m_scrollableMenus;
@@ -118,9 +118,9 @@ bool ToolTipMenu::event(QEvent* event)
 {
     const QAction* const action = activeAction();
 
-    if(event->type() == QEvent::ToolTip && action != 0 && !action->data().isNull())
+    if(event->type() == QEvent::ToolTip && action != nullptr && !action->data().isNull())
     {
-        QToolTip::showText(static_cast< QHelpEvent* >(event)->globalPos(), action->toolTip());
+        QToolTip::showText(dynamic_cast< QHelpEvent* >(event)->globalPos(), action->toolTip());
     }
     else
     {
@@ -185,7 +185,7 @@ void SearchableMenu::keyPressEvent(QKeyEvent* event)
         return;
     }
 
-    QAction* firstVisibleAction = 0;
+    QAction* firstVisibleAction {};
 
     foreach(QAction* action, actions())
     {
@@ -198,7 +198,7 @@ void SearchableMenu::keyPressEvent(QKeyEvent* event)
 
         action->setVisible(visible);
 
-        if(visible && firstVisibleAction == 0)
+        if(visible && firstVisibleAction == nullptr)
         {
             firstVisibleAction = action;
         }
@@ -220,18 +220,18 @@ QSize TabBar::tabSizeHint(int index) const
 
     const TabWidget* tabWidget = qobject_cast< TabWidget* >(parentWidget());
 
-    if(tabWidget != 0 && tabWidget->spreadTabs())
+    if(tabWidget != nullptr && tabWidget->spreadTabs())
     {
         switch(tabWidget->tabPosition())
         {
         default:
         case QTabWidget::North:
         case QTabWidget::South:
-            size.setWidth(qMax(width() / count(), size.width()));
+            size.setWidth(std::max(width() / count(), size.width()));
             break;
         case QTabWidget::East:
         case QTabWidget::West:
-            size.setHeight(qMax(height() / count(), size.height()));
+            size.setHeight(std::max(height() / count(), size.height()));
             break;
         }
     }
@@ -241,7 +241,7 @@ QSize TabBar::tabSizeHint(int index) const
 
 void TabBar::mousePressEvent(QMouseEvent* event)
 {
-    if(event->button() == Qt::MidButton)
+    if(event->button() == Qt::MiddleButton)
     {
         const int index = tabAt(event->pos());
 
@@ -296,12 +296,12 @@ TabWidget::TabWidget(QWidget* parent) : QTabWidget(parent),
     m_tabBarPolicy(TabBarAsNeeded),
     m_spreadTabs(false)
 {
-    TabBar* tabBar = new TabBar(this);
+    auto tabBar = new TabBar(this);
 
     tabBar->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(tabBar, SIGNAL(tabDragRequested(int)), SIGNAL(tabDragRequested(int)));
-    connect(tabBar, SIGNAL(customContextMenuRequested(QPoint)), SLOT(on_tabBar_customContextMenuRequested(QPoint)));
+    connect(tabBar, SIGNAL(customContextMenuRequested(QPoint)), SLOT(onTabBarCustomContextMenuRequested(QPoint)));
 
     setTabBar(tabBar);
 }
@@ -382,7 +382,7 @@ void TabWidget::nextTab()
     setCurrentIndex(index);
 }
 
-void TabWidget::on_tabBar_customContextMenuRequested(QPoint pos)
+void TabWidget::onTabBarCustomContextMenuRequested(QPoint pos)
 {
     const int index = tabBar()->tabAt(pos);
 
@@ -438,7 +438,11 @@ void TreeView::expandAll(const QModelIndex& index)
 
         for(int row = 0, rowCount = model()->rowCount(index); row < rowCount; ++row)
         {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
+            expandAll(index.model()->index(row, 0));
+#else
             expandAll(index.child(row, 0));
+#endif
         }
     }
     else
@@ -458,7 +462,11 @@ void TreeView::collapseAll(const QModelIndex& index)
 
         for(int row = 0, rowCount = model()->rowCount(index); row < rowCount; ++row)
         {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
+            collapseAll(index.model()->index(row, 0));
+#else
             collapseAll(index.child(row, 0));
+#endif
         }
     }
     else
@@ -480,7 +488,11 @@ int TreeView::expandedDepth(const QModelIndex& index)
 
         for(int row = 0, rowCount = model()->rowCount(index); row < rowCount; ++row)
         {
-            depth = qMax(depth, expandedDepth(index.child(row, 0)));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
+            depth = std::max(depth, expandedDepth(index.model()->index(row, 0)));
+#else
+            depth = std::max(depth, expandedDepth(index.child(row, 0)));
+#endif
         }
 
         return 1 + depth;
@@ -514,7 +526,11 @@ void TreeView::expandToDepth(const QModelIndex& index, int depth)
         {
             for(int row = 0, rowCount = model()->rowCount(index); row < rowCount; ++row)
             {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
+                expandToDepth(index.model()->index(row, 0), depth - 1);
+#else
                 expandToDepth(index.child(row, 0), depth - 1);
+#endif
             }
         }
     }
@@ -541,7 +557,11 @@ void TreeView::collapseFromDepth(const QModelIndex& index, int depth)
 
         for(int row = 0, rowCount = model()->rowCount(index); row < rowCount; ++row)
         {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
+            collapseFromDepth(index.model()->index(row, 0), depth - 1);
+#else
             collapseFromDepth(index.child(row, 0), depth - 1);
+#endif
         }
     }
     else
@@ -639,11 +659,16 @@ void TreeView::keyPressEvent(QKeyEvent* event)
 void TreeView::wheelEvent(QWheelEvent* event)
 {
     const QModelIndex selection = firstIndex(selectedIndexes());
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    const int delta = event->angleDelta().y() - event->angleDelta().x();
+#else
+    const int delta = event->delta();
+#endif
 
     // If Control is pressed, expand or collapse the selected entry.
     if(event->modifiers().testFlag(Qt::ControlModifier) && selection.isValid())
     {
-        if(event->delta() > 0)
+        if(delta > 0)
         {
             collapse(selection);
         }
@@ -665,7 +690,7 @@ void TreeView::wheelEvent(QWheelEvent* event)
     {
         QModelIndex sibling;
 
-        if(event->delta() > 0)
+        if(delta > 0)
         {
             sibling = indexAbove(selection);
         }
@@ -784,8 +809,8 @@ int MappingSpinBox::valueFromText(const QString& text) const
 
 QValidator::State MappingSpinBox::validate(QString& input, int& pos) const
 {
-    Q_UNUSED(input);
-    Q_UNUSED(pos);
+    Q_UNUSED(input)
+    Q_UNUSED(pos)
 
     return QValidator::Acceptable;
 }
@@ -794,18 +819,18 @@ int getMappedNumber(MappingSpinBox::TextValueMapper* mapper,
                     QWidget* parent, const QString& title, const QString& caption,
                     int value, int min, int max, bool* ok, Qt::WindowFlags flags)
 {
-    QDialog* dialog = new QDialog(parent, flags | Qt::MSWindowsFixedSizeDialogHint);
+    auto dialog = new QDialog(parent, flags | Qt::MSWindowsFixedSizeDialogHint);
     dialog->setWindowTitle(title);
 
-    QLabel* label = new QLabel(dialog);
+    auto label = new QLabel(dialog);
     label->setText(caption);
 
-    MappingSpinBox* mappingSpinBox = new MappingSpinBox(mapper, dialog);
+    auto mappingSpinBox = new MappingSpinBox(mapper, dialog);
     mappingSpinBox->setRange(min, max);
     mappingSpinBox->setValue(value);
     mappingSpinBox->selectAll();
 
-    QDialogButtonBox* dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, dialog);
+    auto dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, dialog);
     QObject::connect(dialogButtonBox, SIGNAL(accepted()), dialog, SLOT(accept()));
     QObject::connect(dialogButtonBox, SIGNAL(rejected()), dialog, SLOT(reject()));
 
@@ -969,7 +994,7 @@ void Splitter::setUniformSizes()
 
 void Splitter::on_focusChanged(QWidget* /* old */, QWidget* now)
 {
-    for(QWidget* currentWidget = now; currentWidget != 0; currentWidget = currentWidget->parentWidget())
+    for(QWidget* currentWidget = now; currentWidget != nullptr; currentWidget = currentWidget->parentWidget())
     {
         if(currentWidget->parentWidget() == this)
         {

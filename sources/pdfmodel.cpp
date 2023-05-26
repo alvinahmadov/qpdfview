@@ -65,42 +65,26 @@ namespace
 using namespace qpdfview;
 using namespace qpdfview::Model;
 
-Outline loadOutline(const QDomNode& parent, Poppler::Document* document)
+Outline loadOutline(const QVector<Poppler::OutlineItem>& outlineItems, int numPages)
 {
     Outline outline;
 
-    const QDomNodeList nodes = parent.childNodes();
-
-    outline.reserve(nodes.size());
-
-    for(int index = 0, count = nodes.size(); index < count; ++index)
+    for(const auto& node : outlineItems)
     {
-        const QDomNode node = nodes.at(index);
-        const QDomElement element = node.toElement();
-
         outline.push_back(Section());
         Section& section = outline.back();
-        section.title = element.tagName();
+        section.title = node.name();
 
-        QScopedPointer< Poppler::LinkDestination > destination;
-
-        if(element.hasAttribute("Destination"))
-        {
-            destination.reset(new Poppler::LinkDestination(element.attribute("Destination")));
-        }
-        else if(element.hasAttribute("DestinationName"))
-        {
-            destination.reset(document->linkDestination(element.attribute("DestinationName")));
-        }
+        const auto& destination = node.destination();
 
         if(destination)
         {
             int page = destination->pageNumber();
-            qreal left = qQNaN();
-            qreal top = qQNaN();
+            qreal left;
+            qreal top;
 
             page = page >= 1 ? page : 1;
-            page = page <= document->numPages() ? page : document->numPages();
+            page = page <= numPages ? page : numPages;
 
             if(destination->isChangeLeft())
             {
@@ -123,17 +107,22 @@ Outline loadOutline(const QDomNode& parent, Poppler::Document* document)
             link.left = left;
             link.top = top;
 
-            const QString fileName = element.attribute("ExternalFileName");
+            const QString fileName = node.externalFileName();
+            const QString uri = node.uri();
 
             if(!fileName.isEmpty())
             {
                 link.urlOrFileName = fileName;
             }
+            else if(!uri.isEmpty())
+            {
+                link.urlOrFileName = uri;
+            }
         }
 
-        if(node.hasChildNodes())
+        if(node.hasChildren())
         {
-            section.children = loadOutline(node, document);
+            section.children = loadOutline(node.children(), numPages);
         }
     }
 
@@ -143,17 +132,19 @@ Outline loadOutline(const QDomNode& parent, Poppler::Document* document)
 class FontsModel : public QAbstractTableModel
 {
 public:
-    FontsModel(const QList< Poppler::FontInfo >& fonts) :
+    explicit FontsModel(const QList< Poppler::FontInfo >& fonts) :
         m_fonts(fonts)
     {
     }
 
-    int columnCount(const QModelIndex&) const
+    DECL_NODISCARD
+    int columnCount(const QModelIndex&) const override
     {
         return 5;
     }
 
-    int rowCount(const QModelIndex& parent) const
+    DECL_NODISCARD
+    int rowCount(const QModelIndex& parent) const override
     {
         if(parent.isValid())
         {
@@ -163,11 +154,12 @@ public:
         return m_fonts.size();
     }
 
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const
+    DECL_NODISCARD
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override
     {
         if(orientation != Qt::Horizontal || role != Qt::DisplayRole)
         {
-            return QVariant();
+            return {};
         }
 
         switch(section)
@@ -183,15 +175,16 @@ public:
         case 4:
             return PdfDocument::tr("File");
         default:
-            return QVariant();
+            return {};
         }
     }
 
-    QVariant data(const QModelIndex& index, int role) const
+    DECL_NODISCARD
+    QVariant data(const QModelIndex& index, int role) const override
     {
         if(!index.isValid() || role != Qt::DisplayRole)
         {
-            return QVariant();
+            return {};
         }
 
         const Poppler::FontInfo& font = m_fonts[index.row()];
@@ -209,7 +202,7 @@ public:
         case 4:
             return font.file();
         default:
-            return QVariant();
+            return {};
         }
     }
 
@@ -340,7 +333,7 @@ QString PdfAnnotation::contents() const
 
 QWidget* PdfAnnotation::createWidget()
 {
-    QWidget* widget = 0;
+    QWidget* widget = nullptr;
 
     if(m_annotation->subType() == Poppler::Annotation::AText || m_annotation->subType() == Poppler::Annotation::AHighlight)
     {
@@ -350,7 +343,7 @@ QWidget* PdfAnnotation::createWidget()
     }
     else if(m_annotation->subType() == Poppler::Annotation::AFileAttachment)
     {
-        widget = new FileAttachmentAnnotationWidget(m_mutex, static_cast< Poppler::FileAttachmentAnnotation* >(m_annotation));
+        widget = new FileAttachmentAnnotationWidget(m_mutex, dynamic_cast< Poppler::FileAttachmentAnnotation* >(m_annotation));
     }
 
     connect(this, SIGNAL(destroyed()), widget, SLOT(deleteLater()));
@@ -385,11 +378,11 @@ QString PdfFormField::name() const
 
 QWidget* PdfFormField::createWidget()
 {
-    QWidget* widget = 0;
+    QWidget* widget = nullptr;
 
     if(m_formField->type() == Poppler::FormField::FormText)
     {
-        Poppler::FormFieldText* formFieldText = static_cast< Poppler::FormFieldText* >(m_formField);
+        auto formFieldText = dynamic_cast< Poppler::FormFieldText* >(m_formField);
 
         if(formFieldText->textType() == Poppler::FormFieldText::Normal)
         {
@@ -402,7 +395,7 @@ QWidget* PdfFormField::createWidget()
     }
     else if(m_formField->type() == Poppler::FormField::FormChoice)
     {
-        Poppler::FormFieldChoice* formFieldChoice = static_cast< Poppler::FormFieldChoice* >(m_formField);
+        auto formFieldChoice = dynamic_cast< Poppler::FormFieldChoice* >(m_formField);
 
         if(formFieldChoice->choiceType() == Poppler::FormFieldChoice::ComboBox)
         {
@@ -415,7 +408,7 @@ QWidget* PdfFormField::createWidget()
     }
     else if(m_formField->type() == Poppler::FormField::FormButton)
     {
-        Poppler::FormFieldButton* formFieldButton = static_cast< Poppler::FormFieldButton* >(m_formField);
+        auto formFieldButton = dynamic_cast< Poppler::FormFieldButton* >(m_formField);
 
         if(formFieldButton->buttonType() == Poppler::FormFieldButton::CheckBox)
         {
@@ -510,7 +503,7 @@ QList< Link* > PdfPage::links() const
 
         if(link->linkType() == Poppler::Link::Goto)
         {
-            const Poppler::LinkGoto* linkGoto = static_cast< const Poppler::LinkGoto* >(link);
+            const auto linkGoto = dynamic_cast< const Poppler::LinkGoto* >(link);
 
             int page = linkGoto->destination().pageNumber();
             qreal left = qQNaN();
@@ -545,14 +538,14 @@ QList< Link* > PdfPage::links() const
         }
         else if(link->linkType() == Poppler::Link::Browse)
         {
-            const Poppler::LinkBrowse* linkBrowse = static_cast< const Poppler::LinkBrowse* >(link);
+            const auto linkBrowse = dynamic_cast< const Poppler::LinkBrowse* >(link);
             const QString url = linkBrowse->url();
 
             links.append(new Link(boundary, url));
         }
         else if(link->linkType() == Poppler::Link::Execute)
         {
-            const Poppler::LinkExecute* linkExecute = static_cast< const Poppler::LinkExecute* >(link);
+            const auto linkExecute = dynamic_cast< const Poppler::LinkExecute* >(link);
             const QString url = linkExecute->fileName();
 
             links.append(new Link(boundary, url));
@@ -753,7 +746,7 @@ Annotation* PdfPage::addHighlightAnnotation(const QRectF& boundary, const QColor
     Poppler::Annotation::Popup popup;
     popup.setFlags(Poppler::Annotation::Hidden | Poppler::Annotation::ToggleHidingOnMouse);
 
-    Poppler::HighlightAnnotation* annotation = new Poppler::HighlightAnnotation();
+    auto annotation = new Poppler::HighlightAnnotation();
 
     Poppler::HighlightAnnotation::Quad quad;
     quad.points[0] = boundary.topLeft();
@@ -788,10 +781,10 @@ void PdfPage::removeAnnotation(Annotation* annotation)
 
 #ifdef HAS_POPPLER_20
 
-    PdfAnnotation* pdfAnnotation = static_cast< PdfAnnotation* >(annotation);
+    auto pdfAnnotation = dynamic_cast< PdfAnnotation* >(annotation);
 
     m_page->removeAnnotation(pdfAnnotation->m_annotation);
-    pdfAnnotation->m_annotation = 0;
+    pdfAnnotation->m_annotation = nullptr;
 
 #else
 
@@ -816,7 +809,7 @@ QList< FormField* > PdfPage::formFields() const
 
         if(formField->type() == Poppler::FormField::FormText)
         {
-            Poppler::FormFieldText* formFieldText = static_cast< Poppler::FormFieldText* >(formField);
+            auto formFieldText = dynamic_cast< Poppler::FormFieldText* >(formField);
 
             if(formFieldText->textType() == Poppler::FormFieldText::Normal || formFieldText->textType() == Poppler::FormFieldText::Multiline)
             {
@@ -826,7 +819,7 @@ QList< FormField* > PdfPage::formFields() const
         }
         else if(formField->type() == Poppler::FormField::FormChoice)
         {
-            Poppler::FormFieldChoice* formFieldChoice = static_cast< Poppler::FormFieldChoice* >(formField);
+            auto formFieldChoice = dynamic_cast< Poppler::FormFieldChoice* >(formField);
 
             if(formFieldChoice->choiceType() == Poppler::FormFieldChoice::ListBox || formFieldChoice->choiceType() == Poppler::FormFieldChoice::ComboBox)
             {
@@ -836,7 +829,7 @@ QList< FormField* > PdfPage::formFields() const
         }
         else if(formField->type() == Poppler::FormField::FormButton)
         {
-            Poppler::FormFieldButton* formFieldButton = static_cast< Poppler::FormFieldButton* >(formField);
+            auto formFieldButton = dynamic_cast< Poppler::FormFieldButton* >(formField);
 
             if(formFieldButton->buttonType() == Poppler::FormFieldButton::CheckBox || formFieldButton->buttonType() == Poppler::FormFieldButton::Radio)
             {
@@ -878,7 +871,7 @@ Page* PdfDocument::page(int index) const
         return new PdfPage(&m_mutex, page);
     }
 
-    return 0;
+    return nullptr;
 }
 
 bool PdfDocument::isLocked() const
@@ -894,8 +887,8 @@ bool PdfDocument::unlock(const QString& password)
 
     // Poppler drops render hints and backend after unlocking so we need to restore them.
 
-    const Poppler::Document::RenderHints hints = m_document->renderHints();
-    const Poppler::Document::RenderBackend backend = m_document->renderBackend();
+    const Poppler::Document::RenderHints &hints = m_document->renderHints();
+    const Poppler::Document::RenderBackend &backend = m_document->renderBackend();
 
     const bool ok = m_document->unlock(password.toLatin1(), password.toLatin1());
 
@@ -986,11 +979,10 @@ Outline PdfDocument::outline() const
 
     LOCK_DOCUMENT
 
-    QScopedPointer< QDomDocument > toc(m_document->toc());
 
-    if(toc)
+    if(!m_document->outline().empty())
     {
-        outline = loadOutline(*toc, m_document);
+        outline = loadOutline(m_document->outline(), m_document->numPages());
     }
 
     return outline;
@@ -1014,11 +1006,9 @@ Properties PdfDocument::properties() const
         properties.push_back(qMakePair(key, value));
     }
 
-    int pdfMajorVersion = 1;
-    int pdfMinorVersion = 0;
-    m_document->getPdfVersion(&pdfMajorVersion, &pdfMinorVersion);
+    const auto& version = m_document->getPdfVersion();
 
-    properties.push_back(qMakePair(tr("PDF version"), QString("%1.%2").arg(pdfMajorVersion).arg(pdfMinorVersion)));
+    properties.push_back(qMakePair(tr("PDF version"), QString("%1.%2").arg(version.major).arg(version.minor)));
 
     properties.push_back(qMakePair(tr("Encrypted"), m_document->isEncrypted() ? tr("Yes") : tr("No")));
     properties.push_back(qMakePair(tr("Linearized"), m_document->isLinearized() ? tr("Yes") : tr("No")));
@@ -1326,7 +1316,7 @@ Model::Document* PdfPlugin::loadDocument(const QString& filePath) const
         return new Model::PdfDocument(document);
     }
 
-    return 0;
+    return nullptr;
 }
 
 SettingsWidget* PdfPlugin::createSettingsWidget(QWidget* parent) const

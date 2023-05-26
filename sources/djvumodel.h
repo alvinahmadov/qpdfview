@@ -42,24 +42,30 @@ class DjVuPlugin;
 
 namespace Model
 {
-    class DjVuPage : public Page
+    class DjVuPage final : public Page
     {
         friend class DjVuDocument;
 
     public:
-        ~DjVuPage();
+        ~DjVuPage() final = default;
 
-        QSizeF size() const;
+        DECL_NODISCARD
+        QSizeF size() const final;
 
-        QImage render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const;
+        DECL_NODISCARD
+        QImage render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const final;
 
-        QString label() const;
+        DECL_NODISCARD
+        QString label() const final;
 
-        QList< Link* > links() const;
+        DECL_NODISCARD
+        QList< Link* > links() const final;
 
-        QString text(const QRectF& rect) const;
+        DECL_NODISCARD
+        QString text(const QRectF& rect) const final;
 
-        QList< QRectF > search(const QString& text, bool matchCase, bool wholeWords) const;
+        DECL_NODISCARD
+        QList< QRectF > search(const QString& text, bool matchCase, bool wholeWords) const final;
 
     private:
         Q_DISABLE_COPY(DjVuPage)
@@ -74,25 +80,25 @@ namespace Model
 
     };
 
-    class DjVuDocument : public Document
+    class DjVuDocument final : public Document
     {
         friend class DjVuPage;
         friend class qpdfview::DjVuPlugin;
 
     public:
-        ~DjVuDocument();
+        ~DjVuDocument() final;
 
-        int numberOfPages() const;
+        int numberOfPages() const final;
 
-        Page* page(int index) const;
+        Page* page(int index) const final;
 
-        QStringList saveFilter() const;
+        QStringList saveFilter() const final;
 
-        bool canSave() const;
-        bool save(const QString& filePath, bool withChanges) const;
+        bool canSave() const final;
+        bool save(const QString& filePath, bool withChanges) const final;
 
-        Outline outline() const;
-        Properties properties() const;
+        Outline outline() const final;
+        Properties properties() const final;
 
     private:
         Q_DISABLE_COPY(DjVuDocument)
@@ -114,7 +120,7 @@ namespace Model
     };
 }
 
-class DjVuPlugin : public QObject, Plugin
+class DjVuPlugin final : public QObject, Plugin
 {
     Q_OBJECT
     Q_INTERFACES(qpdfview::Plugin)
@@ -126,9 +132,9 @@ class DjVuPlugin : public QObject, Plugin
 #endif // QT_VERSION
 
 public:
-    DjVuPlugin(QObject* parent = 0);
+    explicit DjVuPlugin(QObject* parent = nullptr);
 
-    Model::Document* loadDocument(const QString& filePath) const;
+    Model::Document* loadDocument(const QString& filePath) const final;
 
 private:
     mutable QMutex m_globalMutex;

@@ -39,22 +39,20 @@ BookmarkMenu::BookmarkMenu(const QFileInfo& fileInfo, QWidget* parent) : QMenu(p
     action->setData(fileInfo.absoluteFilePath());
 
     m_openAction = addAction(tr("&Open"));
-    m_openAction->setIcon(loadIconWithFallback(QLatin1String("document-open")));
-    m_openAction->setIconVisibleInMenu(true);
-    connect(m_openAction, SIGNAL(triggered()), SLOT(on_open_triggered()));
+    setVisibleIcon(m_openAction, loadIconWithFallback(QLatin1String("document-open")));
+    connect(m_openAction, SIGNAL(triggered()), SLOT(onOpenTriggered()));
 
     m_openInNewTabAction = addAction(tr("Open in new &tab"));
-    m_openInNewTabAction->setIcon(loadIconWithFallback(QLatin1String("tab-new")));
-    m_openInNewTabAction->setIconVisibleInMenu(true);
-    connect(m_openInNewTabAction, SIGNAL(triggered()), SLOT(on_openInNewTab_triggered()));
+    setVisibleIcon(m_openInNewTabAction, loadIconWithFallback(QLatin1String("tab-new")));
+    connect(m_openInNewTabAction, SIGNAL(triggered()), SLOT(onOpenInNewTabTriggered()));
 
     m_jumpToPageActionGroup = new QActionGroup(this);
-    connect(m_jumpToPageActionGroup, SIGNAL(triggered(QAction*)), SLOT(on_jumpToPage_triggered(QAction*)));
+    connect(m_jumpToPageActionGroup, SIGNAL(triggered(QAction*)), SLOT(onJumpToPageTriggered(QAction*)));
 
     m_separatorAction = addSeparator();
 
     m_removeBookmarkAction = addAction(tr("&Remove bookmark"));
-    connect(m_removeBookmarkAction, SIGNAL(triggered()), SLOT(on_removeBookmark_triggered()));
+    connect(m_removeBookmarkAction, SIGNAL(triggered()), SLOT(onRemoveBookmarkTriggered()));
 }
 
 void BookmarkMenu::addJumpToPageAction(int page, const QString& label)
@@ -77,15 +75,15 @@ void BookmarkMenu::addJumpToPageAction(int page, const QString& label)
         }
     }
 
-    QAction* action = new QAction(label, this);
-    action->setIcon(loadIconWithFallback(QLatin1String("go-jump")));
-    action->setIconVisibleInMenu(true);
+    auto action = new QAction(label, this);
+    setVisibleIcon(action, loadIconWithFallback(QLatin1String("go-jump")));
     action->setData(page);
 
     insertAction(before, action);
     m_jumpToPageActionGroup->addAction(action);
 }
 
+DECL_UNUSED
 void BookmarkMenu::removeJumpToPageAction(int page)
 {
     foreach(QAction* action, m_jumpToPageActionGroup->actions())
@@ -99,22 +97,22 @@ void BookmarkMenu::removeJumpToPageAction(int page)
     }
 }
 
-void BookmarkMenu::on_open_triggered()
+void BookmarkMenu::onOpenTriggered()
 {
     emit openTriggered(absoluteFilePath());
 }
 
-void BookmarkMenu::on_openInNewTab_triggered()
+void BookmarkMenu::onOpenInNewTabTriggered()
 {
     emit openInNewTabTriggered(absoluteFilePath());
 }
 
-void BookmarkMenu::on_jumpToPage_triggered(QAction* action)
+void BookmarkMenu::onJumpToPageTriggered(QAction* action)
 {
     emit jumpToPageTriggered(absoluteFilePath(), action->data().toInt());
 }
 
-void BookmarkMenu::on_removeBookmark_triggered()
+void BookmarkMenu::onRemoveBookmarkTriggered()
 {
     emit removeBookmarkTriggered(absoluteFilePath());
 }

@@ -48,11 +48,11 @@ class SettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    SettingsDialog(QWidget* parent = 0);
-    ~SettingsDialog();
+    explicit SettingsDialog(QWidget* parent = nullptr);
+    ~SettingsDialog() override;
 
 public slots:
-    void accept();
+    void accept() override;
     void reset();
     void resetCurrentTab();
 
@@ -61,59 +61,59 @@ private:
 
     static Settings* s_settings;
 
-    QTabWidget* m_graphicsTabWidget;
-    QFormLayout* m_graphicsLayout;
+    QTabWidget* m_graphicsTabWidget {};
+    QFormLayout* m_graphicsLayout {};
 
-    SettingsWidget* m_pdfSettingsWidget;
-    SettingsWidget* m_psSettingsWidget;
-    SettingsWidget* m_djvuSettingsWidget;
-    SettingsWidget* m_epubSettingsWidget;
+    SettingsWidget* m_pdfSettingsWidget {};
+    SettingsWidget* m_psSettingsWidget {};
+    SettingsWidget* m_djvuSettingsWidget {};
+    SettingsWidget* m_epubSettingsWidget {};
 
-    QTableView* m_shortcutsTableView;
+    QTableView* m_shortcutsTableView {};
 
-    QTabWidget* m_tabWidget;
-    QDialogButtonBox* m_dialogButtonBox;
-    QPushButton* m_defaultsButton;
-    QPushButton* m_defaultsOnCurrentTabButton;
+    QTabWidget* m_tabWidget {};
+    QDialogButtonBox* m_dialogButtonBox {};
+    QPushButton* m_defaultsButton {};
+    QPushButton* m_defaultsOnCurrentTabButton {};
 
-    QFormLayout* m_behaviorLayout;
-    QFormLayout* m_interfaceLayout;
+    QFormLayout* m_behaviorLayout {};
+    QFormLayout* m_interfaceLayout {};
 
-    QGroupBox* m_wheelModifiersGroupBox;
-    QFormLayout* m_wheelModifiersLayout;
+    QGroupBox* m_wheelModifiersGroupBox {};
+    QFormLayout* m_wheelModifiersLayout {};
 
-    QGroupBox* m_buttonModifiersGroupBox;
-    QFormLayout* m_buttonModifiersLayout;
+    QGroupBox* m_buttonModifiersGroupBox {};
+    QFormLayout* m_buttonModifiersLayout {};
 
     // behavior
 
-    QCheckBox* m_openUrlCheckBox;
+    QCheckBox* m_openUrlCheckBox {};
 
-    QCheckBox* m_autoRefreshCheckBox;
+    QCheckBox* m_autoRefreshCheckBox {};
 
-    QCheckBox* m_trackRecentlyUsedCheckBox;
-    QCheckBox* m_keepRecentlyClosedCheckBox;
+    QCheckBox* m_trackRecentlyUsedCheckBox {};
+    QCheckBox* m_keepRecentlyClosedCheckBox {};
 
-    QCheckBox* m_restoreTabsCheckBox;
-    QCheckBox* m_restoreBookmarksCheckBox;
-    QCheckBox* m_restorePerFileSettingsCheckBox;
-    QSpinBox* m_saveDatabaseInterval;
+    QCheckBox* m_restoreTabsCheckBox {};
+    QCheckBox* m_restoreBookmarksCheckBox {};
+    QCheckBox* m_restorePerFileSettingsCheckBox {};
+    QSpinBox* m_saveDatabaseInterval {};
 
-    QCheckBox* m_synchronizePresentationCheckBox;
-    QSpinBox* m_presentationScreenSpinBox;
+    QCheckBox* m_synchronizePresentationCheckBox {};
+    QSpinBox* m_presentationScreenSpinBox {};
 
-    QCheckBox* m_synchronizeOutlineViewCheckBox;
-    QCheckBox* m_synchronizeSplitViewsCheckBox;
+    QCheckBox* m_synchronizeOutlineViewCheckBox {};
+    QCheckBox* m_synchronizeSplitViewsCheckBox {};
 
-    QCheckBox* m_minimalScrollingCheckBox;
-    QDoubleSpinBox* m_zoomFactorSpinBox;
-    QCheckBox* m_parallelSearchExecutionCheckBox;
+    QCheckBox* m_minimalScrollingCheckBox {};
+    QDoubleSpinBox* m_zoomFactorSpinBox {};
+    QCheckBox* m_parallelSearchExecutionCheckBox {};
 
-    QSpinBox* m_highlightDurationSpinBox;
-    QComboBox* m_highlightColorComboBox;
-    QComboBox* m_annotationColorComboBox;
+    QSpinBox* m_highlightDurationSpinBox {};
+    QComboBox* m_highlightColorComboBox {};
+    QComboBox* m_annotationColorComboBox {};
 
-    QLineEdit* m_sourceEditorLineEdit;
+    QLineEdit* m_sourceEditorLineEdit {};
 
     void createBehaviorTab();
     void acceptBehaivorTab();
@@ -121,28 +121,28 @@ private:
 
     // graphics
 
-    QCheckBox* m_useTilingCheckBox;
-    QCheckBox* m_keepObsoletePixmapsCheckBox;
-    QCheckBox* m_useDevicePixelRatioCheckBox;
+    QCheckBox* m_useTilingCheckBox {};
+    QCheckBox* m_keepObsoletePixmapsCheckBox {};
+    QCheckBox* m_useDevicePixelRatioCheckBox {};
 
-    QCheckBox* m_decoratePagesCheckBox;
-    QCheckBox* m_decorateLinksCheckBox;
-    QCheckBox* m_decorateFormFieldsCheckBox;
+    QCheckBox* m_decoratePagesCheckBox {};
+    QCheckBox* m_decorateLinksCheckBox {};
+    QCheckBox* m_decorateFormFieldsCheckBox {};
 
-    QComboBox* m_backgroundColorComboBox;
-    QComboBox* m_paperColorComboBox;
-    QComboBox* m_presentationBackgroundColorComboBox;
+    QComboBox* m_backgroundColorComboBox {};
+    QComboBox* m_paperColorComboBox {};
+    QComboBox* m_presentationBackgroundColorComboBox {};
 
-    QSpinBox* m_pagesPerRowSpinBox;
+    QSpinBox* m_pagesPerRowSpinBox {};
 
-    QDoubleSpinBox* m_pageSpacingSpinBox;
-    QDoubleSpinBox* m_thumbnailSpacingSpinBox;
+    QDoubleSpinBox* m_pageSpacingSpinBox {};
+    QDoubleSpinBox* m_thumbnailSpacingSpinBox {};
 
-    QDoubleSpinBox* m_thumbnailSizeSpinBox;
+    QDoubleSpinBox* m_thumbnailSizeSpinBox {};
 
-    QComboBox* m_cacheSizeComboBox;
-    QCheckBox* m_prefetchCheckBox;
-    QSpinBox* m_prefetchDistanceSpinBox;
+    QComboBox* m_cacheSizeComboBox {};
+    QCheckBox* m_prefetchCheckBox {};
+    QSpinBox* m_prefetchDistanceSpinBox {};
 
     void createGraphicsTab();
     void acceptGraphicsTab();
@@ -150,43 +150,43 @@ private:
 
     // interface
 
-    QCheckBox* m_extendedSearchDock;
+    QCheckBox* m_extendedSearchDock {};
 
-    QCheckBox* m_annotationOverlayCheckBox;
-    QCheckBox* m_formFieldOverlayCheckBox;
+    QCheckBox* m_annotationOverlayCheckBox {};
+    QCheckBox* m_formFieldOverlayCheckBox {};
 
-	QComboBox* m_backgroundModeComboBox;
+	QComboBox* m_backgroundModeComboBox {};
 
-    QComboBox* m_tabPositionComboBox;
-    QComboBox* m_tabVisibilityComboBox;
-    QCheckBox* m_spreadTabsCheckBox;
+    QComboBox* m_tabPositionComboBox {};
+    QComboBox* m_tabVisibilityComboBox {};
+    QCheckBox* m_spreadTabsCheckBox {};
 
-    QCheckBox* m_newTabNextToCurrentTabCheckBox;
-    QCheckBox* m_exitAfterLastTabCheckBox;
+    QCheckBox* m_newTabNextToCurrentTabCheckBox {};
+    QCheckBox* m_exitAfterLastTabCheckBox {};
 
-    QSpinBox* m_recentlyUsedCountSpinBox;
-    QSpinBox* m_recentlyClosedCountSpinBox;
+    QSpinBox* m_recentlyUsedCountSpinBox {};
+    QSpinBox* m_recentlyClosedCountSpinBox {};
 
-    QLineEdit* m_fileToolBarLineEdit;
-    QLineEdit* m_editToolBarLineEdit;
-    QLineEdit* m_viewToolBarLineEdit;
+    QLineEdit* m_fileToolBarLineEdit {};
+    QLineEdit* m_editToolBarLineEdit {};
+    QLineEdit* m_viewToolBarLineEdit {};
 
-    QLineEdit* m_documentContextMenuLineEdit;
-    QLineEdit* m_tabContextMenuLineEdit;
+    QLineEdit* m_documentContextMenuLineEdit {};
+    QLineEdit* m_tabContextMenuLineEdit {};
 
-    QCheckBox* m_scrollableMenusCheckBox;
-    QCheckBox* m_searchableMenusCheckBox;
+    QCheckBox* m_scrollableMenusCheckBox {};
+    QCheckBox* m_searchableMenusCheckBox {};
 
-    QCheckBox* m_toggleToolAndMenuBarsWithFullscreenCheckBox;
+    QCheckBox* m_toggleToolAndMenuBarsWithFullscreenCheckBox {};
 
-    QCheckBox* m_usePageLabelCheckBox;
-    QCheckBox* m_documentTitleAsTabTitleCheckBox;
+    QCheckBox* m_usePageLabelCheckBox {};
+    QCheckBox* m_documentTitleAsTabTitleCheckBox {};
 
-    QCheckBox* m_currentPageInWindowTitleCheckBox;
-    QCheckBox* m_instanceNameInWindowTitleCheckBox;
+    QCheckBox* m_currentPageInWindowTitleCheckBox {};
+    QCheckBox* m_instanceNameInWindowTitleCheckBox {};
 
-    QCheckBox* m_highlightCurrentThumbnailCheckBox;
-    QCheckBox* m_limitThumbnailsToResultsCheckBox;
+    QCheckBox* m_highlightCurrentThumbnailCheckBox {};
+    QCheckBox* m_limitThumbnailsToResultsCheckBox {};
 
     void createInterfaceTab();
     void acceptInterfaceTab();
@@ -194,14 +194,14 @@ private:
 
     // modifiers
 
-    QComboBox* m_zoomModifiersComboBox;
-    QComboBox* m_rotateModifiersComboBox;
-    QComboBox* m_scrollModifiersComboBox;
+    QComboBox* m_zoomModifiersComboBox {};
+    QComboBox* m_rotateModifiersComboBox {};
+    QComboBox* m_scrollModifiersComboBox {};
 
-    QComboBox* m_copyToClipboardModifiersComboBox;
-    QComboBox* m_addAnnotationModifiersComboBox;
-    QComboBox* m_zoomToSelectionModifiersComboBox;
-    QComboBox* m_openInSourceEditorModifiersComboBox;
+    QComboBox* m_copyToClipboardModifiersComboBox {};
+    QComboBox* m_addAnnotationModifiersComboBox {};
+    QComboBox* m_zoomToSelectionModifiersComboBox {};
+    QComboBox* m_openInSourceEditorModifiersComboBox {};
 
     void createModifiersTab();
     void acceptModifiersTab();

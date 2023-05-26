@@ -24,6 +24,7 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDateTime>
 #include <QDialogButtonBox>
 #include <QFormLayout>
+#include <QLocale>
 #include <QLineEdit>
 #include <QTextEdit>
 
@@ -38,7 +39,7 @@ BookmarkDialog::BookmarkDialog(BookmarkItem& bookmark, QWidget* parent) : QDialo
 {
     setWindowTitle(tr("Bookmark"));
 
-    QFormLayout* formLayout = new QFormLayout(this);
+    auto formLayout = new QFormLayout(this);
     setLayout(formLayout);
 
     m_pageEdit = new QLineEdit(this);
@@ -59,7 +60,7 @@ BookmarkDialog::BookmarkDialog(BookmarkItem& bookmark, QWidget* parent) : QDialo
 
     m_modifiedEdit = new QLineEdit(this);
     m_modifiedEdit->setReadOnly(true);
-    m_modifiedEdit->setText(m_bookmark.modified.toString(Qt::SystemLocaleLongDate));
+    m_modifiedEdit->setText(QLocale().toString(m_bookmark.modified));
 
     formLayout->addRow(tr("Modified:"), m_modifiedEdit);
 

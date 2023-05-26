@@ -26,9 +26,10 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace qpdfview
 {
-
-static inline bool operator<(int page, const BookmarkItem& bookmark) { return page < bookmark.page; }
-static inline bool operator<(const BookmarkItem& bookmark, int page) { return bookmark.page < page; }
+DECL_UNUSED
+static inline bool operator==(int page, const BookmarkItem& item) { return item.page == page; }
+DECL_UNUSED
+static inline bool operator!=(int page, const BookmarkItem& item) { return item.page != page; }
 
 QHash< QString, BookmarkModel* > BookmarkModel::s_instances;
 
@@ -36,7 +37,7 @@ BookmarkModel* BookmarkModel::fromPath(const QString& path, bool create)
 {
     BookmarkModel* model = s_instances.value(path, 0);
 
-    if(create && model == 0)
+    if(create && model == nullptr)
     {
         model = new BookmarkModel(qApp);
 
@@ -64,8 +65,8 @@ void BookmarkModel::removeAllPaths()
 
 void BookmarkModel::addBookmark(const BookmarkItem& bookmark)
 {
-    const QVector< BookmarkItem >::iterator at = qLowerBound(m_bookmarks.begin(), m_bookmarks.end(), bookmark.page);
-    const int row = at - m_bookmarks.begin();
+    const QVector< BookmarkItem >::iterator at = std::lower_bound(m_bookmarks.begin(), m_bookmarks.end(), bookmark);
+    const int row = m_bookmarks.indexOf(*at);
 
     if(at != m_bookmarks.end() && at->page == bookmark.page)
     {
@@ -85,8 +86,8 @@ void BookmarkModel::addBookmark(const BookmarkItem& bookmark)
 
 void BookmarkModel::removeBookmark(const BookmarkItem& bookmark)
 {
-    const QVector< BookmarkItem >::iterator at = qBinaryFind(m_bookmarks.begin(), m_bookmarks.end(), bookmark.page);
-    const int row = at - m_bookmarks.begin();
+    QVector< BookmarkItem >::iterator at = std::find(m_bookmarks.begin(), m_bookmarks.end(), bookmark);
+    const int row = m_bookmarks.indexOf(*at);
 
     if(at != m_bookmarks.end())
     {
@@ -100,9 +101,9 @@ void BookmarkModel::removeBookmark(const BookmarkItem& bookmark)
 
 void BookmarkModel::findBookmark(BookmarkItem& bookmark) const
 {
-    const QVector< BookmarkItem >::const_iterator at = qBinaryFind(m_bookmarks.constBegin(), m_bookmarks.constEnd(), bookmark.page);
+    const QVector< BookmarkItem >::const_iterator at = std::find(m_bookmarks.cbegin(), m_bookmarks.cend(), bookmark);
 
-    if(at != m_bookmarks.constEnd())
+    if(at != m_bookmarks.cend())
     {
         bookmark = *at;
     }
@@ -127,7 +128,7 @@ QVariant BookmarkModel::data(const QModelIndex& index, int role) const
 {
     if(!index.isValid() || index.row() >= m_bookmarks.count())
     {
-        return QVariant();
+        return {};
     }
 
     const BookmarkItem& bookmark = m_bookmarks.at(index.row());
@@ -135,7 +136,7 @@ QVariant BookmarkModel::data(const QModelIndex& index, int role) const
     switch(role)
     {
     default:
-        return QVariant();
+        return {};
     case PageRole:
         return bookmark.page;
     case LabelRole:

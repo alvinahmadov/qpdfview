@@ -42,7 +42,7 @@ HelpDialog::HelpDialog(QWidget* parent) : QDialog(parent)
 
     m_textBrowser = new QTextBrowser(this);
     m_textBrowser->setTextInteractionFlags(Qt::TextBrowserInteraction | Qt::TextSelectableByKeyboard);
-    m_textBrowser->setSearchPaths(QStringList() << QDir(QApplication::applicationDirPath()).filePath("data") << DATA_INSTALL_PATH << ":/");
+    m_textBrowser->setSearchPaths(QStringList() << QDir(QApplication::applicationDirPath()).filePath(APP_DIR_DATA_PATH) << DATA_INSTALL_PATH << ":/");
 
     //: Please replace by file name of localized help if available, e.g. "help_fr.html".
     m_textBrowser->setSource(QUrl::fromLocalFile(tr("help.html")));
@@ -57,23 +57,23 @@ HelpDialog::HelpDialog(QWidget* parent) : QDialog(parent)
     connect(m_dialogButtonBox, SIGNAL(rejected()), SLOT(reject()));
 
     m_searchLineEdit = new QLineEdit(this);
-    connect(m_searchLineEdit, SIGNAL(returnPressed()), SLOT(on_findNext_triggered()));
-    connect(m_searchLineEdit, SIGNAL(textEdited(QString)), SLOT(on_search_textEdited()));
+    connect(m_searchLineEdit, SIGNAL(returnPressed()), SLOT(onFindNextTriggered()));
+    connect(m_searchLineEdit, SIGNAL(textEdited(QString)), SLOT(onSearchTextEdited()));
 
     m_findPreviousButton = m_dialogButtonBox->addButton(tr("Find previous"), QDialogButtonBox::ActionRole);
     m_findPreviousButton->setShortcut(QKeySequence::FindPrevious);
-    connect(m_findPreviousButton, SIGNAL(clicked()), SLOT(on_findPrevious_triggered()));
+    connect(m_findPreviousButton, SIGNAL(clicked()), SLOT(onFindPreviousTriggered()));
 
     m_findNextButton = m_dialogButtonBox->addButton(tr("Find next"), QDialogButtonBox::ActionRole);
     m_findNextButton->setShortcut(QKeySequence::FindNext);
-    connect(m_findNextButton, SIGNAL(clicked()), SLOT(on_findNext_triggered()));
+    connect(m_findNextButton, SIGNAL(clicked()), SLOT(onFindNextTriggered()));
 
     // Default buttons would interfere with search funtionality...
     foreach(QAbstractButton* abstractButton, m_dialogButtonBox->buttons())
     {
-        QPushButton* pushButton = qobject_cast< QPushButton* >(abstractButton);
+        auto pushButton = qobject_cast< QPushButton* >(abstractButton);
 
-        if(pushButton != 0)
+        if(pushButton != nullptr)
         {
             pushButton->setAutoDefault(false);
             pushButton->setDefault(false);
@@ -85,7 +85,7 @@ HelpDialog::HelpDialog(QWidget* parent) : QDialog(parent)
     layout()->addWidget(m_searchLineEdit);
     layout()->addWidget(m_dialogButtonBox);
 
-    resize(Settings::instance()->mainWindow().contentsDialogSize(sizeHint()));
+    resize(Settings::instance()->mainWindow().contentsDialogSize({}));
 
     m_searchLineEdit->setFocus();
 }
@@ -95,7 +95,7 @@ HelpDialog::~HelpDialog()
     Settings::instance()->mainWindow().setContentsDialogSize(size());
 }
 
-void HelpDialog::on_findPrevious_triggered()
+void HelpDialog::onFindPreviousTriggered()
 {
     if(!m_searchLineEdit->text().isEmpty() && m_textBrowser->find(m_searchLineEdit->text(), QTextDocument::FindBackward))
     {
@@ -109,7 +109,7 @@ void HelpDialog::on_findPrevious_triggered()
     }
 }
 
-void HelpDialog::on_findNext_triggered()
+void HelpDialog::onFindNextTriggered()
 {
     if(!m_searchLineEdit->text().isEmpty() && m_textBrowser->find(m_searchLineEdit->text()))
     {
@@ -124,7 +124,7 @@ void HelpDialog::on_findNext_triggered()
     }
 }
 
-void HelpDialog::on_search_textEdited()
+void HelpDialog::onSearchTextEdited()
 {
     m_searchLineEdit->setStyleSheet(QString());
 }

@@ -46,7 +46,7 @@ class PluginHandler : public QObject
 
 public:
     static PluginHandler* instance();
-    ~PluginHandler();
+    ~PluginHandler() override;
 
     enum FileType
     {
@@ -71,13 +71,13 @@ public:
 
     Model::Document* loadDocument(const QString& filePath);
 
-    SettingsWidget* createSettingsWidget(FileType fileType, QWidget* parent = 0);
+    SettingsWidget* createSettingsWidget(FileType fileType, QWidget* parent = nullptr);
 
 private:
     Q_DISABLE_COPY(PluginHandler)
 
     static PluginHandler* s_instance;
-    PluginHandler(QObject* parent = 0);
+    explicit PluginHandler(QObject* parent = nullptr);
 
     QMap< FileType, Plugin* > m_plugins;
 

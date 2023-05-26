@@ -39,25 +39,35 @@ class PageItem;
 struct DocumentLayout
 {
     DocumentLayout();
-    virtual ~DocumentLayout() {}
+    virtual ~DocumentLayout() = default;
 
     static DocumentLayout* fromLayoutMode(LayoutMode layoutMode);
 
+    DECL_NODISCARD
     virtual LayoutMode layoutMode() const = 0;
 
+    DECL_NODISCARD
     virtual int currentPage(int page) const = 0;
+    DECL_NODISCARD
     virtual int previousPage(int page) const = 0;
+    DECL_NODISCARD
     virtual int nextPage(int page, int count) const = 0;
 
-    bool isCurrentPage(const QRectF& visibleRect, const QRectF& pageRect) const;
+    DECL_NODISCARD
+    static bool isCurrentPage(const QRectF& visibleRect, const QRectF& pageRect);
 
+    DECL_NODISCARD
     virtual QPair< int, int > prefetchRange(int page, int count) const = 0;
 
+    DECL_NODISCARD
     virtual int leftIndex(int index) const = 0;
+    DECL_NODISCARD
     virtual int rightIndex(int index, int count) const = 0;
 
+    DECL_NODISCARD
     virtual qreal visibleWidth(int viewportWidth) const = 0;
-    qreal visibleHeight(int viewportHeight) const;
+    DECL_NODISCARD
+    static qreal visibleHeight(int viewportHeight);
 
     virtual void prepareLayout(const QVector< PageItem* >& pageItems, bool rightToLeft,
                                qreal& left, qreal& right, qreal& height) = 0;
@@ -69,72 +79,100 @@ protected:
 
 struct SinglePageLayout : public DocumentLayout
 {
-    LayoutMode layoutMode() const { return SinglePageMode; }
+    DECL_NODISCARD
+    LayoutMode layoutMode() const override { return SinglePageMode; }
 
-    int currentPage(int page) const;
-    int previousPage(int page) const;
-    int nextPage(int page, int count) const;
+    DECL_NODISCARD
+    int currentPage(int page) const override;
+    DECL_NODISCARD
+    int previousPage(int page) const override;
+    DECL_NODISCARD
+    int nextPage(int page, int count) const override;
 
-    QPair< int, int > prefetchRange(int page, int count) const;
+    DECL_NODISCARD
+    QPair< int, int > prefetchRange(int page, int count) const override;
 
-    int leftIndex(int index) const;
-    int rightIndex(int index, int count) const;
+    DECL_NODISCARD
+    int leftIndex(int index) const override;
+    DECL_NODISCARD
+    int rightIndex(int index, int count) const override;
 
-    qreal visibleWidth(int viewportWidth) const;
+    DECL_NODISCARD
+    qreal visibleWidth(int viewportWidth) const override;
 
     void prepareLayout(const QVector< PageItem* >& pageItems, bool rightToLeft,
-                       qreal& left, qreal& right, qreal& height);
+                       qreal& left, qreal& right, qreal& height) override;
 
 };
 
 struct TwoPagesLayout : public DocumentLayout
 {
-    LayoutMode layoutMode() const { return TwoPagesMode; }
+    DECL_NODISCARD
+    LayoutMode layoutMode() const override { return TwoPagesMode; }
 
-    int currentPage(int page) const;
-    int previousPage(int page) const;
-    int nextPage(int page, int count) const;
+    DECL_NODISCARD
+    int currentPage(int page) const override;
+    DECL_NODISCARD
+    int previousPage(int page) const override;
+    DECL_NODISCARD
+    int nextPage(int page, int count) const override;
 
-    QPair< int, int > prefetchRange(int page, int count) const;
+    DECL_NODISCARD
+    QPair< int, int > prefetchRange(int page, int count) const override;
 
-    int leftIndex(int index) const;
-    int rightIndex(int index, int count) const;
+    DECL_NODISCARD
+    int leftIndex(int index) const override;
+    DECL_NODISCARD
+    int rightIndex(int index, int count) const override;
 
-    qreal visibleWidth(int viewportWidth) const;
+    DECL_NODISCARD
+    qreal visibleWidth(int viewportWidth) const override;
 
     void prepareLayout(const QVector< PageItem* >& pageItems, bool rightToLeft,
-                       qreal& left, qreal& right, qreal& height);
+                       qreal& left, qreal& right, qreal& height) override;
 
 };
 
 struct TwoPagesWithCoverPageLayout : public TwoPagesLayout
 {
-    LayoutMode layoutMode() const { return TwoPagesWithCoverPageMode; }
+    DECL_NODISCARD
+    LayoutMode layoutMode() const override { return TwoPagesWithCoverPageMode; }
 
-    int currentPage(int page) const;
+    DECL_NODISCARD
+    int currentPage(int page) const override;
 
-    int leftIndex(int index) const;
-    int rightIndex(int index, int count) const;
+    DECL_NODISCARD
+    int leftIndex(int index) const override;
+    DECL_NODISCARD
+    int rightIndex(int index, int count) const override;
 
 };
 
 struct MultiplePagesLayout : public DocumentLayout
 {
-    LayoutMode layoutMode() const { return MultiplePagesMode; }
+    DECL_NODISCARD
+    LayoutMode layoutMode() const override { return MultiplePagesMode; }
 
-    int currentPage(int page) const;
-    int previousPage(int page) const;
-    int nextPage(int page, int count) const;
+    DECL_NODISCARD
+    int currentPage(int page) const override;
+    DECL_NODISCARD
+    int previousPage(int page) const override;
+    DECL_NODISCARD
+    int nextPage(int page, int count) const override;
 
-    QPair< int, int > prefetchRange(int page, int count) const;
+    DECL_NODISCARD
+    QPair< int, int > prefetchRange(int page, int count) const override;
 
-    int leftIndex(int index) const;
-    int rightIndex(int index, int count) const;
+    DECL_NODISCARD
+    int leftIndex(int index) const override;
+    DECL_NODISCARD
+    int rightIndex(int index, int count) const override;
 
-    qreal visibleWidth(int viewportWidth) const;
+    DECL_NODISCARD
+    qreal visibleWidth(int viewportWidth) const override;
 
     void prepareLayout(const QVector< PageItem* >& pageItems, bool rightToLeft,
-                       qreal& left, qreal& right, qreal& height);
+                       qreal& left, qreal& right, qreal& height) override;
 
 };
 

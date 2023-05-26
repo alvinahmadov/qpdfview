@@ -1,53 +1,41 @@
 /*
-
-Copyright 2013 Adam Reichold
-
+Copyright 2020 vit9696
 This file is part of qpdfview.
-
 qpdfview is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
-
 qpdfview is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-
 You should have received a copy of the GNU General Public License
 along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
-
 */
 
-#ifndef FONTSDIALOG_H
-#define FONTSDIALOG_H
+#ifndef APPLICATION_H
+#define APPLICATION_H
 
-#include <QDialog>
-
-class QAbstractItemModel;
-class QDialogButtonBox;
-class QTableView;
+#include <QApplication>
+#include <QEvent>
 
 namespace qpdfview
 {
 
-class FontsDialog : public QDialog
+class MainWindow;
+
+class Application : public QApplication
 {
     Q_OBJECT
 
+    MainWindow* m_window;
+
 public:
-    explicit FontsDialog(QAbstractItemModel* model, QWidget* parent = nullptr);
-    ~FontsDialog() override;
-
-private:
-    Q_DISABLE_COPY(FontsDialog)
-
-    QTableView* m_tableView;
-
-    QDialogButtonBox* m_dialogButtonBox;
-
+    Application(int& argc, char** argv);
+    void setMainWindow(MainWindow* window);
+    bool event(QEvent* event) override;
 };
 
 } // qpdfview
 
-#endif // FONTSDIALOG_H
+#endif // APPLICATION_H

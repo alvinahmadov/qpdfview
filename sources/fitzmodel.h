@@ -35,8 +35,8 @@ extern "C"
 
 #include <mupdf/fitz/context.h>
 
-typedef struct fz_page_s fz_page;
-typedef struct fz_document_s fz_document;
+typedef struct fz_page fz_page;
+typedef struct fz_document fz_document;
 
 }
 
@@ -49,22 +49,27 @@ class FitzPlugin;
 
 namespace Model
 {
-    class FitzPage : public Page
+    class FitzPage final : public Page
     {
         friend class FitzDocument;
 
     public:
-        ~FitzPage();
+        ~FitzPage() final;
 
-        QSizeF size() const;
+        DECL_NODISCARD
+        QSizeF size() const final;
 
-        QImage render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const;
+        DECL_NODISCARD
+        QImage render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const final;
 
-        QList< Link* > links() const;
+        DECL_NODISCARD
+        QList< Link* > links() const final;
 
-        QString text(const QRectF& rect) const;
+        DECL_NODISCARD
+        QString text(const QRectF& rect) const final;
 
-        QList< QRectF > search(const QString& text, bool matchCase, bool wholeWords) const;
+        DECL_NODISCARD
+        QList< QRectF > search(const QString& text, bool matchCase, bool wholeWords) const final;
 
     private:
         Q_DISABLE_COPY(FitzPage)
@@ -74,26 +79,34 @@ namespace Model
         const class FitzDocument* m_parent;
 
         fz_page* m_page;
+        const fz_rect m_boundingRect;
+
+        struct DisplayList;
+        mutable DisplayList* m_displayList;
 
     };
 
-    class FitzDocument : public Document
+    class FitzDocument final : public Document
     {
         friend class FitzPage;
         friend class qpdfview::FitzPlugin;
 
     public:
-        ~FitzDocument();
+        ~FitzDocument() final;
 
-        int numberOfPages() const;
+        DECL_NODISCARD
+        int numberOfPages() const final;
 
-        Page* page(int index) const;
+        DECL_NODISCARD
+        Page* page(int index) const final;
 
-        bool canBePrintedUsingCUPS() const;
+        DECL_NODISCARD
+        bool canBePrintedUsingCUPS() const final;
 
-        void setPaperColor(const QColor& paperColor);
+        void setPaperColor(const QColor& paperColor) final;
 
-        Outline outline() const;
+        DECL_NODISCARD
+        Outline outline() const final;
 
     private:
         Q_DISABLE_COPY(FitzDocument)
@@ -109,16 +122,16 @@ namespace Model
     };
 }
 
-class FitzSettingsWidget : public SettingsWidget
+class FitzSettingsWidget final : public SettingsWidget
 {
 Q_OBJECT
 
 public:
-	FitzSettingsWidget(QSettings* settings, QWidget* parent = 0);
+	explicit FitzSettingsWidget(QSettings* settings, QWidget* parent = nullptr);
 
-	void accept();
+	void accept() final;
 
-	void reset();
+	void reset() final;
 
 private:
 	Q_DISABLE_COPY(FitzSettingsWidget)
@@ -135,7 +148,7 @@ private:
 	QSpinBox* m_verticalMarginSpinBox;
 };
 
-class FitzPlugin : public QObject, Plugin
+class FitzPlugin final : public QObject, Plugin
 {
     Q_OBJECT
     Q_INTERFACES(qpdfview::Plugin)
@@ -147,19 +160,21 @@ class FitzPlugin : public QObject, Plugin
 #endif // QT_VERSION
 
 public:
-    FitzPlugin(QObject* parent = 0);
-    ~FitzPlugin();
+    explicit FitzPlugin(QObject* parent = nullptr);
+    ~FitzPlugin() final;
 
-    Model::Document* loadDocument(const QString& filePath) const;
+    DECL_NODISCARD
+    Model::Document* loadDocument(const QString& filePath) const final;
 
-    SettingsWidget* createSettingsWidget(QWidget* parent) const;
+    DECL_NODISCARD
+    SettingsWidget* createSettingsWidget(QWidget* parent) const final;
 
 private:
 	Q_DISABLE_COPY(FitzPlugin)
 
 	QSettings* m_settings;
     QMutex m_mutex[FZ_LOCK_MAX];
-    fz_locks_context m_locks_context;
+    fz_locks_context m_locksContext;
     fz_context* m_context;
 
     static void lock(void* user, int lock);

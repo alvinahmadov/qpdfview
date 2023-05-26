@@ -32,18 +32,17 @@ class SearchItemDelegate : public QStyledItemDelegate
     Q_OBJECT
 
 public:
-    explicit SearchItemDelegate(QObject* parent = 0);
+    explicit SearchItemDelegate(QObject* parent = nullptr);
 
-    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
 private:
-    void paintProgress(QPainter* painter, const QStyleOptionViewItem& option,
-                       int progress) const;
-    void paintText(QPainter* painter, const QStyleOptionViewItem& option,
-                   const QString& matchedText, const QString& surroundingText) const;
-
+    static void paintProgress(QPainter* painter, const QStyleOptionViewItem& option,
+                              int progress);
+    static void paintText(QPainter* painter, const QStyleOptionViewItem& option,
+                          const QString& matchedText, const QString& surroundingText);
 };
 
-} // qpdfview
+}   // qpdfview
 
-#endif // SEARCHITEMDELEGATE_H
+#endif   // SEARCHITEMDELEGATE_H

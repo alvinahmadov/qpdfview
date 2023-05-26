@@ -39,7 +39,7 @@ class SearchTask : public QThread
     Q_OBJECT
 
 public:
-    explicit SearchTask(QObject* parent = 0);
+    explicit SearchTask(QObject* parent = nullptr);
 
     bool wasCanceled() const { return loadCancellation() != NotCanceled; }
     int progress() const { return acquireProgress(); }
@@ -48,7 +48,7 @@ public:
     bool matchCase() const { return m_matchCase; }
     bool wholeWords() const { return m_wholeWords; }
 
-    void run();
+    void run() override;
 
 signals:
     void progressChanged(int progress);
@@ -111,12 +111,12 @@ inline void SearchTask::resetCancellation()
 
 inline bool SearchTask::testCancellation()
 {
-    return m_wasCanceled.load() != NotCanceled;
+    return m_wasCanceled.loadRelaxed() != NotCanceled;
 }
 
 inline int SearchTask::loadCancellation() const
 {
-    return m_wasCanceled.load();
+    return m_wasCanceled.loadRelaxed();
 }
 
 inline void SearchTask::releaseProgress(int value)
@@ -131,7 +131,7 @@ inline int SearchTask::acquireProgress() const
 
 inline int SearchTask::loadProgress() const
 {
-    return m_progress.load();
+    return m_progress.loadRelaxed();
 }
 
 #else

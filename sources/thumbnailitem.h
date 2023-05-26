@@ -45,13 +45,15 @@ class ThumbnailItem : public PageItem
     Q_OBJECT
 
 public:
-    ThumbnailItem(Model::Page* page, const QString& text, int index, QGraphicsItem* parent = 0);
+    ThumbnailItem(Model::Page* page, const QString& text, int index, QGraphicsItem* parent = nullptr);
 
-    QRectF boundingRect() const;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    DECL_NODISCARD
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 #if QT_VERSION >= QT_VERSION_CHECK(4,7,0)
 
+    DECL_NODISCARD
     QString text() const { return m_text.text(); }
     void setText(const QString& text) { m_text.setText(text); }
 
@@ -62,18 +64,21 @@ public:
 
 #endif // QT_VERSION
 
+    DECL_NODISCARD
     qreal textHeight() const;
 
+    DECL_UNUSED
+    DECL_NODISCARD
     bool isHighlighted() const { return m_isHighlighted; }
     void setHighlighted(bool highlighted);
 
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent* event);
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent*);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent*);
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
 
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent*);
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 
 private:
     Q_DISABLE_COPY(ThumbnailItem)

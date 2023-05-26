@@ -22,6 +22,8 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PRINTDIALOG_H
 #define PRINTDIALOG_H
 
+#include "macros.h"
+
 #include <QPrintDialog>
 
 class QCheckBox;
@@ -43,12 +45,13 @@ class PrintDialog : public QPrintDialog
 public:
     static QPrinter* createPrinter();
 
-    PrintDialog(QPrinter* printer, QWidget* parent = 0);
+    explicit PrintDialog(QPrinter* printer, QWidget* parent = nullptr);
 
+    DECL_NODISCARD
     PrintOptions printOptions() const;
 
 public slots:
-    void accept();
+    void accept() override;
 
 private:
     Q_DISABLE_COPY(PrintDialog)

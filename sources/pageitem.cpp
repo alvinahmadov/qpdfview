@@ -69,7 +69,7 @@ inline bool modifiersUseMouseButton(Settings* settings, Qt::MouseButton mouseBut
 
 } // anonymous
 
-Settings* PageItem::s_settings = 0;
+Settings* PageItem::s_settings = nullptr;
 
 PageItem::PageItem(Model::Page* page, int index, PaintMode paintMode, QGraphicsItem* parent) : QGraphicsObject(parent),
     m_page(page),
@@ -78,7 +78,7 @@ PageItem::PageItem(Model::Page* page, int index, PaintMode paintMode, QGraphicsI
     m_index(index),
     m_paintMode(paintMode),
     m_highlights(),
-    m_loadInteractiveElements(0),
+    m_loadInteractiveElements(),
     m_links(),
     m_annotations(),
     m_formFields(),
@@ -92,7 +92,7 @@ PageItem::PageItem(Model::Page* page, int index, PaintMode paintMode, QGraphicsI
     m_boundingRect(),
     m_tileItems()
 {
-    if(s_settings == 0)
+    if(s_settings == nullptr)
     {
         s_settings = Settings::instance();
     }
@@ -114,12 +114,12 @@ PageItem::PageItem(Model::Page* page, int index, PaintMode paintMode, QGraphicsI
 
 PageItem::~PageItem()
 {
-    if(m_loadInteractiveElements != 0)
+    if(m_loadInteractiveElements != nullptr)
     {
         m_loadInteractiveElements->waitForFinished();
 
         delete m_loadInteractiveElements;
-        m_loadInteractiveElements = 0;
+        m_loadInteractiveElements = nullptr;
     }
 
     hideAnnotationOverlay(false);
@@ -178,12 +178,12 @@ QSizeF PageItem::displayedSize(const RenderParam& renderParam) const
     default:
     case RotateBy0:
     case RotateBy180:
-        return QSizeF(renderParam.resolutionX() / 72.0 * cropWidth * m_size.width(),
-                      renderParam.resolutionY() / 72.0 * cropHeight * m_size.height());
+        return {renderParam.resolutionX() / 72.0 * cropWidth * m_size.width(),
+                renderParam.resolutionY() / 72.0 * cropHeight * m_size.height()};
     case RotateBy90:
     case RotateBy270:
-        return QSizeF(renderParam.resolutionX() / 72.0 * cropHeight * m_size.height(),
-                      renderParam.resolutionY() / 72.0 * cropWidth * m_size.width());
+        return {renderParam.resolutionX() / 72.0 * cropHeight * m_size.height(),
+                renderParam.resolutionY() / 72.0 * cropWidth * m_size.width()};
     }
 }
 
@@ -376,6 +376,7 @@ void PageItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 
                     if(link->urlOrFileName.isNull())
                     {
+                        //TODO (feature): Replace tooltip to preview modal
                         QToolTip::showText(event->screenPos(), tr("Go to page %1.").arg(link->page));
                     }
                     else
@@ -441,7 +442,7 @@ void PageItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 void PageItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     const bool leftButtonActive = event->button() == Qt::LeftButton;
-    const bool middleButtonActive = event->button() == Qt::MidButton;
+    const bool middleButtonActive = event->button() == Qt::MiddleButton;
     const bool anyButtonActive = leftButtonActive || middleButtonActive;
 
     const bool noModifiersActive = event->modifiers() == Qt::NoModifier;
@@ -573,11 +574,17 @@ void PageItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     if(!m_rubberBand.isNull())
     {
-        if(m_boundingRect.contains(event->pos()))
+        const QPointF pos = event->pos();
+        if(m_boundingRect.contains(pos))
         {
-            m_rubberBand.setBottomRight(event->pos());
+            QRectF rubberBand = m_rubberBand;
+            rubberBand.setBottomRight(pos);
 
-            update();
+            if(!rubberBand.isNull())
+            {
+                m_rubberBand = rubberBand;
+                update();
+            }
 
             event->accept();
             return;
@@ -665,7 +672,7 @@ void PageItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     event->ignore();
 }
 
-void PageItem::on_loadInteractiveElements_finished()
+void PageItem::onLoadInteractiveElementsFinished()
 {
     update();
 }
@@ -727,13 +734,13 @@ bool PageItem::useTiling() const
 
 void PageItem::startLoadInteractiveElements()
 {
-    if(thumbnailMode() || m_loadInteractiveElements != 0)
+    if(thumbnailMode() || m_loadInteractiveElements != nullptr)
     {
         return;
     }
 
     m_loadInteractiveElements = new QFutureWatcher< void >(this);
-    connect(m_loadInteractiveElements, SIGNAL(finished()), SLOT(on_loadInteractiveElements_finished()));
+    connect(m_loadInteractiveElements, SIGNAL(finished()), SLOT(onLoadInteractiveElementsFinished()));
     m_loadInteractiveElements->setFuture(QtConcurrent::run(this, &PageItem::loadInteractiveElements));
 }
 
@@ -812,11 +819,11 @@ void PageItem::copyToClipboard(QPoint screenPos)
             }
             else if(action == saveImageToFileAction)
             {
-                const QString fileName = QFileDialog::getSaveFileName(0, tr("Save image to file"), QDir::homePath(), "Portable network graphics (*.png)");
+                const QString fileName = QFileDialog::getSaveFileName(nullptr, tr("Save image to file"), QDir::homePath(), "Portable network graphics (*.png)");
 
                 if(!image.save(fileName, "PNG"))
                 {
-                    QMessageBox::warning(0, tr("Warning"), tr("Could not save image to file '%1'.").arg(fileName));
+                    QMessageBox::warning(nullptr, tr("Warning"), tr("Could not save image to file '%1'.").arg(fileName));
                 }
             }
         }
@@ -838,7 +845,7 @@ void PageItem::addAnnotation(QPoint screenPos)
         {
             QRectF boundary = m_normalizedTransform.inverted().mapRect(m_rubberBand);
 
-            Model::Annotation* annotation = 0;
+            Model::Annotation* annotation = nullptr;
 
             if(action == addTextAction)
             {
@@ -933,7 +940,7 @@ void PageItem::showOverlay(Overlay& overlay, const char* hideOverlay, const QLis
 template< typename Overlay, typename Element >
 void PageItem::addProxy(Overlay& overlay, const char* hideOverlay, Element* element)
 {
-    QGraphicsProxyWidget* proxy = new QGraphicsProxyWidget(this);
+    auto proxy = new QGraphicsProxyWidget(this);
     proxy->setWidget(element->createWidget());
 
 #if QT_VERSION >= QT_VERSION_CHECK(4,7,0)
@@ -999,15 +1006,16 @@ void PageItem::setProxyGeometry(Model::Annotation* annotation, QGraphicsProxyWid
     qreal width = proxy->preferredWidth();
     qreal height = proxy->preferredHeight();
 
-    x = qMax(x, m_boundingRect.left() + proxyPadding);
-    y = qMax(y, m_boundingRect.top() + proxyPadding);
+    x = std::max(x, m_boundingRect.left() + proxyPadding);
+    y = std::max(y, m_boundingRect.top() + proxyPadding);
 
-    width = qMin(width, m_boundingRect.right() - proxyPadding - x);
-    height = qMin(height, m_boundingRect.bottom() - proxyPadding - y);
+    width = std::min(width, m_boundingRect.right() - proxyPadding - x);
+    height = std::min(height, m_boundingRect.bottom() - proxyPadding - y);
 
     proxy->setGeometry(QRectF(x, y, width, height));
 }
 
+DECL_UNUSED
 void PageItem::setProxyGeometry(Model::FormField* formField, QGraphicsProxyWidget* proxy) const
 {
     QRectF rect = m_normalizedTransform.mapRect(formField->boundary());
@@ -1094,7 +1102,7 @@ void PageItem::prepareTiling()
 {
     if(!useTiling())
     {
-        m_tileItems.first()->setRect(QRect(0, 0, m_boundingRect.width(), m_boundingRect.height()));
+        m_tileItems.first()->setRect(QRect(0, 0, static_cast<int>(m_boundingRect.width()), static_cast<int>(m_boundingRect.height())));
 
         return;
     }
@@ -1102,7 +1110,7 @@ void PageItem::prepareTiling()
 
     const qreal pageWidth = m_boundingRect.width();
     const qreal pageHeight = m_boundingRect.height();
-    const qreal pageSize = qMax(pageWidth, pageHeight);
+    const qreal pageSize = std::max(pageWidth, pageHeight);
 
     int tileSize = s_settings->pageItem().tileSize();
 
@@ -1115,8 +1123,8 @@ void PageItem::prepareTiling()
         tileSize *= 2;
     }
 
-    int tileWidth = pageWidth < pageHeight ? tileSize * pageWidth / pageHeight : tileSize;
-    int tileHeight = pageHeight < pageWidth ? tileSize * pageHeight / pageWidth : tileSize;
+    int tileWidth = static_cast<int>(pageWidth < pageHeight ? tileSize * pageWidth / pageHeight : tileSize);
+    int tileHeight = static_cast<int>(pageHeight < pageWidth ? tileSize * pageHeight / pageWidth : tileSize);
 
     const int columnCount = qCeil(pageWidth / tileWidth);
     const int rowCount = qCeil(pageHeight / tileHeight);
@@ -1155,11 +1163,11 @@ void PageItem::prepareTiling()
     {
         for(int row = 0; row < rowCount; ++row)
         {
-            const int left = column > 0 ? column * tileWidth : 0.0;
-            const int top = row > 0 ? row * tileHeight : 0.0;
+            const int left = column > 0 ? column * tileWidth : 0;
+            const int top = row > 0 ? row * tileHeight : 0;
 
-            const int width = column < (columnCount - 1) ? tileWidth : pageWidth - left;
-            const int height = row < (rowCount - 1) ? tileHeight : pageHeight - top;
+            const int width = column < (columnCount - 1) ? tileWidth : static_cast<int>(pageWidth) - left;
+            const int height = row < (rowCount - 1) ? tileHeight : static_cast<int>(pageHeight) - top;
 
             m_tileItems.at(column * rowCount + row)->setRect(QRect(left, top, width, height));
         }

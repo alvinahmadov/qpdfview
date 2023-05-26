@@ -33,53 +33,61 @@ class ImagePlugin;
 
 namespace Model
 {
-    class ImagePage : public Page
+    class ImagePage final : public Page
     {
         friend class ImageDocument;
 
     public:
-        QSizeF size() const;
+        DECL_NODISCARD
+        QSizeF size() const final;
 
-        QImage render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const;
+        DECL_NODISCARD
+        QImage render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const final;
 
     private:
         Q_DISABLE_COPY(ImagePage)
 
-        ImagePage(const QImage& image);
+        explicit ImagePage(QImage image);
 
         QImage m_image;
 
     };
 
-    class ImageDocument : public Document
+    class ImageDocument final : public Document
     {
         Q_DECLARE_TR_FUNCTIONS(Model::ImageDocument)
 
         friend class qpdfview::ImagePlugin;
 
     public:
-        int numberOfPages() const;
+        DECL_NODISCARD
+        int numberOfPages() const final;
 
-        Page* page(int index) const;
+        DECL_NODISCARD
+        Page* page(int index) const final;
 
-        QStringList saveFilter() const;
+        DECL_NODISCARD
+        QStringList saveFilter() const final;
 
-        bool canSave() const;
-        bool save(const QString& filePath, bool withChanges) const;
+        DECL_NODISCARD
+        bool canSave() const final;
+        DECL_NODISCARD
+        bool save(const QString& filePath, bool withChanges) const final;
 
-        Properties properties() const;
+        DECL_NODISCARD
+        Properties properties() const final;
 
     private:
         Q_DISABLE_COPY(ImageDocument)
 
-        ImageDocument(const QImage& image);
+        explicit ImageDocument(QImage image);
 
         QImage m_image;
 
     };
 }
 
-class ImagePlugin : public QObject, Plugin
+class ImagePlugin final : public QObject, Plugin
 {
     Q_OBJECT
     Q_INTERFACES(qpdfview::Plugin)
@@ -91,9 +99,10 @@ class ImagePlugin : public QObject, Plugin
 #endif // QT_VERSION
 
 public:
-    ImagePlugin(QObject* parent = 0);
+    explicit ImagePlugin(QObject* parent = nullptr);
 
-    Model::Document* loadDocument(const QString& filePath) const;
+    DECL_NODISCARD
+    Model::Document* loadDocument(const QString& filePath) const final;
 
 private:
     Q_DISABLE_COPY(ImagePlugin)

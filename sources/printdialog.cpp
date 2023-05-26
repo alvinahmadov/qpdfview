@@ -1,6 +1,7 @@
 /*
 
 Copyright 2012-2013 Adam Reichold
+Copyright 2019 Pavel Sanda
 
 This file is part of qpdfview.
 
@@ -31,16 +32,16 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 namespace qpdfview
 {
 
-Settings* PrintDialog::s_settings = 0;
+Settings* PrintDialog::s_settings = nullptr;
 
 QPrinter* PrintDialog::createPrinter()
 {
-    QPrinter* printer = new QPrinter();
+    auto printer = new QPrinter();
 
     const Settings::PrintDialog& settings = Settings::instance()->printDialog();
     printer->setCollateCopies(settings.collateCopies());
     printer->setPageOrder(settings.pageOrder());
-    printer->setOrientation(settings.orientation());
+    printer->setPageOrientation(settings.orientation());
     printer->setColorMode(settings.colorMode());
     printer->setDuplex(settings.duplex());
 
@@ -49,7 +50,7 @@ QPrinter* PrintDialog::createPrinter()
 
 PrintDialog::PrintDialog(QPrinter* printer, QWidget* parent) : QPrintDialog(printer, parent)
 {
-    if(s_settings == 0)
+    if(s_settings == nullptr)
     {
         s_settings = Settings::instance();
     }
@@ -67,6 +68,7 @@ PrintDialog::PrintDialog(QPrinter* printer, QWidget* parent) : QPrintDialog(prin
 #if QT_VERSION < QT_VERSION_CHECK(5,11,0)
 
     m_pageRangesLineEdit = new QLineEdit(this);
+    m_pageRangesLineEdit->setToolTip(tr("e.g. 3-4,7,8,9-11"));
 
     m_printOptionsLayout->addRow(tr("Page ranges:"), m_pageRangesLineEdit);
 
@@ -142,7 +144,7 @@ void PrintDialog::accept()
 
     s_settings->printDialog().setCollateCopies(printer()->collateCopies());
     s_settings->printDialog().setPageOrder(printer()->pageOrder());
-    s_settings->printDialog().setOrientation(printer()->orientation());
+    s_settings->printDialog().setOrientation(printer()->pageLayout().orientation());
     s_settings->printDialog().setColorMode(printer()->colorMode());
     s_settings->printDialog().setDuplex(printer()->duplex());
 

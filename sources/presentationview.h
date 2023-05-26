@@ -37,35 +37,41 @@ class Page;
 class Settings;
 class PageItem;
 
-class PresentationView : public QGraphicsView
+class PresentationView final : public QGraphicsView
 {
     Q_OBJECT
 
 public:
-    PresentationView(const QVector< Model::Page* >& pages, QWidget* parent = 0);
-    ~PresentationView();
+    explicit PresentationView(const QVector< Model::Page* >& pages, QWidget* parent = nullptr);
+    ~PresentationView() final;
 
+    DECL_NODISCARD
     int numberOfPages() const { return m_pages.count(); }
+    DECL_NODISCARD
     int currentPage() const { return m_currentPage; }
 
+    DECL_NODISCARD
     ScaleMode scaleMode() const { return m_scaleMode; }
     void setScaleMode(ScaleMode scaleMode);
 
+    DECL_NODISCARD
     qreal scaleFactor() const { return m_scaleFactor; }
     void setScaleFactor(qreal scaleFactor);
 
+    DECL_NODISCARD
     Rotation rotation() const { return m_rotation; }
     void setRotation(Rotation rotation);
 
+    DECL_NODISCARD
     qpdfview::RenderFlags renderFlags() const { return m_renderFlags; }
     void setRenderFlags(qpdfview::RenderFlags renderFlags);
 
 signals:
     void currentPageChanged(int currentPage, bool trackChange = false);
 
-    void scaleModeChanged(ScaleMode scaleMode);
+    void scaleModeChanged(qpdfview::ScaleMode scaleMode);
     void scaleFactorChanged(qreal scaleFactor);
-    void rotationChanged(Rotation rotation);
+    void rotationChanged(qpdfview::Rotation rotation);
 
     void renderFlagsChanged(qpdfview::RenderFlags renderFlags);
     
@@ -90,17 +96,17 @@ public slots:
     void rotateRight();
 
 protected slots:
-    void on_prefetch_timeout();
+    void onPrefetchTimeout();
 
-    void on_pages_cropRectChanged();
+    void onPagesCropRectChanged();
 
-    void on_pages_linkClicked(bool newTab, int page, qreal left, qreal top);
+    void onPagesLinkClicked(bool newTab, int page, qreal left, qreal top);
 
 protected:
-    void resizeEvent(QResizeEvent* event);
+    void resizeEvent(QResizeEvent* event) final;
 
-    void keyPressEvent(QKeyEvent* event);
-    void wheelEvent(QWheelEvent* event);
+    void keyPressEvent(QKeyEvent* event) final;
+    void wheelEvent(QWheelEvent* event) final;
 
 private:
     Q_DISABLE_COPY(PresentationView)

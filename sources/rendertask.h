@@ -47,13 +47,13 @@ class RenderTaskParent
     friend struct DeleteParentLaterEvent;
 
 public:
-    virtual ~RenderTaskParent();
+    virtual ~RenderTaskParent() = default;
 
 private:
-    virtual void on_finished(const RenderParam& renderParam,
-                             const QRect& rect, bool prefetch,
-                             const QImage& image, const QRectF& cropRect) = 0;
-    virtual void on_canceled() = 0;
+    virtual void onFinished(const RenderParam& renderParam,
+                            const QRect& rect, bool prefetch,
+                            const QImage& image, const QRectF& cropRect) = 0;
+    virtual void onCanceled() = 0;
 };
 
 class RenderTaskDispatcher : public QObject
@@ -65,7 +65,7 @@ class RenderTaskDispatcher : public QObject
 private:
     Q_DISABLE_COPY(RenderTaskDispatcher)
 
-    RenderTaskDispatcher(QObject* parent = 0);
+    explicit RenderTaskDispatcher(QObject* parent = nullptr);
 
 
     void finished(RenderTaskParent* parent,
@@ -77,7 +77,7 @@ private:
     void deleteParentLater(RenderTaskParent* parent);
 
 public:
-    bool event(QEvent* event);
+    bool event(QEvent* event) override;
 
 private:
     QSet< RenderTaskParent* > m_activeParents;
@@ -90,18 +90,23 @@ private:
 class RenderTask : public QRunnable
 {
 public:
-    explicit RenderTask(Model::Page* page, RenderTaskParent* parent = 0);
-    ~RenderTask();
+    explicit RenderTask(Model::Page* page, RenderTaskParent* parent = nullptr);
+    ~RenderTask() override;
 
     void wait();
 
+    DECL_NODISCARD
     bool isRunning() const;
 
+    DECL_NODISCARD
     bool wasCanceled() const { return loadCancellation() != NotCanceled; }
+    DECL_UNUSED
+    DECL_NODISCARD
     bool wasCanceledNormally() const { return loadCancellation() == CanceledNormally; }
+    DECL_NODISCARD
     bool wasCanceledForcibly() const { return loadCancellation() == CanceledForcibly; }
 
-    void run();
+    void run() override;
 
     void start(const RenderParam& renderParam,
                const QRect& rect, bool prefetch);
@@ -133,7 +138,9 @@ private:
 
     void setCancellation(bool force);
     void resetCancellation();
+    DECL_NODISCARD
     bool testCancellation();
+    DECL_NODISCARD
     int loadCancellation() const;
 
     void finish(bool canceled);
@@ -164,13 +171,13 @@ inline void RenderTask::resetCancellation()
 inline bool RenderTask::testCancellation()
 {
     return m_prefetch ?
-                m_wasCanceled.load() == CanceledForcibly :
-                m_wasCanceled.load() != NotCanceled;
+                m_wasCanceled.loadRelaxed() == CanceledForcibly :
+                m_wasCanceled.loadRelaxed() != NotCanceled;
 }
 
 inline int RenderTask::loadCancellation() const
 {
-    return m_wasCanceled.load();
+    return m_wasCanceled.loadRelaxed();
 }
 
 #else

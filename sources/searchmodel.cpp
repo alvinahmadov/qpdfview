@@ -33,11 +33,11 @@ static inline bool operator<(const QPair< int, QRectF >& result, int page) { ret
 namespace qpdfview
 {
 
-SearchModel* SearchModel::s_instance = 0;
+SearchModel* SearchModel::s_instance = nullptr;
 
 SearchModel* SearchModel::instance()
 {
-    if(s_instance == 0)
+    if(s_instance == nullptr)
     {
         s_instance = new SearchModel(qApp);
     }
@@ -55,7 +55,7 @@ SearchModel::~SearchModel()
 
     qDeleteAll(m_results);
 
-    s_instance = 0;
+    s_instance = nullptr;
 }
 
 QModelIndex SearchModel::index(int row, int column, const QModelIndex& parent) const
@@ -68,25 +68,25 @@ QModelIndex SearchModel::index(int row, int column, const QModelIndex& parent) c
         }
         else
         {
-            DocumentView* view = m_views.value(parent.row(), 0);
+            auto view = m_views.value(parent.row(), 0);
 
             return createIndex(row, column, view);
         }
     }
 
-    return QModelIndex();
+    return {};
 }
 
 QModelIndex SearchModel::parent(const QModelIndex& child) const
 {
-    if(child.internalPointer() != 0)
+    if(child.internalPointer() != nullptr)
     {
-        DocumentView* view = static_cast< DocumentView* >(child.internalPointer());
+        auto view = static_cast< DocumentView* >(child.internalPointer());
 
         return findView(view);
     }
 
-    return QModelIndex();
+    return {};
 }
 
 int SearchModel::rowCount(const QModelIndex& parent) const
@@ -95,12 +95,12 @@ int SearchModel::rowCount(const QModelIndex& parent) const
     {
         return m_views.count();
     }
-    else if(parent.internalPointer() == 0)
+    else if(parent.internalPointer() == nullptr)
     {
         DocumentView* view = m_views.value(parent.row(), 0);
         const Results* results = m_results.value(view, 0);
 
-        if(results != 0)
+        if(results != nullptr)
         {
             return results->count();
         }
@@ -118,23 +118,23 @@ QVariant SearchModel::data(const QModelIndex& index, int role) const
 {
     if(!index.isValid())
     {
-        return QVariant();
+        return {};
     }
 
-    if(index.internalPointer() == 0)
+    if(index.internalPointer() == nullptr)
     {
         DocumentView* view = m_views.value(index.row(), 0);
         const Results* results = m_results.value(view, 0);
 
-        if(results == 0)
+        if(results == nullptr)
         {
-            return QVariant();
+            return {};
         }
 
         switch(role)
         {
         default:
-            return QVariant();
+            return {};
         case CountRole:
             return results->count();
         case ProgressRole:
@@ -147,18 +147,19 @@ QVariant SearchModel::data(const QModelIndex& index, int role) const
             case 1:
                 return results->count();
             }
+            FALLTHROUGH
         case Qt::ToolTipRole:
             return tr("<b>%1</b> occurrences").arg(results->count());
         }
     }
     else
     {
-        DocumentView* view = static_cast< DocumentView* >(index.internalPointer());
+        auto view = static_cast< DocumentView* >(index.internalPointer());
         const Results* results = m_results.value(view, 0);
 
-        if(results == 0 || index.row() >= results->count())
+        if(results == nullptr || index.row() >= results->count())
         {
-            return QVariant();
+            return {};
         }
 
         const Result& result = results->at(index.row());
@@ -166,7 +167,7 @@ QVariant SearchModel::data(const QModelIndex& index, int role) const
         switch(role)
         {
         default:
-            return QVariant();
+            return {};
         case PageRole:
             return result.first;
         case RectRole:
@@ -185,21 +186,20 @@ QVariant SearchModel::data(const QModelIndex& index, int role) const
             switch(index.column())
             {
             case 0:
-                return QVariant();
+                return {};
             case 1:
                 return result.first;
             }
+            FALLTHROUGH
         case Qt::ToolTipRole:
             return tr("<b>%1</b> occurrences on page <b>%2</b>").arg(numberOfResultsOnPage(view, result.first)).arg(result.first);
         }
     }
-
-    return QVariant();
 }
 
 DocumentView* SearchModel::viewForIndex(const QModelIndex& index) const
 {
-    if(index.internalPointer() == 0)
+    if(index.internalPointer() == nullptr)
     {
         return m_views.value(index.row(), 0);
     }
@@ -213,27 +213,26 @@ bool SearchModel::hasResults(DocumentView* view) const
 {
     const Results* results = m_results.value(view, 0);
 
-    return results != 0 && !results->isEmpty();
+    return results != nullptr && !results->isEmpty();
 }
 
 bool SearchModel::hasResultsOnPage(DocumentView* view, int page) const
 {
     const Results* results = m_results.value(view, 0);
-
-    return results != 0 && qBinaryFind(results->begin(), results->end(), page) != results->end();
+    return results != nullptr && std::binary_search(results->begin(), results->end(), page);
 }
 
 int SearchModel::numberOfResultsOnPage(DocumentView* view, int page) const
 {
     const Results* results = m_results.value(view, 0);
 
-    if(results == 0)
+    if(results == nullptr)
     {
         return 0;
     }
 
-    const Results::const_iterator pageBegin = qLowerBound(results->constBegin(), results->constEnd(), page);
-    const Results::const_iterator pageEnd = qUpperBound(pageBegin, results->constEnd(), page);
+    const Results::const_iterator pageBegin = std::lower_bound(results->constBegin(), results->constEnd(), page);
+    const Results::const_iterator pageEnd = std::upper_bound(pageBegin, results->constEnd(), page);
 
     return pageEnd - pageBegin;
 }
@@ -244,10 +243,10 @@ QList< QRectF > SearchModel::resultsOnPage(DocumentView* view, int page) const
 
     const Results* results = m_results.value(view, 0);
 
-    if(results != 0)
+    if(results != nullptr)
     {
-        const Results::const_iterator pageBegin = qLowerBound(results->constBegin(), results->constEnd(), page);
-        const Results::const_iterator pageEnd = qUpperBound(pageBegin, results->constEnd(), page);
+        const Results::const_iterator pageBegin = std::lower_bound(results->constBegin(), results->constEnd(), page);
+        const Results::const_iterator pageEnd = std::upper_bound(pageBegin, results->constEnd(), page);
 
         for(Results::const_iterator iterator = pageBegin; iterator != pageEnd; ++iterator)
         {
@@ -262,9 +261,9 @@ QPersistentModelIndex SearchModel::findResult(DocumentView* view, const QPersist
 {
     const Results* results = m_results.value(view, 0);
 
-    if(results == 0 || results->isEmpty())
+    if(results == nullptr || results->isEmpty())
     {
-        return QPersistentModelIndex();
+        return {};
     }
 
     const int rows = results->count();
@@ -290,14 +289,14 @@ QPersistentModelIndex SearchModel::findResult(DocumentView* view, const QPersist
         default:
         case FindNext:
         {
-            Results::const_iterator lowerBound = qLowerBound(results->constBegin(), results->constEnd(), currentPage);
+            Results::const_iterator lowerBound = std::lower_bound(results->constBegin(), results->constEnd(), currentPage);
 
             row = (lowerBound - results->constBegin()) % rows;
             break;
         }
         case FindPrevious:
         {
-            Results::const_iterator upperBound = qUpperBound(results->constBegin(), results->constEnd(), currentPage);
+            Results::const_iterator upperBound = std::upper_bound(results->constBegin(), results->constEnd(), currentPage);
 
             row = ((upperBound - results->constBegin()) + rows - 1) % rows;
             break;
@@ -319,7 +318,8 @@ void SearchModel::insertResults(DocumentView* view, int page, const QList< QRect
 
     Results* results = m_results.value(view);
 
-    Results::iterator at = qLowerBound(results->begin(), results->end(), page);
+    Results::iterator at = std::lower_bound(results->begin(), results->end(), page);
+
     const int row = at - results->begin();
 
     beginInsertRows(parent, row, row + resultsOnPage.size() - 1);
@@ -360,8 +360,9 @@ void SearchModel::clearResults(DocumentView* view)
         }
     }
 
-    const QVector< DocumentView* >::iterator at = qBinaryFind(m_views.begin(), m_views.end(), view);
-    const int row = at - m_views.begin();
+    const QVector< DocumentView* >::iterator at = std::find_if(m_views.begin(), m_views.end(),
+                                                             [&view](auto* v) { return v == view; });
+    const int row = m_views.indexOf(*at);
 
     if(at == m_views.end())
     {
@@ -386,11 +387,11 @@ void SearchModel::updateProgress(DocumentView* view)
     }
 }
 
-void SearchModel::on_fetchSurroundingText_finished()
+void SearchModel::onFetchSurroundingTextFinished()
 {
-    TextWatcher* watcher = dynamic_cast< TextWatcher* >(sender());
+    auto watcher = dynamic_cast< TextWatcher* >(sender());
 
-    if(watcher == 0 || watcher->isCanceled())
+    if(watcher == nullptr || watcher->isCanceled())
     {
         return;
     }
@@ -403,7 +404,7 @@ void SearchModel::on_fetchSurroundingText_finished()
     DocumentView* view = job.key.first;
     const Results* results = m_results.value(view, 0);
 
-    if(results == 0)
+    if(results == nullptr)
     {
         return;
     }
@@ -425,12 +426,14 @@ SearchModel::SearchModel(QObject* parent) : QAbstractItemModel(parent),
 
 QModelIndex SearchModel::findView(DocumentView *view) const
 {
-    const QVector< DocumentView* >::const_iterator at = qBinaryFind(m_views.constBegin(), m_views.constEnd(), view);
-    const int row = at - m_views.constBegin();
+    // TODO: Test changes
+    const QVector< DocumentView* >::const_iterator at = std::find_if(m_views.cbegin(), m_views.cend(),
+                                                                   [&view](auto* v) { return v == view; });
+    const int row = m_views.indexOf(*at);
 
     if(at == m_views.constEnd())
     {
-        return QModelIndex();
+        return {};
     }
 
     return createIndex(row, 0);
@@ -438,8 +441,8 @@ QModelIndex SearchModel::findView(DocumentView *view) const
 
 QModelIndex SearchModel::findOrInsertView(DocumentView* view)
 {
-    const QVector< DocumentView* >::iterator at = qLowerBound(m_views.begin(), m_views.end(), view);
-    const int row = at - m_views.begin();
+    const QVector< DocumentView* >::iterator at = std::lower_bound(m_views.begin(), m_views.end(), view);
+    const int row = m_views.indexOf(*at);
 
     if(at == m_views.end() || *at != view)
     {
@@ -458,14 +461,14 @@ QString SearchModel::fetchMatchedText(DocumentView* view, const SearchModel::Res
 {
     const TextCacheObject* object = fetchText(view, result);
 
-    return object != 0 ? object->first : QString();
+    return object != nullptr ? object->first : QString();
 }
 
 QString SearchModel::fetchSurroundingText(DocumentView* view, const Result& result) const
 {
     const TextCacheObject* object = fetchText(view, result);
 
-    return object != 0 ? object->second : QString();
+    return object != nullptr ? object->second : QString();
 }
 
 const SearchModel::TextCacheObject* SearchModel::fetchText(DocumentView* view, const SearchModel::Result& result) const
@@ -479,15 +482,15 @@ const SearchModel::TextCacheObject* SearchModel::fetchText(DocumentView* view, c
 
     if(m_textWatchers.size() < 20 && !m_textWatchers.contains(key))
     {
-        TextWatcher* watcher = new TextWatcher();
+        auto watcher = new TextWatcher();
         m_textWatchers.insert(key, watcher);
 
-        connect(watcher, SIGNAL(finished()), SLOT(on_fetchSurroundingText_finished()));
+        connect(watcher, SIGNAL(finished()), SLOT(&SearchModel::onFetchSurroundingTextFinished));
 
         watcher->setFuture(QtConcurrent::run(textJob, key, result));
     }
 
-    return 0;
+    return nullptr;
 }
 
 inline SearchModel::TextCacheKey SearchModel::textCacheKey(DocumentView* view, const Result& result)
@@ -505,7 +508,7 @@ SearchModel::TextJob SearchModel::textJob(const TextCacheKey& key, const Result&
 {
     const QPair< QString, QString >& text = key.first->searchContext(result.first, result.second);
 
-    return TextJob(key, new TextCacheObject(text));
+    return {key, new TextCacheObject(text)};
 }
 
 } // qpdfview

@@ -30,14 +30,15 @@ RecentlyClosedMenu::RecentlyClosedMenu(int count, QWidget* parent) : ToolTipMenu
     m_count(count)
 {
     menuAction()->setText(tr("&Recently closed"));
+    setVisibleIcon(menuAction(), QIcon::fromTheme("document-open-recent"));
 
     m_tabActionGroup = new QActionGroup(this);
-    connect(m_tabActionGroup, SIGNAL(triggered(QAction*)), SLOT(on_tabAction_triggered(QAction*)));
+    connect(m_tabActionGroup, SIGNAL(triggered(QAction*)), SLOT(onTabActionTriggered(QAction*)));
 
     m_separatorAction = addSeparator();
 
     m_clearListAction = addAction(tr("&Clear list"));
-    connect(m_clearListAction, SIGNAL(triggered()), SLOT(on_clearList_triggered()));
+    connect(m_clearListAction, SIGNAL(triggered()), SLOT(onClearListTriggered()));
 }
 
 void RecentlyClosedMenu::addTabAction(QAction* tabAction)
@@ -56,13 +57,14 @@ void RecentlyClosedMenu::addTabAction(QAction* tabAction)
     m_tabActionGroup->addAction(tabAction);
 }
 
+DECL_UNUSED
 void RecentlyClosedMenu::triggerFirstTabAction()
 {
     const QList< QAction* >& actions = m_tabActionGroup->actions();
 
     if(!actions.isEmpty())
     {
-        on_tabAction_triggered(actions.first());
+        onTabActionTriggered(actions.first());
     }
 }
 
@@ -72,11 +74,11 @@ void RecentlyClosedMenu::triggerLastTabAction()
 
     if(!actions.isEmpty())
     {
-        on_tabAction_triggered(actions.last());
+        onTabActionTriggered(actions.last());
     }
 }
 
-void RecentlyClosedMenu::on_tabAction_triggered(QAction* tabAction)
+void RecentlyClosedMenu::onTabActionTriggered(QAction* tabAction)
 {
     removeAction(tabAction);
     m_tabActionGroup->removeAction(tabAction);
@@ -84,7 +86,7 @@ void RecentlyClosedMenu::on_tabAction_triggered(QAction* tabAction)
     emit tabActionTriggered(tabAction);
 }
 
-void RecentlyClosedMenu::on_clearList_triggered()
+void RecentlyClosedMenu::onClearListTriggered()
 {
     foreach(QAction* action, m_tabActionGroup->actions())
     {

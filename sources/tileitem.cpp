@@ -34,12 +34,12 @@ namespace
 
 inline int cacheCost(const QPixmap& pixmap)
 {
-    return qMax(1, pixmap.width() * pixmap.height() * pixmap.depth() / 8 / 1024);
+    return std::max(1, pixmap.width() * pixmap.height() * pixmap.depth() / 8 / 1024);
 }
 
 } // anonymous
 
-Settings* TileItem::s_settings = 0;
+Settings* TileItem::s_settings = nullptr;
 
 QCache< TileItem::CacheKey, TileItem::CacheObject > TileItem::s_cache;
 
@@ -53,7 +53,7 @@ TileItem::TileItem(PageItem* page) : RenderTaskParent(),
     m_deleteAfterRender(false),
     m_renderTask(m_page->m_page, this)
 {
-    if(s_settings == 0)
+    if(s_settings == nullptr)
     {
         s_settings = Settings::instance();
     }
@@ -115,9 +115,9 @@ bool TileItem::paint(QPainter* painter, QPointF topLeft)
     }
     else
     {
-        const qreal iconExtent = qMin(0.1 * m_rect.width(), 0.1 * m_rect.height());
-        const QRect iconRect(topLeft.x() + m_rect.left() + 0.01 * m_rect.width(),
-                             topLeft.y() + m_rect.top() + 0.01 * m_rect.height(),
+        const int iconExtent = static_cast<int>(std::min(0.1 * m_rect.width(), 0.1 * m_rect.height()));
+        const QRect iconRect(static_cast<int>(topLeft.x() + m_rect.left() + 0.01 * m_rect.width()),
+                             static_cast<int>((topLeft.y() + m_rect.top() + 0.01 * m_rect.height())),
                              iconExtent, iconExtent);
 
         if(!m_pixmapError)
@@ -143,7 +143,8 @@ void TileItem::refresh(bool keepObsoletePixmaps)
 {
     if(keepObsoletePixmaps && s_settings->pageItem().keepObsoletePixmaps())
     {
-        if(const CacheObject* object = s_cache.object(cacheKey()))
+        const auto object = s_cache.object(cacheKey());
+        if(object != nullptr)
         {
             m_obsoletePixmap = object->first;
         }
@@ -200,13 +201,13 @@ void TileItem::deleteAfterRender()
     }
 }
 
-void TileItem::on_finished(const RenderParam& renderParam,
-                           const QRect& rect, bool prefetch,
-                           const QImage& image, const QRectF& cropRect)
+void TileItem::onFinished(const RenderParam& renderParam,
+                          const QRect& rect, bool prefetch,
+                          const QImage& image, const QRectF& cropRect)
 {
     if(m_page->m_renderParam != renderParam || m_rect != rect)
     {
-        on_finishedOrCanceled();
+        onFinishedOrCanceled();
         return;
     }
 
@@ -216,7 +217,7 @@ void TileItem::on_finished(const RenderParam& renderParam,
     {
         m_pixmapError = true;
 
-        on_finishedOrCanceled();
+        onFinishedOrCanceled();
         return;
     }
 
@@ -235,15 +236,14 @@ void TileItem::on_finished(const RenderParam& renderParam,
         setCropRect(cropRect);
     }
 
-    on_finishedOrCanceled();
+    onFinishedOrCanceled();
 }
 
-void TileItem::on_canceled()
-{
-    on_finishedOrCanceled();
+void TileItem::onCanceled()
+{ onFinishedOrCanceled();
 }
 
-void TileItem::on_finishedOrCanceled()
+void TileItem::onFinishedOrCanceled()
 {
     if(m_deleteAfterRender)
     {

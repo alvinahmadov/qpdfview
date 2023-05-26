@@ -65,7 +65,7 @@ FontsDialog::FontsDialog(QAbstractItemModel* model, QWidget* parent) : QDialog(p
     layout()->addWidget(m_tableView);
     layout()->addWidget(m_dialogButtonBox);
 
-    resize(Settings::instance()->mainWindow().fontsDialogSize(sizeHint()));
+    resize(Settings::instance()->mainWindow().fontsDialogSize());
 }
 
 FontsDialog::~FontsDialog()

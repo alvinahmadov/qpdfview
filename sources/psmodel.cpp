@@ -62,7 +62,7 @@ PsPage::PsPage(QMutex* mutex, SpectrePage* page, SpectreRenderContext* renderCon
 PsPage::~PsPage()
 {
     spectre_page_free(m_page);
-    m_page = 0;
+    m_page = nullptr;
 }
 
 QSizeF PsPage::size() const
@@ -74,7 +74,7 @@ QSizeF PsPage::size() const
 
     spectre_page_get_size(m_page, &w, &h);
 
-    return QSizeF(w, h);
+    return {w * 1.0, h * 1.0};
 }
 
 QImage PsPage::render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const
@@ -131,7 +131,7 @@ QImage PsPage::render(qreal horizontalResolution, qreal verticalResolution, Rota
         qSwap(w, h);
     }
 
-    unsigned char* pageData = 0;
+    unsigned char* pageData = nullptr;
     int rowLength = 0;
 
     spectre_page_render(m_page, m_renderContext, &pageData, &rowLength);
@@ -139,16 +139,16 @@ QImage PsPage::render(qreal horizontalResolution, qreal verticalResolution, Rota
     if (spectre_page_status(m_page) != SPECTRE_STATUS_SUCCESS)
     {
         free(pageData);
-        pageData = 0;
+        pageData = nullptr;
 
-        return QImage();
+        return {};
     }
 
     QImage auxiliaryImage(pageData, rowLength / 4, h, QImage::Format_RGB32);
     QImage image(boundingRect.isNull() ? auxiliaryImage.copy(0, 0, w, h) : auxiliaryImage.copy(boundingRect));
 
     free(pageData);
-    pageData = 0;
+    pageData = nullptr;
 
     return image;
 }
@@ -163,17 +163,17 @@ PsDocument::PsDocument(SpectreDocument* document, SpectreRenderContext* renderCo
 PsDocument::~PsDocument()
 {
     spectre_render_context_free(m_renderContext);
-    m_renderContext = 0;
+    m_renderContext = nullptr;
 
     spectre_document_free(m_document);
-    m_document = 0;
+    m_document = nullptr;
 }
 
 int PsDocument::numberOfPages() const
 {
     QMutexLocker mutexLocker(&m_mutex);
 
-    return spectre_document_get_n_pages(m_document);
+    return static_cast<int>(spectre_document_get_n_pages(m_document));
 }
 
 Page* PsDocument::page(int index) const
@@ -185,7 +185,7 @@ Page* PsDocument::page(int index) const
         return new PsPage(&m_mutex, page, m_renderContext);
     }
 
-    return 0;
+    return nullptr;
 }
 
 QStringList PsDocument::saveFilter() const
@@ -299,7 +299,7 @@ Model::Document* PsPlugin::loadDocument(const QString& filePath) const
     {
         spectre_document_free(document);
 
-        return 0;
+        return nullptr;
     }
 
     SpectreRenderContext* renderContext = spectre_render_context_new();

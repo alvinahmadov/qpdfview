@@ -61,13 +61,13 @@ public:
         ThumbnailMode
     };
 
-    PageItem(Model::Page* page, int index, PaintMode paintMode = DefaultMode, QGraphicsItem* parent = 0);
-    ~PageItem();
+    PageItem(Model::Page* page, int index, PaintMode paintMode = DefaultMode, QGraphicsItem* parent = nullptr);
+    ~PageItem() override;
 
     const QRectF& uncroppedBoundingRect() const { return m_boundingRect; }
 
-    QRectF boundingRect() const;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget*);
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget*) override;
 
     int index() const { return m_index; }
 
@@ -76,9 +76,11 @@ public:
     QSizeF displayedSize() const { return displayedSize(renderParam()); }
     QSizeF displayedSize(const RenderParam& renderParam) const;
 
+    DECL_UNUSED
     const QList< QRectF >& highlights() const { return m_highlights; }
     void setHighlights(const QList< QRectF >& highlights);
 
+    DECL_UNUSED
     RubberBandMode rubberBandMode() const { return m_rubberBandMode; }
     void setRubberBandMode(RubberBandMode rubberBandMode);
 
@@ -89,9 +91,11 @@ public:
     void setRenderParam(const RenderParam& renderParam);
 
     const QTransform& transform() const { return m_transform; }
+    DECL_UNUSED
     const QTransform& normalizedTransform() const { return m_normalizedTransform; }
 
     QPointF sourcePos(QPointF point) const { return m_transform.inverted().map(point); }
+    DECL_UNUSED
     QPointF normalizedSourcePos(QPointF point) const { return m_normalizedTransform.inverted().map(point); }
 
 signals:
@@ -125,18 +129,18 @@ protected slots:
     void updateFormFieldOverlay();
 
 protected:
-    void hoverEnterEvent(QGraphicsSceneHoverEvent*);
-    void hoverMoveEvent(QGraphicsSceneHoverEvent* event);
-    void hoverLeaveEvent(QGraphicsSceneHoverEvent*);
+    void hoverEnterEvent(QGraphicsSceneHoverEvent*) override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override;
 
-    void mousePressEvent(QGraphicsSceneMouseEvent* event);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private slots:
-    void on_loadInteractiveElements_finished();
+    void onLoadInteractiveElementsFinished();
 
 private:
     Q_DISABLE_COPY(PageItem)
@@ -177,7 +181,7 @@ private:
     void copyToClipboard(QPoint screenPos);
     void addAnnotation(QPoint screenPos);
 
-    void showLinkContextMenu(Model::Link* link, QPoint screenPos);
+    static void showLinkContextMenu(Model::Link* link, QPoint screenPos);
     void showAnnotationContextMenu(Model::Annotation* annotation, QPoint screenPos);
 
     // overlay
@@ -194,6 +198,7 @@ private:
     template< typename Overlay > void updateOverlay(const Overlay& overlay) const;
 
     void setProxyGeometry(Model::Annotation* annotation, QGraphicsProxyWidget* proxy) const;
+    DECL_UNUSED
     void setProxyGeometry(Model::FormField* formField, QGraphicsProxyWidget* proxy) const;
 
     // geometry
