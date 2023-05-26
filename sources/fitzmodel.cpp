@@ -160,7 +160,8 @@ namespace Model
 DECL_UNUSED
 FitzPage::FitzPage(const FitzDocument* parent, fz_page* page) :
     m_parent(parent),
-    m_page(page)
+    m_page(page),
+    m_boundingRect(fz_bound_page(m_parent->m_context, m_page))
 {
 }
 
@@ -171,17 +172,11 @@ FitzPage::~FitzPage()
 
 QSizeF FitzPage::size() const
 {
-    QMutexLocker mutexLocker(&m_parent->m_mutex);
-
-    fz_rect rect = fz_bound_page(m_parent->m_context, m_page);
-
-    return {rect.x1 - rect.x0, rect.y1 - rect.y0};
+    return {m_boundingRect.x1 - m_boundingRect.x0, m_boundingRect.y1 - m_boundingRect.y0};
 }
 
 QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Rotation rotation, QRect boundingRect) const
 {
-    QMutexLocker mutexLocker(&m_parent->m_mutex);
-
     float hRes {static_cast<float>(horizontalResolution)};
     float vRes {static_cast<float>(verticalResolution)};
 
@@ -204,11 +199,10 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
         break;
     }
 
-    fz_rect rect = fz_bound_page(m_parent->m_context, m_page);
-	rect = fz_transform_rect(rect, matrix);
+    QMutexLocker mutexLocker(&m_parent->m_mutex);
 
+    fz_rect rect = fz_transform_rect(m_boundingRect, matrix);
     fz_irect irect = fz_round_rect(rect);
-
 
     fz_context* context = fz_clone_context(m_parent->m_context);
     fz_display_list* display_list = fz_new_display_list(context, rect);
@@ -217,7 +211,6 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
     fz_run_page(m_parent->m_context, m_page, device, matrix, nullptr);
     fz_close_device(m_parent->m_context, device);
     fz_drop_device(m_parent->m_context, device);
-
 
     mutexLocker.unlock();
 
@@ -271,10 +264,8 @@ QList< Link* > FitzPage::links() const
 
     QList< Link* > links;
 
-    fz_rect rect = fz_bound_page(m_parent->m_context, m_page);
-
-    const qreal width = qAbs(rect.x1 - rect.x0);
-    const qreal height = qAbs(rect.y1 - rect.y0);
+    const qreal width = qAbs(m_boundingRect.x1 - m_boundingRect.x0);
+    const qreal height = qAbs(m_boundingRect.y1 - m_boundingRect.y0);
 
     fz_link* first_link = fz_load_links(m_parent->m_context, m_page);
 
@@ -312,13 +303,8 @@ QString FitzPage::text(const QRectF &rect) const
 {
     QMutexLocker mutexLocker(&m_parent->m_mutex);
 
-    fz_rect mediaBox;
-    mediaBox.x0 = static_cast<float>(rect.x());
-    mediaBox.y0 = static_cast<float>(rect.y());
-    mediaBox.x1 = static_cast<float>(rect.right());
-    mediaBox.y1 = static_cast<float>(rect.bottom());
 
-    fz_stext_page* textPage = fz_new_stext_page(m_parent->m_context, mediaBox);
+    fz_stext_page* textPage = fz_new_stext_page(m_parent->m_context, m_boundingRect);
     fz_device* device = fz_new_stext_device(m_parent->m_context, textPage, nullptr);
     fz_run_page(m_parent->m_context, m_page, device, fz_identity, nullptr);
     fz_close_device(m_parent->m_context, device);
@@ -503,17 +489,17 @@ void FitzSettingsWidget::reset()
 }
 
 FitzPlugin::FitzPlugin(QObject* parent) : QObject(parent),
-      m_locks_context()
+      m_locksContext()
 {
     setObjectName("FitzPlugin");
 
 	m_settings = new QSettings("qpdfview", "epub-plugin", this);
 
-    m_locks_context.user = this;
-    m_locks_context.lock = FitzPlugin::lock;
-    m_locks_context.unlock = FitzPlugin::unlock;
+    m_locksContext.user = this;
+    m_locksContext.lock = FitzPlugin::lock;
+    m_locksContext.unlock = FitzPlugin::unlock;
 
-    m_context = fz_new_context(nullptr, &m_locks_context, FZ_STORE_DEFAULT);
+    m_context = fz_new_context(nullptr, &m_locksContext, FZ_STORE_DEFAULT);
 
     fz_register_document_handlers(m_context);
 }
