@@ -37,12 +37,14 @@ endif()
 
 # include library usign pkgconfig
 if(NOT ${WITHOUT_PKGCONFIG})
-    pkg_check_modules(MUPDF mupdf QUIET)
+    pkg_check_modules(MUPDF mupdf)
+    pkg_check_modules(JPEG libjpeg)
+
     if(${MUPDF_FOUND})
         set(REQUIRED_FOUND TRUE)
         list(APPEND FITZ_PLUGIN_INCLUDEPATH ${MUPDF_INCLUDE_DIRS})
         list(APPEND QPDFVIEW_DEFINITIONS    -DFITZ_VERSION="${MUPDF_VERSION}")
-        list(APPEND FITZ_PLUGIN_LIBS        ${MUPDF_LIBRARIES})
+        list(APPEND FITZ_PLUGIN_LIBS        ${MUPDF_LIBRARIES} ${JPEG_LIBRARIES})
     else()
         set(REQUIRED_FOUND FALSE)
     endif()
