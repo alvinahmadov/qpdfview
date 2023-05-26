@@ -31,7 +31,7 @@ RecentlyUsedMenu::RecentlyUsedMenu(const QStringList& absoluteFilePaths, int cou
 {
     menuAction()->setText(tr("Recently &used"));
     menuAction()->setIcon(QIcon::fromTheme("document-open-recent"));
-    menuAction()->setIconVisibleInMenu(true);
+    setVisibleIcon(menuAction(), loadIconWithFallback(QLatin1String("document-open-recent")));
 
     m_openActionGroup = new QActionGroup(this);
     connect(m_openActionGroup, SIGNAL(triggered(QAction*)), SLOT(onOpenTriggered(QAction*)));
