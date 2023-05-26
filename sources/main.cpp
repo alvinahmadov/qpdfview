@@ -146,8 +146,8 @@ void loadTranslators()
     loadTranslator(toolkitTranslator, "qt", QLibraryInfo::location(QLibraryInfo::TranslationsPath));
     auto applicationTranslator = new QTranslator(qApp);
 	bool appTranslatorLoaded;
-    
-    appTranslatorLoaded = loadTranslator(applicationTranslator, "qpdfview", QDir(QApplication::applicationDirPath()).filePath("data"));
+
+    appTranslatorLoaded = loadTranslator(applicationTranslator, "qpdfview", QDir(QApplication::applicationDirPath()).filePath(APP_DIR_DATA_PATH));
     
     if(!appTranslatorLoaded)
     {
