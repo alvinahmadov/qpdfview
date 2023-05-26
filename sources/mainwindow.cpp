@@ -3222,6 +3222,7 @@ void MainWindow::createActions()
     		QIcon::fromTheme("application-exit"),
     		QKeySequence::Quit, SLOT(close())
     );
+    m_exitAction->setMenuRole(QAction::QuitRole);
 
     // edit
 
@@ -3326,6 +3327,7 @@ void MainWindow::createActions()
 		    onAddAnnotationModeTriggered(bool)), true);
 
     m_settingsAction = this->createAction(tr("Settings..."), QString(), QIcon(), QKeySequence(), SLOT(onSettingsTriggered()));
+    m_settingsAction->setMenuRole(QAction::PreferencesRole);
 
     // view
 	
@@ -3598,6 +3600,7 @@ void MainWindow::createActions()
 			QKeySequence(),
 			SLOT(onAboutTriggered())
 	);
+    m_aboutAction->setMenuRole(QAction::AboutRole);
 	
 	// context
 	
