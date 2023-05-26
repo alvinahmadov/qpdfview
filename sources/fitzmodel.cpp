@@ -191,16 +191,16 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
     {
     default:
     case RotateBy0:
-        fz_pre_rotate(matrix, 0.0);
+        matrix = fz_pre_rotate(matrix, 0.0);
         break;
     case RotateBy90:
-        fz_pre_rotate(matrix, 90.0);
+        matrix = fz_pre_rotate(matrix, 90.0);
         break;
     case RotateBy180:
-        fz_pre_rotate(matrix, 180.0);
+        matrix = fz_pre_rotate(matrix, 180.0);
         break;
     case RotateBy270:
-        fz_pre_rotate(matrix, 270.0);
+        matrix = fz_pre_rotate(matrix, 270.0);
         break;
     }
 
@@ -223,7 +223,6 @@ QImage FitzPage::render(qreal horizontalResolution, qreal verticalResolution, Ro
 
 
     fz_matrix tileMatrix = fz_translate(-rect.x0, -rect.y0);
-
     fz_rect tileRect = fz_infinite_rect;
 
     int tileWidth = irect.x1 - irect.x0;
@@ -359,7 +358,7 @@ QList<QRectF> FitzPage::search(const QString& text, bool matchCase, bool wholeWo
 
     const QByteArray needle = text.toUtf8();
 
-    QVector< fz_rect > hits(32);
+    QVector< fz_quad > hits(32);
     int numberOfHits = fz_search_stext_page(m_parent->m_context, textPage, needle.constData(), reinterpret_cast<fz_quad*>(hits.data()), hits.size());
 
     while(numberOfHits == hits.size())
@@ -375,9 +374,9 @@ QList<QRectF> FitzPage::search(const QString& text, bool matchCase, bool wholeWo
     QList< QRectF > results;
     results.reserve(hits.size());
 
-    foreach(fz_rect rect, hits)
+    foreach(fz_quad rect, hits)
     {
-        results.append(QRectF(rect.x0, rect.y0, rect.x1 - rect.x0, rect.y1 - rect.y0));
+        results.append(QRectF(rect.ul.x, rect.ul.y, rect.ur.x - rect.ul.x, rect.ll.y - rect.ul.y));
     }
 
     return results;
