@@ -34,6 +34,7 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include <QShortcut>
 #include <QTableView>
 
+#include "colorwidget.h"
 #include "settings.h"
 #include "model.h"
 #include "pluginhandler.h"
@@ -46,14 +47,15 @@ namespace
 
 using namespace qpdfview;
 
-void addSettingsWidget(QTabWidget* tabWidget, SettingsWidget*& settingsWidget, PluginHandler::FileType fileType)
+SettingsWidget* addSettingsWidget(QTabWidget* tabWidget, PluginHandler::FileType fileType)
 {
-    settingsWidget = PluginHandler::instance()->createSettingsWidget(fileType, tabWidget);
+    auto settingsWidget = PluginHandler::instance()->createSettingsWidget(fileType, tabWidget);
 
     if(settingsWidget != nullptr)
     {
         tabWidget->addTab(settingsWidget, PluginHandler::fileTypeName(fileType));
     }
+    return settingsWidget;
 }
 
 void setCurrentIndexFromData(QComboBox* comboBox, int data)
@@ -64,18 +66,6 @@ void setCurrentIndexFromData(QComboBox* comboBox, int data)
 int dataFromCurrentIndex(const QComboBox* comboBox)
 {
     return comboBox->itemData(comboBox->currentIndex()).toInt();
-}
-
-void setCurrentTextToColorName(QComboBox* comboBox, const QColor& color)
-{
-    comboBox->lineEdit()->setText(color.isValid() ? color.name() : QString());
-}
-
-QColor validColorFromCurrentText(const QComboBox* comboBox, const QColor& defaultColor)
-{
-    const QColor color(comboBox->currentText());
-
-    return color.isValid() ? color : defaultColor;
 }
 
 void setCurrentIndexFromKeyboardModifiers(QComboBox* comboBox, Qt::KeyboardModifiers modifiers)
@@ -107,10 +97,10 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent)
     m_graphicsTabWidget = new QTabWidget(this);
     m_graphicsTabWidget->addTab(new QWidget(this), tr("General"));
 
-    addSettingsWidget(m_graphicsTabWidget, m_pdfSettingsWidget, PluginHandler::PDF);
-    addSettingsWidget(m_graphicsTabWidget, m_psSettingsWidget, PluginHandler::PS);
-    addSettingsWidget(m_graphicsTabWidget, m_djvuSettingsWidget, PluginHandler::DjVu);
-	addSettingsWidget(m_graphicsTabWidget, m_epubSettingsWidget, PluginHandler::EPUB);
+    m_pdfSettingsWidget = addSettingsWidget(m_graphicsTabWidget, PluginHandler::PDF);
+    m_psSettingsWidget = addSettingsWidget(m_graphicsTabWidget, PluginHandler::PS);
+    m_djvuSettingsWidget = addSettingsWidget(m_graphicsTabWidget, PluginHandler::DjVu);
+    m_epubSettingsWidget = addSettingsWidget(m_graphicsTabWidget, PluginHandler::EPUB);
 
     m_graphicsLayout = new QFormLayout(m_graphicsTabWidget->widget(0));
 
@@ -306,12 +296,11 @@ void SettingsDialog::createBehaviorTab()
     m_highlightDurationSpinBox = addSpinBox(m_behaviorLayout, tr("Highlight duration:"), QString(), tr(" ms"), tr("None"),
                                             0, 60000, 500, s_settings->documentView().highlightDuration());
 
-    m_highlightColorComboBox = addColorComboBox(m_behaviorLayout, tr("Highlight color:"), QString(),
-                                                s_settings->pageItem().highlightColor());
+    m_highlightColorWidget = addColorWidgets(m_behaviorLayout, tr("Highlight color:"),
+                                             s_settings->pageItem().highlightColor());
 
-    m_annotationColorComboBox = addColorComboBox(m_behaviorLayout, tr("Annotation color:"), QString(),
-                                                 s_settings->pageItem().annotationColor());
-
+    m_annotationColorWidget = addColorWidgets(m_behaviorLayout, tr("Annotation color:"),
+                                              s_settings->pageItem().annotationColor());
 
     m_sourceEditorLineEdit = addLineEdit(m_behaviorLayout, tr("Source editor:"), tr("'%1' is replaced by the absolute file path. '%2' resp. '%3' is replaced by line resp. column number."),
                                          s_settings->documentView().sourceEditor());
@@ -342,8 +331,8 @@ void SettingsDialog::acceptBehaivorTab()
     s_settings->documentView().setParallelSearchExecution(m_parallelSearchExecutionCheckBox->isChecked());
 
     s_settings->documentView().setHighlightDuration(m_highlightDurationSpinBox->value());
-    s_settings->pageItem().setHighlightColor(validColorFromCurrentText(m_highlightColorComboBox, Defaults::PageItem::highlightColor()));
-    s_settings->pageItem().setAnnotationColor(validColorFromCurrentText(m_annotationColorComboBox, Defaults::PageItem::annotationColor()));
+    s_settings->pageItem().setHighlightColor(m_highlightColorWidget->color(Defaults::PageItem::highlightColor()));
+    s_settings->pageItem().setAnnotationColor(m_annotationColorWidget->color(Defaults::PageItem::annotationColor()));
 
     s_settings->documentView().setSourceEditor(m_sourceEditorLineEdit->text());
 }
@@ -373,8 +362,8 @@ void SettingsDialog::resetBehaviorTab()
     m_parallelSearchExecutionCheckBox->setChecked(Defaults::DocumentView::parallelSearchExecution());
 
     m_highlightDurationSpinBox->setValue(Defaults::DocumentView::highlightDuration());
-    setCurrentTextToColorName(m_highlightColorComboBox, Defaults::PageItem::highlightColor());
-    setCurrentTextToColorName(m_annotationColorComboBox, Defaults::PageItem::annotationColor());
+    m_highlightColorWidget->setColor(Defaults::PageItem::highlightColor());
+    m_annotationColorWidget->setColor(Defaults::PageItem::highlightColor());
 
     m_sourceEditorLineEdit->clear();
 }
@@ -406,16 +395,14 @@ void SettingsDialog::createGraphicsTab()
     m_decorateFormFieldsCheckBox = addCheckBox(m_graphicsLayout, tr("Decorate form fields:"), QString(),
                                                s_settings->pageItem().decorateFormFields());
 
+    m_backgroundColorWidget = addColorWidgets(m_graphicsLayout, tr("Background color:"),
+                                              s_settings->pageItem().backgroundColor());
 
-    m_backgroundColorComboBox = addColorComboBox(m_graphicsLayout, tr("Background color:"), QString(),
-                                                 s_settings->pageItem().backgroundColor());
+    m_paperColorWidget = addColorWidgets(m_graphicsLayout, tr("Paper color:"),
+                                         s_settings->pageItem().paperColor());
 
-    m_paperColorComboBox = addColorComboBox(m_graphicsLayout, tr("Paper color:"), QString(),
-                                            s_settings->pageItem().paperColor());
-
-    m_presentationBackgroundColorComboBox = addColorComboBox(m_graphicsLayout, tr("Presentation background color:"), QString(),
-                                                             s_settings->presentationView().backgroundColor());
-
+    m_presentationBackgroundColorWidget = addColorWidgets(m_graphicsLayout, tr("Presentation background color:"),
+                                                          s_settings->presentationView().backgroundColor());
 
     m_pagesPerRowSpinBox = addSpinBox(m_graphicsLayout, tr("Pages per row:"), QString(), QString(), QString(),
                                       1, 10, 1, s_settings->documentView().pagesPerRow());
@@ -452,9 +439,9 @@ void SettingsDialog::acceptGraphicsTab()
     s_settings->pageItem().setDecorateLinks(m_decorateLinksCheckBox->isChecked());
     s_settings->pageItem().setDecorateFormFields(m_decorateFormFieldsCheckBox->isChecked());
 
-    s_settings->pageItem().setBackgroundColor(validColorFromCurrentText(m_backgroundColorComboBox, Defaults::PageItem::backgroundColor()));
-    s_settings->pageItem().setPaperColor(validColorFromCurrentText(m_paperColorComboBox, Defaults::PageItem::paperColor()));
-    s_settings->presentationView().setBackgroundColor(validColorFromCurrentText(m_presentationBackgroundColorComboBox, Defaults::PresentationView::backgroundColor()));
+    s_settings->pageItem().setBackgroundColor(m_backgroundColorWidget->color(Defaults::PageItem::backgroundColor()));
+    s_settings->pageItem().setPaperColor(m_paperColorWidget->color(Defaults::PageItem::paperColor()));
+    s_settings->presentationView().setBackgroundColor(m_presentationBackgroundColorWidget->color(Defaults::PresentationView::backgroundColor()));
 
     s_settings->documentView().setPagesPerRow(m_pagesPerRowSpinBox->value());
 
@@ -498,9 +485,9 @@ void SettingsDialog::resetGraphicsTab()
     m_decorateLinksCheckBox->setChecked(Defaults::PageItem::decorateLinks());
     m_decorateFormFieldsCheckBox->setChecked(Defaults::PageItem::decorateFormFields());
 
-    setCurrentTextToColorName(m_backgroundColorComboBox, Defaults::PageItem::backgroundColor());
-    setCurrentTextToColorName(m_paperColorComboBox, Defaults::PageItem::paperColor());
-    setCurrentTextToColorName(m_presentationBackgroundColorComboBox, Defaults::PresentationView::backgroundColor());
+    m_backgroundColorWidget->setColor(Defaults::PageItem::backgroundColor());
+    m_paperColorWidget->setColor(Defaults::PageItem::paperColor());
+    m_presentationBackgroundColorWidget->setColor(Defaults::PresentationView::backgroundColor());
 
     m_pagesPerRowSpinBox->setValue(Defaults::DocumentView::pagesPerRow());
 
@@ -546,8 +533,8 @@ void SettingsDialog::createInterfaceTab()
                                              s_settings->pageItem().formFieldOverlay());
 
 	m_backgroundModeComboBox = addComboBox(m_interfaceLayout, tr("Background Mode:"), QString(),
-	                                       QStringList() << tr("Default") << tr("Dark"),
-	                                       QList< int >() << BackgroundMode::Default << BackgroundMode::Dark,
+	                                       QStringList() << tr("Light") << tr("Dark"),
+	                                       QList< int >() << BackgroundMode::Light << BackgroundMode::Dark,
 	                                       s_settings->mainWindow().backgroundMode());
 
     m_tabPositionComboBox = addComboBox(m_interfaceLayout, tr("Tab position:"), QString(),
@@ -858,21 +845,6 @@ QComboBox* SettingsDialog::addDataSizeComboBox(QFormLayout* layout, const QStrin
     return comboBox;
 }
 
-QComboBox* SettingsDialog::addColorComboBox(QFormLayout* layout, const QString& label, const QString& toolTip, const QColor& color)
-{
-    auto comboBox = new QComboBox(this);
-    comboBox->setEditable(true);
-    comboBox->setInsertPolicy(QComboBox::NoInsert);
-    comboBox->addItems(QColor::colorNames());
-
-    setCurrentTextToColorName(comboBox, color);
-
-    comboBox->setToolTip(toolTip);
-    layout->addRow(label, comboBox);
-
-    return comboBox;
-}
-
 QComboBox* SettingsDialog::addModifiersComboBox(QFormLayout* layout, const QString& label, const QString& toolTip, Qt::KeyboardModifiers modifiers)
 {
     auto comboBox = new QComboBox(this);
@@ -892,6 +864,11 @@ QComboBox* SettingsDialog::addModifiersComboBox(QFormLayout* layout, const QStri
     layout->addRow(label, comboBox);
 
     return comboBox;
+}
+
+ColorWidget* SettingsDialog::addColorWidgets(QFormLayout* layout, const QString& label, const QColor& color, const QString& toolTip)
+{
+    return new ColorWidget(layout, label, color, toolTip, this);
 }
 
 } // qpdfview

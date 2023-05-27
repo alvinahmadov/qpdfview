@@ -40,6 +40,7 @@ class QTabWidget;
 namespace qpdfview
 {
 
+class ColorWidget;
 class Settings;
 class SettingsWidget;
 
@@ -110,8 +111,9 @@ private:
     QCheckBox* m_parallelSearchExecutionCheckBox {};
 
     QSpinBox* m_highlightDurationSpinBox {};
-    QComboBox* m_highlightColorComboBox {};
-    QComboBox* m_annotationColorComboBox {};
+
+    ColorWidget* m_highlightColorWidget {};
+    ColorWidget* m_annotationColorWidget {};
 
     QLineEdit* m_sourceEditorLineEdit {};
 
@@ -129,9 +131,9 @@ private:
     QCheckBox* m_decorateLinksCheckBox {};
     QCheckBox* m_decorateFormFieldsCheckBox {};
 
-    QComboBox* m_backgroundColorComboBox {};
-    QComboBox* m_paperColorComboBox {};
-    QComboBox* m_presentationBackgroundColorComboBox {};
+    ColorWidget* m_backgroundColorWidget {};
+    ColorWidget* m_paperColorWidget {};
+    ColorWidget* m_presentationBackgroundColorWidget {};
 
     QSpinBox* m_pagesPerRowSpinBox {};
 
@@ -215,7 +217,7 @@ private:
     QDoubleSpinBox* addDoubleSpinBox(QFormLayout* layout, const QString& label, const QString& toolTip, const QString& suffix, const QString& special, double min, double max, double step, double val);
     QComboBox* addComboBox(QFormLayout* layout, const QString& label, const QString& toolTip, const QStringList& text, const QList< int >& data, int value);
     QComboBox* addDataSizeComboBox(QFormLayout* layout, const QString& label, const QString& toolTip, int initialDataSize);
-    QComboBox* addColorComboBox(QFormLayout* layout, const QString& label, const QString& toolTip, const QColor& color);
+    ColorWidget* addColorWidgets(QFormLayout* layout, const QString& label, const QColor& color, const QString& toolTip = {});
     QComboBox* addModifiersComboBox(QFormLayout* layout, const QString& label, const QString& toolTip, Qt::KeyboardModifiers modifiers);
 
 };
