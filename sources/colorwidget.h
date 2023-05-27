@@ -7,7 +7,6 @@
 
 #include "macros.h"
 
-#include <QAbstractButton>
 #include <QWidget>
 
 class QColorDialog;
