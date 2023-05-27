@@ -785,14 +785,14 @@ void Settings::MainWindow::setCurrentTabIndex(int currentTabIndex)
 
 int Settings::MainWindow::backgroundMode() const
 {
-	return m_settings->value("mainWindow/backgroundMode", BackgroundMode::Default).toInt();
+	return m_settings->value("mainWindow/backgroundMode", BackgroundMode::Light).toInt();
 }
 
 void Settings::MainWindow::setBackgroundMode(BackgroundMode backgroundMode)
 {
 	switch (backgroundMode)
 	{
-		case BackgroundMode::Default :
+		case BackgroundMode::Light:
 			if (m_settings->contains("mainWindow/styleSheet"))
 				m_settings->remove("mainWindow/styleSheet");
 			break;

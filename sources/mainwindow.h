@@ -345,6 +345,8 @@ private:
     void scheduleSaveBookmarks();
     void scheduleSavePerFileSettings();
 
+    void toggleAlternatingColors();
+
     class TextValueMapper;
 
     MappingSpinBox* m_currentPageSpinBox {};
@@ -509,6 +511,8 @@ private:
     void createMenus();
 
     int m_tabBarHadPolicy {};
+
+    bool m_enableAlternatingRowColors;
 
     bool m_fileToolBarWasVisible {};
     bool m_editToolBarWasVisible {};

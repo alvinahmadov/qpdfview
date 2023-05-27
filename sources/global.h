@@ -76,7 +76,7 @@ enum CompositionMode
 
 enum BackgroundMode
 {
-	Default = 0,
+    Light = 0,
 	Dark = 1
 };
 } // qpdfview
