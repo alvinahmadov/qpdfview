@@ -364,7 +364,8 @@ SearchModel* MainWindow::s_searchModel = nullptr;
 			  m_currentTabChangedBlocked(),
 			  m_saveDatabaseTimer(),
 			  m_outlineView(),
-			  m_thumbnailsView()
+			  m_thumbnailsView(),
+			  m_enableAlternatingRowColors()
 {
     if(qpdfview::MainWindow::s_settings == nullptr)
     {
@@ -390,6 +391,8 @@ SearchModel* MainWindow::s_searchModel = nullptr;
     createToolBars();
     createDocks();
     createMenus();
+
+    toggleAlternatingColors();
 
     restoreGeometry(s_settings->mainWindow().geometry());
     restoreState(s_settings->mainWindow().state());
@@ -1704,6 +1707,8 @@ void MainWindow::onSettingsTriggered()
 
     m_tabsMenu->setSearchable(s_settings->mainWindow().searchableMenus());
     m_bookmarksMenu->setSearchable(s_settings->mainWindow().searchableMenus());
+
+    toggleAlternatingColors();
 
     for(DocumentView* tab : allTabs())
     {
@@ -3029,6 +3034,20 @@ void MainWindow::scheduleSavePerFileSettings()
     }
 }
 
+void MainWindow::toggleAlternatingColors()
+{
+    m_enableAlternatingRowColors = s_settings->mainWindow().backgroundMode() == BackgroundMode::Light;
+
+    if(m_searchView != nullptr)
+        m_searchView->setAlternatingRowColors(m_enableAlternatingRowColors);
+    if(m_outlineView != nullptr)
+        m_outlineView->setAlternatingRowColors(m_enableAlternatingRowColors);
+    if(m_propertiesView != nullptr)
+        m_propertiesView->setAlternatingRowColors(m_enableAlternatingRowColors);
+    if(m_bookmarksView != nullptr)
+        m_bookmarksView->setAlternatingRowColors(m_enableAlternatingRowColors);
+}
+
 void MainWindow::createWidgets()
 {
     m_tabWidget = new TabWidget(this);
@@ -3780,8 +3799,8 @@ void MainWindow::createToolbarDock()
 {
 	m_toolbarDock = new QDockWidget(this);
 	m_toolbarDock->setObjectName(QLatin1String("toolbar"));
-	m_toolbarDock->setAllowedAreas(Qt::BottomDockWidgetArea);
-	m_toolbarDock->setFeatures(QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
+	m_toolbarDock->setFeatures(QDockWidget::DockWidgetClosable);
+    m_toolbarDock->toggleViewAction();
 
 	m_toolbarWidget = new QWidget(this);
 	m_toolbarDock->setWidget(m_toolbarWidget);
@@ -3920,7 +3939,7 @@ void MainWindow::createSearchDock()
         s_shortcutHandler->registerAction(m_searchDock->toggleViewAction());
 
         m_searchView = new QTreeView(m_searchWidget);
-        m_searchView->setAlternatingRowColors(true);
+        m_searchView->setAlternatingRowColors(m_enableAlternatingRowColors);
         m_searchView->setUniformRowHeights(true);
         m_searchView->setEditTriggers(QAbstractItemView::NoEditTriggers);
         m_searchView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -3951,7 +3970,6 @@ void MainWindow::createDocks()
     m_outlineDock = createDock(tr("&Outline"), QLatin1String("outlineDock"), QKeySequence(Qt::Key_F6));
 
     m_outlineView = new TreeView(Model::Document::ExpansionRole, this);
-    m_outlineView->setAlternatingRowColors(true);
     m_outlineView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_outlineView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     m_outlineView->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -3970,7 +3988,6 @@ void MainWindow::createDocks()
     m_propertiesDock = createDock(tr("&Properties"), QLatin1String("propertiesDock"), QKeySequence(Qt::Key_F7));
 
     m_propertiesView = new QTableView(this);
-    m_propertiesView->setAlternatingRowColors(true);
     m_propertiesView->setTabKeyNavigation(false);
     m_propertiesView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_propertiesView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -3999,7 +4016,6 @@ void MainWindow::createDocks()
 
     m_bookmarksView = new QTableView(this);
     m_bookmarksView->setShowGrid(false);
-    m_bookmarksView->setAlternatingRowColors(true);
     m_bookmarksView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_bookmarksView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     m_bookmarksView->setSelectionMode(QAbstractItemView::SingleSelection);
