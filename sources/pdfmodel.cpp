@@ -80,8 +80,8 @@ Outline loadOutline(const QVector<Poppler::OutlineItem>& outlineItems, int numPa
         if(destination)
         {
             int page = destination->pageNumber();
-            qreal left;
-            qreal top;
+            qreal left {};
+            qreal top {};
 
             page = page >= 1 ? page : 1;
             page = page <= numPages ? page : numPages;
