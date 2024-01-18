@@ -54,7 +54,6 @@ private:
     int m_count;
 
     QActionGroup* m_tabActionGroup;
-    DECL_UNUSED
     QAction* m_separatorAction;
     QAction* m_clearListAction;
 
