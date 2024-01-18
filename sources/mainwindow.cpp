@@ -29,6 +29,7 @@ along with qpdfview.  If not, see <http://www.gnu.org/licenses/>.
 #include "mainwindow.h"
 #include <qglobal.h>
 #include <QApplication>
+#include <QScreen>
 #include <QCheckBox>
 #include <QClipboard>
 #include <QDesktopServices>
@@ -3798,9 +3799,19 @@ QDockWidget* MainWindow::createDock(const QString& text, const QString& objectNa
 void MainWindow::createToolbarDock()
 {
 	m_toolbarDock = new QDockWidget(this);
+    m_toolbarDock->setFloating(true);
+    m_toolbarDock->setBackgroundRole(QPalette::Window);
 	m_toolbarDock->setObjectName(QLatin1String("toolbar"));
-	m_toolbarDock->setFeatures(QDockWidget::DockWidgetClosable);
+	m_toolbarDock->setFeatures(QDockWidget::DockWidgetClosable |
+                               QDockWidget::DockWidgetMovable |
+                               QDockWidget::DockWidgetFloatable);
+    m_toolbarDock->setAllowedAreas(Qt::DockWidgetArea::BottomDockWidgetArea);
     m_toolbarDock->toggleViewAction();
+
+    {
+        auto screen = QGuiApplication::primaryScreen();
+        m_toolbarDock->move(screen->geometry().height() / 2, screen->geometry().width());
+    }
 
 	m_toolbarWidget = new QWidget(this);
 	m_toolbarDock->setWidget(m_toolbarWidget);
